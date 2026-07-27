@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -25,7 +25,7 @@
      * Change only when the repository name or branch changes.
      */
     const GITHUB_REPOSITORY =
-      "davynova28/mini-golf-signage-dev";
+      "davynova28/arcadepricefeed";
 
     const GITHUB_BRANCH =
       "main";
@@ -15840,9 +15840,9 @@
       if (missionImagesActionStatus) {
         const imageCount =
           Array.isArray(
-            githubImageLibrary
+            imageLibraryIndex
           )
-            ? githubImageLibrary.length
+            ? imageLibraryIndex.length
             : 0;
 
         missionImagesActionStatus.textContent =
