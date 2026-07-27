@@ -26,7 +26,7 @@
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="64">
+  <meta name="dashboard-build" content="65">
 </head>
 
 <body>
@@ -376,6 +376,143 @@
               Waiting for schedule data
             </div>
           </article>
+        </div>
+      </section>
+
+      <!--
+        =====================================================
+        MISSION CONTROL — STEP 1D: QUICK ACTIONS
+        =====================================================
+      -->
+      <section class="mission-quick-actions-section">
+        <div class="mission-section-heading">
+          <div>
+            <div class="eyebrow">
+              Shortcuts
+            </div>
+
+            <h3 class="mission-section-title">
+              Quick Actions
+            </h3>
+          </div>
+
+          <div
+            id="missionGreeting"
+            class="mission-greeting"
+          >
+            Welcome back.
+          </div>
+        </div>
+
+        <div class="mission-quick-actions-grid">
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="schedule"
+          >
+            <span class="mission-action-icon">📅</span>
+            <span class="mission-action-title">Schedule Manager</span>
+            <span class="mission-action-description">
+              Edit and publish screen schedules.
+            </span>
+            <span
+              id="missionScheduleActionStatus"
+              class="mission-action-status"
+            >
+              Checking schedules
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
+
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="daily"
+          >
+            <span class="mission-action-icon">📆</span>
+            <span class="mission-action-title">Daily Schedule</span>
+            <span class="mission-action-description">
+              Review today’s calendar and active events.
+            </span>
+            <span class="mission-action-status">
+              View timeline
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
+
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="images"
+          >
+            <span class="mission-action-icon">🖼️</span>
+            <span class="mission-action-title">Image Library</span>
+            <span class="mission-action-description">
+              Browse and validate GitHub signage assets.
+            </span>
+            <span
+              id="missionImagesActionStatus"
+              class="mission-action-status"
+            >
+              Browse assets
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
+
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="system-health"
+          >
+            <span class="mission-action-icon">❤️</span>
+            <span class="mission-action-title">System Health</span>
+            <span class="mission-action-description">
+              Open telemetry, diagnostics, and player monitoring.
+            </span>
+            <span
+              id="missionHealthActionStatus"
+              class="mission-action-status"
+            >
+              Waiting for score
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
+
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="system-health"
+            data-mission-health-anchor="rollout"
+          >
+            <span class="mission-action-icon">🚀</span>
+            <span class="mission-action-title">Rollout Assistant</span>
+            <span class="mission-action-description">
+              Test and deploy players one screen at a time.
+            </span>
+            <span
+              id="missionRolloutActionStatus"
+              class="mission-action-status"
+            >
+              Review deployment
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
+
+          <button
+            class="mission-action-card"
+            type="button"
+            data-mission-workspace="holiday-calendar"
+          >
+            <span class="mission-action-icon">🎄</span>
+            <span class="mission-action-title">Holiday Calendar</span>
+            <span class="mission-action-description">
+              Review holiday dates and special schedule rules.
+            </span>
+            <span class="mission-action-status">
+              Manage holidays
+            </span>
+            <span class="mission-action-open">Open →</span>
+          </button>
         </div>
       </section>
     </section>

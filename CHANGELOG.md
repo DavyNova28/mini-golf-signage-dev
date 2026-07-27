@@ -2,6 +2,16 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.65] — Mission Control Step 1D
+
+### Added
+
+- Responsive Quick Actions grid on Home.
+- Clickable shortcuts for schedules, daily calendar, images, System Health, rollout, and holidays.
+- Live health, schedule, rollout, and image-library status text.
+- Time-aware Home greeting.
+- Keyboard-accessible action cards and hover animations.
+
 ## [1.0.0-build.64] — Mission Control Step 1C
 
 ### Added
