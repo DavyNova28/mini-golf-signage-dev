@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Mini Golf Signage</title>
+
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #signage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    .signage-image {
+      position: absolute;
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+
+      /*
+       * "contain" displays the entire Canva image.
+       * "cover" fills the screen but may crop the edges.
+       */
+      object-fit: contain;
+
+      opacity: 0;
+
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      will-change: opacity;
+    }
+
+    .signage-image.visible {
+      opacity: 1;
+    }
+
+    #status {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 100;
+
+      width: min(430px, calc(100% - 44px));
+      padding: 12px;
+
+      color: white;
+      background: rgba(0, 0, 0, 0.88);
+
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+
+      display: none;
+    }
+
+    body.debug #status {
+      display: block;
+    }
+
+    .debug-title {
+      margin-bottom: 8px;
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .debug-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 4px 10px;
+    }
+
+    .debug-label {
+      color: rgba(255, 255, 255, 0.64);
+    }
+
+    .debug-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .debug-active {
+      color: #8ff0bd;
+    }
+
+    .debug-paused {
+      color: #ffd38a;
+    }
+
+    .debug-error {
+      color: #ff9f9f;
+    }
+  </style>
+</head>
+
+<body>
+  <main id="signage">
+    <img
+      id="imageA"
+      class="signage-image"
+      alt=""
+    >
+
+    <img
+      id="imageB"
+      class="signage-image"
+      alt=""
+    >
+
+    <div id="status">
+      <div class="debug-title">
+        Player Status
+      </div>
+
+      <div class="debug-grid">
+        <div class="debug-label">Screen</div>
+        <div id="debugScreen" class="debug-value">—</div>
+
+        <div class="debug-label">Polling</div>
+        <div id="debugPolling" class="debug-value">Starting…</div>
+
+        <div class="debug-label">Last check</div>
+        <div id="debugLastCheck" class="debug-value">—</div>
+
+        <div class="debug-label">Next check</div>
+        <div id="debugNextCheck" class="debug-value">—</div>
+
+        <div class="debug-label">Requests today</div>
+        <div id="debugRequestCount" class="debug-value">0</div>
+
+        <div class="debug-label">Schedule rows</div>
+        <div id="debugScheduleCount" class="debug-value">0</div>
+
+        <div class="debug-label">Current image</div>
+        <div id="debugCurrentImage" class="debug-value">—</div>
+
+        <div class="debug-label">Player version</div>
+        <div id="debugPlayerVersion" class="debug-value">—</div>
+
+        <div class="debug-label">Last result</div>
+        <div id="debugLastResult" class="debug-value">Starting…</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /*
+     * =====================================================
+     * REQUIRED SETTING
+     * =====================================================
+     *
+     * Replace this with your Google Apps Script /exec URL.
+     */
+    const SCHEDULE_FEED_URL =
+      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+
+    /*
+     * Background polling is active only between 10:00 and
+     * 22:00. Between 22:00 and 10:00, Apps Script is not
+     * contacted at all.
+     */
+    const PLAYER_VERSION =
+      "v3.1-heartbeat-1";
+
+    const ACTIVE_FEED_POLL_MS = 30000;
+
+    /*
+     * Stable per-screen staggering.
+     *
+     * Each screen gets a fixed offset inside the 30-second
+     * polling window so all Fire Sticks do not contact Apps
+     * Script at the same moment.
+     */
+    const SCREEN_POLL_OFFSETS_SECONDS = {
+      Arcade: 3,
+      ArcadeWeek: 8,
+      ArcadeSunday: 13,
+      Golf: 18,
+      Slush: 23,
+      infoArcade: 28
+    };
+
+    /*
+     * Exact active polling window.
+     *
+     * 10:00–22:00:
+     *   Check Apps Script every 30 seconds.
+     *
+     * 22:00–10:00:
+     *   No Apps Script polling.
+     */
+    const POLLING_START_TIME = "10:00";
+    const POLLING_END_TIME = "22:00";
+
+    const FEED_REQUEST_TIMEOUT_MS = 20000;
+
+    /*
+     * Check the current time every second.
+     * This is local and does not contact Apps Script.
+     */
+    const CLOCK_CHECK_MS = 1000;
+
+    /*
+     * Used when column C has no valid fade duration.
+     */
+    const DEFAULT_FADE_MS = 1500;
+
+    /*
+     * Read URL parameters.
+     *
+     * Examples:
+     *
+     * ?screen=Arcade
+     *
+     * ?screen=Arcade&debug=1
+     */
+    const queryParameters =
+      new URLSearchParams(window.location.search);
+
+    const SCREEN_NAME =
+      queryParameters.get("screen") || "Schedule";
+
+    const DEBUG_MODE =
+      queryParameters.get("debug") === "1";
+
+    if (DEBUG_MODE) {
+      document.body.classList.add("debug");
+    }
+
+    /*
+     * Current signage state.
+     */
+    let schedule = [];
+    let currentImageName = null;
+    let visibleLayer = "A";
+    let feedRequestNumber = 0;
+    let transitionInProgress = false;
+
+    let currentScheduleSignature = "";
+    let feedPollTimer = null;
+    let feedRequestTimeout = null;
+    let feedRequestInProgress = false;
+    let nextScheduledCheck = null;
+    let lastSuccessfulCheck = null;
+    let requestCountToday = 0;
+    let requestCountDate = getLocalDateKey();
+    let lastFeedResult = "Starting…";
+
+    const imageA =
+      document.getElementById("imageA");
+
+    const imageB =
+      document.getElementById("imageB");
+
+    const statusElement =
+      document.getElementById("status");
+
+    const debugScreen =
+      document.getElementById("debugScreen");
+
+    const debugPolling =
+      document.getElementById("debugPolling");
+
+    const debugLastCheck =
+      document.getElementById("debugLastCheck");
+
+    const debugNextCheck =
+      document.getElementById("debugNextCheck");
+
+    const debugRequestCount =
+      document.getElementById("debugRequestCount");
+
+    const debugScheduleCount =
+      document.getElementById("debugScheduleCount");
+
+    const debugCurrentImage =
+      document.getElementById("debugCurrentImage");
+
+    const debugPlayerVersion =
+      document.getElementById("debugPlayerVersion");
+
+    const debugLastResult =
+      document.getElementById("debugLastResult");
+
+    /*
+     * Display unexpected JavaScript errors on screen.
+     */
+    window.onerror = function(
+      message,
+      source,
+      lineNumber
+    ) {
+      showError(
+        `JavaScript error: ${message}, line ${lineNumber}`
+      );
+    };
+
+    /*
+     * =====================================================
+     * GOOGLE SHEETS CALLBACK
+     * =====================================================
+     *
+     * Apps Script calls this function after returning the
+     * selected Google Sheets tab.
+     */
+    window.updateSignageSchedule = function(payload) {
+      finishFeedRequest();
+
+      if (!payload) {
+        handleFeedFailure(
+          "Apps Script returned no information."
+        );
+        return;
+      }
+
+      if (payload.success !== true) {
+        handleFeedFailure(
+          payload.error ||
+          "Apps Script returned an error."
+        );
+        return;
+      }
+
+      if (!Array.isArray(payload.schedule)) {
+        handleFeedFailure(
+          "The schedule is not in the expected format."
+        );
+        return;
+      }
+
+      const incomingSchedule =
+        payload.schedule
+          .filter(isValidScheduleItem)
+          .map(item => ({
+            time:
+              String(item.time).trim(),
+
+            image:
+              String(item.image).trim(),
+
+            fade:
+              normalizeFade(item.fade),
+
+            endTime:
+              normalizeOptionalTime(
+                item.endTime
+              )
+          }))
+          .sort((a, b) =>
+            a.time.localeCompare(b.time)
+          );
+
+      if (incomingSchedule.length === 0) {
+        handleFeedFailure(
+          `The tab "${SCREEN_NAME}" has no valid schedule rows.`
+        );
+        return;
+      }
+
+      const incomingSignature =
+        JSON.stringify(
+          incomingSchedule.map(item => [
+            item.time,
+            item.endTime || "",
+            item.image,
+            item.fade
+          ])
+        );
+
+      const changed =
+        incomingSignature !==
+        currentScheduleSignature;
+
+      schedule =
+        incomingSchedule;
+
+      currentScheduleSignature =
+        incomingSignature;
+
+      lastSuccessfulCheck =
+        new Date();
+
+      lastFeedResult =
+        changed
+          ? "Schedule updated"
+          : "Schedule unchanged";
+
+      if (changed) {
+        preloadScheduleImages();
+      }
+
+      evaluateSchedule();
+      updateDebugPanel();
+      scheduleNextFeedPoll();
+    };
+
+
+    function isValidScheduleItem(item) {
+      if (
+        !item ||
+        typeof item.time !== "string" ||
+        !isValidHHMM(item.time) ||
+        typeof item.image !== "string" ||
+        item.image.trim() === ""
+      ) {
+        return false;
+      }
+
+      /*
+       * End Time is optional. Invalid or overnight values are
+       * rejected by the backend, but this protects the player
+       * if an older or malformed feed is received.
+       */
+      if (
+        item.endTime !== undefined &&
+        item.endTime !== null &&
+        String(item.endTime).trim() !== ""
+      ) {
+        const endTime =
+          String(item.endTime).trim();
+
+        if (
+          !isValidHHMM(endTime) ||
+          endTime <= item.time
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+
+    function isValidHHMM(value) {
+      return (
+        typeof value === "string" &&
+        /^([01]\d|2[0-3]):[0-5]\d$/
+          .test(value.trim())
+      );
+    }
+
+
+    function normalizeOptionalTime(value) {
+      if (
+        value === undefined ||
+        value === null ||
+        String(value).trim() === ""
+      ) {
+        return "";
+      }
+
+      const time =
+        String(value).trim();
+
+      return isValidHHMM(time)
+        ? time
+        : "";
+    }
+
+
+    function normalizeFade(value) {
+      const fade = Number(value);
+
+      if (!Number.isFinite(fade) || fade < 0) {
+        return DEFAULT_FADE_MS;
+      }
+
+      return Math.min(fade, 10000);
+    }
+
+    /*
+     * =====================================================
+     * LOAD GOOGLE SHEETS SCHEDULE
+     * =====================================================
+     */
+    function loadScheduleFeed(
+      options = {}
+    ) {
+      const force =
+        options.force === true;
+
+      if (
+        !SCHEDULE_FEED_URL ||
+        SCHEDULE_FEED_URL.includes(
+          "PASTE_YOUR_APPS_SCRIPT"
+        )
+      ) {
+        showError(
+          "The Apps Script URL has not been entered."
+        );
+        return;
+      }
+
+      if (
+        !force &&
+        !isPollingActiveNow()
+      ) {
+        scheduleNextFeedPoll();
+        return;
+      }
+
+      if (feedRequestInProgress) {
+        return;
+      }
+
+      clearScheduledFeedPoll();
+      resetDailyRequestCounterIfNeeded();
+
+      feedRequestInProgress =
+        true;
+
+      feedRequestNumber += 1;
+      requestCountToday += 1;
+
+      lastFeedResult =
+        "Checking Apps Script…";
+
+      updateDebugPanel();
+
+      const previousScript =
+        document.getElementById(
+          "schedule-feed-script"
+        );
+
+      if (previousScript) {
+        previousScript.remove();
+      }
+
+      const script =
+        document.createElement("script");
+
+      script.id =
+        "schedule-feed-script";
+
+      script.async =
+        true;
+
+      const separator =
+        SCHEDULE_FEED_URL.includes("?")
+          ? "&"
+          : "?";
+
+      script.src =
+        `${SCHEDULE_FEED_URL}` +
+        `${separator}callback=updateSignageSchedule` +
+        `&screen=${encodeURIComponent(SCREEN_NAME)}` +
+        `&currentImage=${encodeURIComponent(currentImageName || "")}` +
+        `&playerVersion=${encodeURIComponent(PLAYER_VERSION)}` +
+        `&debug=${DEBUG_MODE ? "1" : "0"}` +
+        `&_=${Date.now()}` +
+        `&request=${feedRequestNumber}`;
+
+      script.onerror =
+        function() {
+          finishFeedRequest();
+
+          handleFeedFailure(
+            `Could not load the schedule for "${SCREEN_NAME}".`
+          );
+        };
+
+      document.head.appendChild(
+        script
+      );
+
+      feedRequestTimeout =
+        setTimeout(
+          function() {
+            finishFeedRequest();
+
+            handleFeedFailure(
+              `Schedule request timed out for "${SCREEN_NAME}".`
+            );
+          },
+          FEED_REQUEST_TIMEOUT_MS
+        );
+    }
+
+
+    function finishFeedRequest() {
+      feedRequestInProgress =
+        false;
+
+      if (feedRequestTimeout) {
+        clearTimeout(
+          feedRequestTimeout
+        );
+
+        feedRequestTimeout =
+          null;
+      }
+
+      const script =
+        document.getElementById(
+          "schedule-feed-script"
+        );
+
+      if (script) {
+        script.remove();
+      }
+    }
+
+
+    function handleFeedFailure(
+      message
+    ) {
+      lastFeedResult =
+        message;
+
+      updateDebugPanel();
+
+      if (
+        DEBUG_MODE ||
+        schedule.length === 0
+      ) {
+        showError(message);
+
+      } else {
+        console.error(message);
+      }
+
+      scheduleNextFeedPoll();
+    }
+
+
+    function timeTextToMinutes(
+      timeText
+    ) {
+      const parts =
+        String(timeText)
+          .split(":")
+          .map(Number);
+
+      return (
+        parts[0] * 60 +
+        parts[1]
+      );
+    }
+
+
+    function getCurrentMinuteOfDay() {
+      const now =
+        new Date();
+
+      return (
+        now.getHours() * 60 +
+        now.getMinutes()
+      );
+    }
+
+
+    function isPollingActiveNow() {
+      const currentMinute =
+        getCurrentMinuteOfDay();
+
+      const startMinute =
+        timeTextToMinutes(
+          POLLING_START_TIME
+        );
+
+      const endMinute =
+        timeTextToMinutes(
+          POLLING_END_TIME
+        );
+
+      return (
+        currentMinute >= startMinute &&
+        currentMinute < endMinute
+      );
+    }
+
+
+    function getNextPollingStart() {
+      const now =
+        new Date();
+
+      const next =
+        new Date(now);
+
+      const startMinute =
+        timeTextToMinutes(
+          POLLING_START_TIME
+        );
+
+      const currentMinute =
+        getCurrentMinuteOfDay();
+
+      if (
+        currentMinute >= startMinute
+      ) {
+        next.setDate(
+          next.getDate() + 1
+        );
+      }
+
+      const startHour =
+        Math.floor(
+          startMinute / 60
+        );
+
+      const startMinutes =
+        startMinute % 60;
+
+      next.setHours(
+        startHour,
+        startMinutes,
+        0,
+        0
+      );
+
+      next.setMilliseconds(
+        0
+      );
+
+      next.setTime(
+        next.getTime() +
+        getScreenPollOffsetMs()
+      );
+
+      return next;
+    }
+
+
+    function clearScheduledFeedPoll() {
+      if (feedPollTimer) {
+        clearTimeout(
+          feedPollTimer
+        );
+
+        feedPollTimer =
+          null;
+      }
+
+      nextScheduledCheck =
+        null;
+    }
+
+
+    function getScreenPollOffsetMs() {
+      const configuredOffset =
+        SCREEN_POLL_OFFSETS_SECONDS[
+          SCREEN_NAME
+        ];
+
+      if (
+        Number.isFinite(
+          configuredOffset
+        )
+      ) {
+        return (
+          Math.max(
+            0,
+            Math.min(
+              29,
+              configuredOffset
+            )
+          ) * 1000
+        );
+      }
+
+      let hash =
+        0;
+
+      for (
+        let index = 0;
+        index < SCREEN_NAME.length;
+        index += 1
+      ) {
+        hash =
+          (
+            hash * 31 +
+            SCREEN_NAME.charCodeAt(index)
+          ) %
+          30;
+      }
+
+      return hash * 1000;
+    }
+
+
+    function getNextStaggeredActiveCheck(
+      now
+    ) {
+      const interval =
+        ACTIVE_FEED_POLL_MS;
+
+      const offset =
+        getScreenPollOffsetMs();
+
+      const currentMs =
+        now.getTime();
+
+      const nextSlot =
+        Math.floor(
+          (
+            currentMs -
+            offset
+          ) /
+          interval
+        ) *
+        interval +
+        offset +
+        interval;
+
+      return new Date(
+        nextSlot
+      );
+    }
+
+
+    function scheduleNextFeedPoll() {
+      clearScheduledFeedPoll();
+
+      const now =
+        new Date();
+
+      let delay;
+
+      if (isPollingActiveNow()) {
+        nextScheduledCheck =
+          getNextStaggeredActiveCheck(
+            now
+          );
+
+        delay =
+          Math.max(
+            1000,
+            nextScheduledCheck.getTime() -
+            now.getTime()
+          );
+
+      } else {
+        nextScheduledCheck =
+          getNextPollingStart();
+
+        delay =
+          Math.max(
+            1000,
+            nextScheduledCheck.getTime() -
+            now.getTime()
+          );
+      }
+
+      feedPollTimer =
+        setTimeout(
+          function() {
+            loadScheduleFeed({
+              force:
+                true
+            });
+          },
+          delay
+        );
+
+      updateDebugPanel();
+    }
+
+
+    function getLocalDateKey() {
+      const now =
+        new Date();
+
+      return [
+        now.getFullYear(),
+        String(now.getMonth() + 1)
+          .padStart(2, "0"),
+        String(now.getDate())
+          .padStart(2, "0")
+      ].join("-");
+    }
+
+
+    function resetDailyRequestCounterIfNeeded() {
+      const today =
+        getLocalDateKey();
+
+      if (
+        today !==
+        requestCountDate
+      ) {
+        requestCountDate =
+          today;
+
+        requestCountToday =
+          0;
+      }
+    }
+
+
+    /*
+     * =====================================================
+     * TIME AND SCHEDULE SELECTION
+     * =====================================================
+     *
+     * Column D is an optional End Time.
+     *
+     * Blank End Time:
+     *   The row stays eligible until another row replaces it.
+     *
+     * Filled End Time:
+     *   The row is eligible from Start Time up to, but not
+     *   including, End Time.
+     *
+     * If a temporary row expires, the player falls back to
+     * the most recent eligible row without an End Time.
+     */
+    function getCurrentHHMM() {
+      const now = new Date();
+
+      const hours =
+        String(now.getHours()).padStart(2, "0");
+
+      const minutes =
+        String(now.getMinutes()).padStart(2, "0");
+
+      return `${hours}:${minutes}`;
+    }
+
+    function getActiveScheduleItem(currentTime) {
+      if (schedule.length === 0) {
+        return null;
+      }
+
+      /*
+       * First choice:
+       * Find every item that has started and has not expired.
+       * When multiple timed items overlap, the newest Start
+       * Time wins.
+       */
+      let activeItem =
+        null;
+
+      for (const item of schedule) {
+        if (item.time > currentTime) {
+          break;
+        }
+
+        if (
+          !item.endTime ||
+          currentTime < item.endTime
+        ) {
+          activeItem =
+            item;
+        }
+      }
+
+      if (activeItem) {
+        return {
+          ...activeItem,
+          selectionReason:
+            activeItem.endTime
+              ? "active timed item"
+              : "active persistent item"
+        };
+      }
+
+      /*
+       * Safe fallback:
+       * If a temporary item expired and nothing newer is
+       * active, return to the most recent untimed item that
+       * has already started.
+       */
+      for (
+        let index =
+          schedule.length - 1;
+        index >= 0;
+        index -= 1
+      ) {
+        const item =
+          schedule[index];
+
+        if (
+          item.time <= currentTime &&
+          !item.endTime
+        ) {
+          return {
+            ...item,
+            selectionReason:
+              "fallback to persistent item"
+          };
+        }
+      }
+
+      /*
+       * Before the first item of the day, continue the final
+       * persistent image from the previous day when one is
+       * available.
+       */
+      for (
+        let index =
+          schedule.length - 1;
+        index >= 0;
+        index -= 1
+      ) {
+        const item =
+          schedule[index];
+
+        if (!item.endTime) {
+          return {
+            ...item,
+            selectionReason:
+              "previous-day persistent fallback"
+          };
+        }
+      }
+
+      /*
+       * Last-resort no-black-screen protection:
+       * If every row is temporary and none is currently
+       * eligible, keep the image already on screen. On first
+       * startup only, use the final scheduled row rather than
+       * clearing the display.
+       */
+      if (currentImageName) {
+        const currentItem =
+          schedule.find(item =>
+            item.image === currentImageName
+          );
+
+        if (currentItem) {
+          return {
+            ...currentItem,
+            selectionReason:
+              "keep current image to prevent blank screen"
+          };
+        }
+      }
+
+      return {
+        ...schedule[schedule.length - 1],
+        selectionReason:
+          "last-resort startup fallback"
+      };
+    }
+
+    function evaluateSchedule() {
+      if (schedule.length === 0) {
+        return;
+      }
+
+      const currentTime =
+        getCurrentHHMM();
+
+      const activeItem =
+        getActiveScheduleItem(currentTime);
+
+      if (!activeItem) {
+        showError(
+          `No active image at ${currentTime}.`
+        );
+        return;
+      }
+
+      setStatus(
+        `${SCREEN_NAME} — ` +
+        `${currentTime} — ` +
+        `${activeItem.image}` +
+        (
+          activeItem.endTime
+            ? ` — ends ${activeItem.endTime}`
+            : ""
+        ) +
+        ` — ${activeItem.selectionReason}`
+      );
+
+      if (
+        activeItem.image !== currentImageName &&
+        !transitionInProgress
+      ) {
+        crossfadeTo(
+          activeItem.image,
+          activeItem.fade
+        );
+      }
+
+      preloadNextImage(activeItem);
+    }
+
+    /*
+     * =====================================================
+     * IMAGE URLS
+     * =====================================================
+     */
+    function getImageUrl(filename) {
+      /*
+       * The image may be in the same folder as index.html:
+       *
+       * image1.jpg
+       *
+       * Or inside a GitHub folder:
+       *
+       * arcade/image1.jpg
+       */
+      return encodeURI(filename);
+    }
+
+    /*
+     * =====================================================
+     * FLASH-FREE FADE
+     * =====================================================
+     *
+     * The existing image stays fully visible underneath.
+     * The new image fades over it.
+     *
+     * Only after the new image is completely visible is
+     * the old image hidden.
+     */
+    function crossfadeTo(filename, fadeDuration) {
+      if (
+        transitionInProgress ||
+        filename === currentImageName
+      ) {
+        return;
+      }
+
+      transitionInProgress = true;
+
+      const incoming =
+        visibleLayer === "A"
+          ? imageB
+          : imageA;
+
+      const outgoing =
+        visibleLayer === "A"
+          ? imageA
+          : imageB;
+
+      const imageUrl =
+        getImageUrl(filename);
+
+      incoming.onload = function() {
+        incoming.onload = null;
+        incoming.onerror = null;
+
+        /*
+         * Prepare the incoming image invisibly above the
+         * current image.
+         */
+        incoming.style.transition = "none";
+        incoming.style.opacity = "0";
+        incoming.style.zIndex = "2";
+
+        /*
+         * Keep the current image fully visible underneath.
+         */
+        outgoing.style.transition = "none";
+        outgoing.style.opacity = "1";
+        outgoing.style.zIndex = "1";
+        outgoing.classList.add("visible");
+
+        /*
+         * Force the browser to register opacity 0 before
+         * starting the animation.
+         */
+        void incoming.offsetWidth;
+
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            incoming.style.transition =
+              `opacity ${fadeDuration}ms ease-in-out`;
+
+            incoming.style.opacity = "1";
+            incoming.classList.add("visible");
+
+            /*
+             * Hide the old image only after the new image
+             * has finished fading in.
+             */
+            setTimeout(function() {
+              outgoing.style.transition = "none";
+              outgoing.style.opacity = "0";
+              outgoing.style.zIndex = "1";
+              outgoing.classList.remove("visible");
+
+              incoming.style.zIndex = "2";
+
+              visibleLayer =
+                visibleLayer === "A"
+                  ? "B"
+                  : "A";
+
+              currentImageName = filename;
+              transitionInProgress = false;
+
+              setStatus(
+                `${SCREEN_NAME} — ` +
+                `${getCurrentHHMM()} — ` +
+                `${filename}`
+              );
+
+              updateDebugPanel();
+            }, fadeDuration + 150);
+          });
+        });
+      };
+
+      incoming.onerror = function() {
+        incoming.onload = null;
+        incoming.onerror = null;
+
+        transitionInProgress = false;
+
+        showError(
+          `Image not found: ${filename}`
+        );
+      };
+
+      /*
+       * The old image remains visible while the next image
+       * downloads.
+       *
+       * The version parameter prevents an old GitHub image
+       * from remaining permanently cached after replacement.
+       */
+      incoming.src =
+        `${imageUrl}?version=${Date.now()}`;
+    }
+
+    /*
+     * =====================================================
+     * IMAGE PRELOADING
+     * =====================================================
+     */
+    function preloadScheduleImages() {
+      for (const item of schedule) {
+        const preloadImage = new Image();
+
+        preloadImage.src =
+          getImageUrl(item.image);
+      }
+    }
+
+    function preloadNextImage(activeItem) {
+      const currentIndex =
+        schedule.findIndex(item =>
+          item.time === activeItem.time &&
+          item.image === activeItem.image
+        );
+
+      if (currentIndex < 0) {
+        return;
+      }
+
+      const nextIndex =
+        (currentIndex + 1) %
+        schedule.length;
+
+      const preloadImage = new Image();
+
+      preloadImage.src =
+        getImageUrl(
+          schedule[nextIndex].image
+        );
+    }
+
+    /*
+     * =====================================================
+     * STATUS AND ERROR MESSAGES
+     * =====================================================
+     */
+    function formatClockTime(
+      value
+    ) {
+      if (!value) {
+        return "—";
+      }
+
+      return value.toLocaleTimeString(
+        [],
+        {
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit",
+
+          second:
+            "2-digit"
+        }
+      );
+    }
+
+
+    function updateDebugPanel() {
+      if (!DEBUG_MODE) {
+        return;
+      }
+
+      resetDailyRequestCounterIfNeeded();
+
+      debugScreen.textContent =
+        SCREEN_NAME;
+
+      const active =
+        isPollingActiveNow();
+
+      const offsetSeconds =
+        Math.round(
+          getScreenPollOffsetMs() /
+          1000
+        );
+
+      debugPolling.textContent =
+        active
+          ? `ACTIVE — every 30 seconds · +${offsetSeconds}s offset (${POLLING_START_TIME}–${POLLING_END_TIME})`
+          : `PAUSED — quiet hours (${POLLING_END_TIME}–${POLLING_START_TIME})`;
+
+      debugPolling.className =
+        "debug-value " +
+        (
+          active
+            ? "debug-active"
+            : "debug-paused"
+        );
+
+      debugLastCheck.textContent =
+        formatClockTime(
+          lastSuccessfulCheck
+        );
+
+      debugNextCheck.textContent =
+        formatClockTime(
+          nextScheduledCheck
+        );
+
+      debugRequestCount.textContent =
+        String(
+          requestCountToday
+        );
+
+      debugScheduleCount.textContent =
+        String(
+          schedule.length
+        );
+
+      debugCurrentImage.textContent =
+        currentImageName || "—";
+
+      debugPlayerVersion.textContent =
+        PLAYER_VERSION;
+
+      debugLastResult.textContent =
+        lastFeedResult;
+
+      debugLastResult.className =
+        "debug-value" +
+        (
+          /error|failed|timed out|could not/i
+            .test(lastFeedResult)
+              ? " debug-error"
+              : ""
+        );
+    }
+
+
+    function setStatus(message) {
+      console.log(message);
+
+      if (DEBUG_MODE) {
+        lastFeedResult =
+          message;
+
+        updateDebugPanel();
+      }
+    }
+
+
+    function showError(message) {
+      lastFeedResult =
+        message;
+
+      if (DEBUG_MODE) {
+        updateDebugPanel();
+      }
+
+      console.error(message);
+    }
+
+    /*
+     * =====================================================
+     * STARTUP
+     * =====================================================
+     */
+    updateDebugPanel();
+
+    /*
+     * Always perform one immediate startup check. After that,
+     * polling follows the 10:00–22:00 schedule with a
+     * stable per-screen stagger.
+     */
+    loadScheduleFeed({
+      force:
+        true
+    });
+
+    /*
+     * Local Start/End Time evaluation continues every second.
+     * This creates no network requests.
+     */
+    setInterval(
+      function() {
+        evaluateSchedule();
+        updateDebugPanel();
+      },
+      CLOCK_CHECK_MS
+    );
+
+    /*
+     * When the player becomes visible again, perform one
+     * immediate background check, then return to the normal
+     * polling schedule.
+     */
+    document.addEventListener(
+      "visibilitychange",
+      function() {
+        if (!document.hidden) {
+          loadScheduleFeed({
+            force:
+              true
+          });
+
+          evaluateSchedule();
+
+        } else {
+          scheduleNextFeedPoll();
+        }
+      }
+    );
+
+    window.addEventListener(
+      "online",
+      function() {
+        loadScheduleFeed({
+          force:
+            true
+        });
+      }
+    );
+
+    window.addEventListener(
+      "offline",
+      function() {
+        lastFeedResult =
+          "Offline — current schedule retained";
+
+        scheduleNextFeedPoll();
+        updateDebugPanel();
+      }
+    );
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Mini Golf Signage Control Center</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="favicon.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="favicon.png"
+  >
+
+    <link rel="stylesheet" href="css/dashboard.css">
+
+  <meta name="application-name" content="Mini Golf Signage Manager">
+  <meta name="dashboard-version" content="1.0.0">
+  <meta name="dashboard-channel" content="stable-candidate">
+  <meta name="dashboard-build" content="62">
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">
+        <img
+          id="dashboardLogo"
+          src="dashboard-logo.png"
+          alt="Mini Golf Logo"
+        >
+      </div>
+
+      <div>
+        <h1 id="dashboardTitle">
+          Mini Golf Signage
+        </h1>
+
+        <div
+          id="dashboardSubtitle"
+          class="subtitle"
+        >
+          Control Center · Dashboard V3
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="lastRefresh">
+        Waiting for first refresh…
+      </span>
+
+      <a
+        class="button"
+        href="dashboard.html"
+      >
+        ← Dashboard 2.5
+      </a>
+
+      <button
+        id="themeButton"
+        class="button"
+        type="button"
+        aria-label="Change dashboard theme"
+      >
+        <span id="themeButtonIcon">
+          ◐
+        </span>
+
+        <span id="themeButtonText">
+          Auto theme
+        </span>
+      </button>
+
+      <button
+        id="refreshButton"
+        class="button button-primary"
+        type="button"
+      >
+        ↻ Refresh now
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <nav class="workspace-tabs">
+      <button
+        id="homeTab"
+        class="workspace-tab active"
+        type="button"
+      >
+        🏠 Home
+      </button>
+
+      <button
+        id="controlCenterTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Control Center
+      </button>
+
+      <button
+        id="scheduleManagerTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Schedule Manager
+      </button>
+      <button
+        id="dailyScheduleCalendarTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Daily Schedule
+      </button>
+    
+
+
+      <button
+        id="holidayManagerTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Holiday Overrides
+      </button>
+
+      <button
+        id="backupHistoryTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Backup History
+      </button>
+
+      <button
+        id="imageLibraryTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Image Library
+      </button>
+
+      <button
+        id="auditLogTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Audit Log
+      </button>
+
+      <button
+        id="holidayCalendarTab"
+        class="workspace-tab"
+        type="button"
+      >
+        Holiday Calendar
+      </button>
+
+      <button
+        id="compatibilityAuditTab"
+        class="workspace-tab"
+        type="button"
+      >
+        V3.1 Audit
+      </button>
+
+      <button
+        id="systemHealthTab"
+        class="workspace-tab"
+        type="button"
+      >
+        System Health
+      </button>
+
+</nav>
+
+    <section
+      id="homeWorkspace"
+      class="workspace active home-workspace"
+      aria-labelledby="homeWorkspaceTitle"
+    >
+      <section class="home-placeholder-card">
+        <div class="eyebrow">
+          Version 1.0
+        </div>
+
+        <h2
+          id="homeWorkspaceTitle"
+          class="home-placeholder-title"
+        >
+          Mission Control
+        </h2>
+
+        <p class="home-placeholder-description">
+          Welcome to Mini Golf Signage Manager.
+          The complete Mission Control overview will be added in the next steps.
+        </p>
+
+        <div class="home-placeholder-status">
+          <span aria-hidden="true">✅</span>
+          Home navigation is ready.
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="controlCenterWorkspace"
+      class="workspace"
+    >
+      <section class="operations-panel">
+        <div class="operations-heading">
+          <div>
+            <h2
+              id="operationsGreeting"
+              class="operations-greeting"
+            >
+              Welcome
+            </h2>
+
+            <div
+              id="operationsDate"
+              class="operations-date"
+            >
+              Loading today’s information…
+            </div>
+          </div>
+
+          <div class="operations-clock">
+            <div class="operations-clock-label">
+              Local time
+            </div>
+
+            <div id="operationsClock">
+              --:--:--
+            </div>
+          </div>
+        </div>
+
+        <div class="operations-grid">
+          <article class="operation-item">
+            <div class="operation-label">
+              Screens ready
+            </div>
+
+            <div
+              id="operationsScreens"
+              class="operation-value system-good"
+            >
+              0 / 0
+            </div>
+
+            <div class="operation-detail">
+              Successfully loaded
+            </div>
+          </article>
+
+          <article class="operation-item">
+            <div class="operation-label">
+              Holiday status
+            </div>
+
+            <div
+              id="operationsHoliday"
+              class="operation-value"
+            >
+              None
+            </div>
+
+            <div
+              id="operationsHolidayDetail"
+              class="operation-detail"
+            >
+              Regular schedules
+            </div>
+          </article>
+
+          <article class="operation-item">
+            <div class="operation-label">
+              Changes today
+            </div>
+
+            <div
+              id="operationsChanges"
+              class="operation-value"
+            >
+              0
+            </div>
+
+            <div class="operation-detail">
+              Across all screens
+            </div>
+          </article>
+
+          <article class="operation-item">
+            <div class="operation-label">
+              First change
+            </div>
+
+            <div
+              id="operationsFirst"
+              class="operation-value"
+            >
+              —
+            </div>
+
+            <div
+              id="operationsFirstDetail"
+              class="operation-detail"
+            >
+              No schedule loaded
+            </div>
+          </article>
+
+          <article class="operation-item">
+            <div class="operation-label">
+              Last change
+            </div>
+
+            <div
+              id="operationsLast"
+              class="operation-value"
+            >
+              —
+            </div>
+
+            <div
+              id="operationsLastDetail"
+              class="operation-detail"
+            >
+              No schedule loaded
+            </div>
+          </article>
+
+          <article class="operation-item">
+            <div class="operation-label">
+              Next change
+            </div>
+
+            <div
+              id="operationsNext"
+              class="operation-value next-change"
+            >
+              —
+            </div>
+
+            <div
+              id="operationsNextDetail"
+              class="operation-detail"
+            >
+              Waiting for schedules
+            </div>
+          </article>
+        </div>
+      </section>
+
+
+      <section
+        id="offlineModeBanner"
+        class="offline-mode-banner"
+      >
+        <div>
+          <strong>
+            Offline snapshot mode
+          </strong>
+
+          <div id="offlineModeDescription">
+            Apps Script is unavailable. Showing the last synchronized data.
+          </div>
+        </div>
+
+        <div
+          id="offlineModeAge"
+          class="offline-mode-age"
+        >
+          —
+        </div>
+      </section>
+
+      <section class="system-banner">
+        <div class="system-health">
+          <span
+            id="healthDot"
+            class="health-dot"
+          ></span>
+
+          <div>
+            <div
+              id="healthTitle"
+              class="health-title"
+            >
+              Loading system status
+            </div>
+
+            <div
+              id="healthDescription"
+              class="health-description"
+            >
+              Connecting to Apps Script…
+            </div>
+          </div>
+        </div>
+
+        <div class="global-next">
+          <div class="global-next-label">
+            Next global change
+          </div>
+
+          <div
+            id="globalNextChange"
+            class="global-next-value"
+          >
+            —
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article class="summary-card">
+          <div class="summary-label">
+            Screens configured
+          </div>
+
+          <div
+            id="screenCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+          <div class="summary-small">
+            Google Sheet schedule tabs
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-label">
+            Loaded successfully
+          </div>
+
+          <div
+            id="loadedCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+          <div class="summary-small">
+            Schedules responding
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-label">
+            Regular schedules
+          </div>
+
+          <div
+            id="regularCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+          <div class="summary-small">
+            Standard programming
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-label">
+            Holiday overrides
+          </div>
+
+          <div
+            id="holidayCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+          <div class="summary-small">
+            Temporary schedules active
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-label">
+            Warnings or errors
+          </div>
+
+          <div
+            id="errorCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+          <div class="summary-small">
+            Missing images or feeds
+          </div>
+        </article>
+      </section>
+
+      <section
+        id="screenGrid"
+        class="screen-grid"
+      ></section>
+
+      <section class="upcoming-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Upcoming changes</h2>
+
+            <div class="panel-description">
+              The next scheduled change for every screen
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="upcomingList"
+          class="upcoming-list"
+        >
+          <div class="muted">
+            Loading schedules…
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="scheduleManagerWorkspace"
+      class="workspace"
+    >
+      <section class="schedule-manager">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Schedule Manager
+            </h2>
+
+            <p class="manager-description">
+              Review the schedule currently supplied to each signage screen.
+              Editing and saving will be enabled in the next stage.
+            </p>
+          </div>
+
+          <div
+            id="managerModeStatus"
+            class="manager-status"
+          >
+            Read-only
+          </div>
+        </div>
+
+        <section class="schedule-templates">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                V3.1 templates
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Reusable schedule templates
+              </h3>
+
+              <p class="manager-description">
+                Save a live schedule or local draft as a reusable browser template.
+                Applying a template creates an unsaved draft only.
+              </p>
+            </div>
+
+            <div class="manager-status">
+              Local only
+            </div>
+          </div>
+
+          <div class="template-toolbar">
+            <label class="template-field">
+              <span class="manager-label">
+                Template name
+              </span>
+
+              <input
+                id="scheduleTemplateNameInput"
+                class="manager-input"
+                type="text"
+                maxlength="80"
+                placeholder="Example: Arcade closing schedule"
+              >
+            </label>
+
+            <button
+              id="saveScheduleTemplateButton"
+              class="button"
+              type="button"
+            >
+              Save current as template
+            </button>
+          </div>
+
+          <div
+            id="scheduleTemplateList"
+            class="template-list"
+          ></div>
+
+          <section
+            id="scheduleTemplatePreview"
+            class="template-preview"
+          >
+            <div class="manager-header">
+              <div>
+                <div class="eyebrow">
+                  Template preview
+                </div>
+
+                <div
+                  id="scheduleTemplatePreviewTitle"
+                  class="manager-stat-value"
+                >
+                  —
+                </div>
+              </div>
+
+              <button
+                id="closeScheduleTemplatePreviewButton"
+                class="button"
+                type="button"
+              >
+                Close preview
+              </button>
+            </div>
+
+            <pre id="scheduleTemplatePreviewJson"></pre>
+          </section>
+        </section>
+
+        <section class="manager-github-scan">
+          <div
+            id="managerGitHubScanStatus"
+            class="manager-github-scan-text"
+          >
+            Scan GitHub to validate filenames and load the image picker.
+          </div>
+
+          <button
+            id="managerGitHubScanButton"
+            class="button"
+            type="button"
+          >
+            Scan GitHub images
+          </button>
+
+          <button
+            id="openImageLibraryButton"
+            class="button"
+            type="button"
+          >
+            Open Image Library
+          </button>
+        </section>
+
+        <section class="schedule-integrity">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                V3.1 integrity
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Schedule integrity checks
+              </h3>
+
+              <p class="manager-description">
+                Detects overlapping temporary rows, fallback gaps, and schedules with no permanent fallback row.
+              </p>
+            </div>
+
+            <button
+              id="runIntegrityCheckButton"
+              class="button"
+              type="button"
+            >
+              Run checks
+            </button>
+          </div>
+
+          <section class="integrity-summary">
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Temporary rows
+              </div>
+
+              <div
+                id="integrityTemporaryCount"
+                class="manager-stat-value"
+              >
+                0
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Overlaps
+              </div>
+
+              <div
+                id="integrityOverlapCount"
+                class="manager-stat-value"
+              >
+                0
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Fallback gaps
+              </div>
+
+              <div
+                id="integrityGapCount"
+                class="manager-stat-value"
+              >
+                0
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Fallback row
+              </div>
+
+              <div
+                id="integrityPersistentStatus"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+          </section>
+
+          <div
+            id="integrityList"
+            class="integrity-list"
+          >
+            <div class="integrity-item">
+              Select a screen and run the checks.
+            </div>
+          </div>
+        </section>
+
+        <section class="schedule-simulator">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                V3.1 simulator
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Test schedule at a specific time
+              </h3>
+
+              <p class="manager-description">
+                This preview is read-only and does not change the live clock or Google Sheets.
+              </p>
+            </div>
+
+            <div class="manager-status">
+              Simulation
+            </div>
+          </div>
+
+          <div class="simulator-toolbar">
+            <label class="simulator-field">
+              <span class="manager-label">
+                Test time
+              </span>
+
+              <input
+                id="simulatorTimeInput"
+                class="manager-input"
+                type="text"
+                inputmode="numeric"
+                maxlength="5"
+                placeholder="HH:MM"
+              >
+            </label>
+
+            <button
+              id="simulateScheduleButton"
+              class="button button-primary"
+              type="button"
+            >
+              Run simulation
+            </button>
+
+            <button
+              id="simulateNowButton"
+              class="button"
+              type="button"
+            >
+              Use current time
+            </button>
+          </div>
+
+          <section class="simulator-result">
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Selected image
+              </div>
+
+              <div
+                id="simulatorSelectedImage"
+                class="manager-stat-value manager-filename"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Start time
+              </div>
+
+              <div
+                id="simulatorStartTime"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                End time
+              </div>
+
+              <div
+                id="simulatorEndTime"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Selection type
+              </div>
+
+              <div
+                id="simulatorSelectionType"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+          </section>
+
+          <div
+            id="simulatorDecision"
+            class="simulator-decision"
+          >
+            Choose a time and run the simulation.
+          </div>
+        </section>
+
+        <div class="manager-toolbar">
+          <label class="manager-field">
+            <span class="manager-label">
+              Screen
+            </span>
+
+            <select
+              id="managerScreenSelect"
+              class="manager-select"
+            ></select>
+          </label>
+
+          <button
+            id="reloadManagerButton"
+            class="button"
+            type="button"
+          >
+            ↻ Reload schedule
+          </button>
+
+          <a
+            id="managerOpenScreen"
+            class="button button-primary"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open screen
+          </a>
+        </div>
+
+        <section class="manager-overview">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Schedule source
+            </div>
+
+            <div
+              id="managerSource"
+              class="manager-stat-value"
+            >
+              —
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Entries
+            </div>
+
+            <div
+              id="managerEntryCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Current image
+            </div>
+
+            <div
+              id="managerCurrentImage"
+              class="manager-stat-value manager-filename"
+            >
+              —
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Next change
+            </div>
+
+            <div
+              id="managerNextChange"
+              class="manager-stat-value"
+            >
+              —
+            </div>
+          </article>
+        </section>
+
+        <div
+          id="scheduleDraftRecoveryBanner"
+          class="draft-recovery-banner"
+        >
+          <div id="scheduleDraftRecoveryText">
+            A saved local draft is available.
+          </div>
+
+          <div class="draft-recovery-actions">
+            <button
+              id="restoreScheduleDraftButton"
+              class="button button-primary"
+              type="button"
+            >
+              Restore draft
+            </button>
+
+            <button
+              id="discardStoredScheduleDraftButton"
+              class="button"
+              type="button"
+            >
+              Discard stored draft
+            </button>
+          </div>
+        </div>
+
+        <div class="manager-editing-toolbar">
+          <div class="manager-edit-note">
+            Changes in this step stay only in your browser and are not sent to Google Sheets.
+            <span
+              id="managerDirtyIndicator"
+              class="manager-dirty-indicator"
+            >
+              Unsaved changes
+            </span>
+          </div>
+
+          <button
+            id="managerEditButton"
+            class="button button-primary"
+            type="button"
+          >
+            ✎ Enable editing
+          </button>
+
+          <button
+            id="managerAddRowButton"
+            class="button"
+            type="button"
+            disabled
+          >
+            ＋ Add row
+          </button>
+
+          <button
+            id="managerDiscardButton"
+            class="button"
+            type="button"
+            disabled
+          >
+            Undo local changes
+          </button>
+
+          <button
+            id="managerSaveButton"
+            class="button manager-save-button"
+            type="button"
+            disabled
+          >
+            Save to Google Sheets
+          </button>
+        </div>
+
+        <div
+          id="managerValidation"
+          class="manager-validation"
+        ></div>
+
+        <div
+          id="managerRepositoryWarning"
+          class="repository-save-warning"
+        ></div>
+
+        <div
+          id="managerSaveMessage"
+          class="manager-save-message"
+        ></div>
+
+        <div class="schedule-table-wrapper">
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Start time</th>
+                <th>End time</th>
+                <th>Image filename</th>
+                <th>Fade</th>
+                <th>Status</th>
+                <th>Preview</th>
+                <th>Actions</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="managerScheduleBody">
+              <tr>
+                <td
+                  colspan="8"
+                  class="manager-empty"
+                >
+                  Select a screen to load its schedule.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="holidayManagerWorkspace"
+      class="workspace"
+    >
+      <section class="holiday-manager">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Holiday Override Manager
+            </h2>
+
+            <p class="manager-description">
+              Review every row in the Holiday Overrides tab. This stage is read-only;
+              editing and saving will be added after the view is confirmed stable.
+            </p>
+          </div>
+
+          <div
+            id="holidayModeStatus"
+            class="manager-status"
+          >
+            Read-only
+          </div>
+        </div>
+
+        <div class="holiday-toolbar">
+          <label class="holiday-filter-field">
+            <span class="manager-label">
+              Screen
+            </span>
+
+            <select
+              id="holidayScreenFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All screens
+              </option>
+            </select>
+          </label>
+
+          <label class="holiday-filter-field">
+            <span class="manager-label">
+              Status
+            </span>
+
+            <select
+              id="holidayStatusFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All statuses
+              </option>
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="upcoming">
+                Upcoming
+              </option>
+
+              <option value="expired">
+                Expired
+              </option>
+
+              <option value="invalid">
+                Invalid
+              </option>
+            </select>
+          </label>
+
+          <button
+            id="reloadHolidayButton"
+            class="button"
+            type="button"
+          >
+            ↻ Reload overrides
+          </button>
+        </div>
+
+        <section class="manager-github-scan">
+          <div
+            id="holidayGitHubScanStatus"
+            class="manager-github-scan-text"
+          >
+            Scan GitHub to validate Holiday Override filenames and load the image picker.
+          </div>
+
+          <button
+            id="holidayGitHubScanButton"
+            class="button"
+            type="button"
+          >
+            Scan GitHub images
+          </button>
+
+          <button
+            id="holidayOpenImageLibraryButton"
+            class="button"
+            type="button"
+          >
+            Open Image Library
+          </button>
+        </section>
+
+        <div
+          id="holidayDraftRecoveryBanner"
+          class="draft-recovery-banner"
+        >
+          <div id="holidayDraftRecoveryText">
+            A saved Holiday Override draft is available.
+          </div>
+
+          <div class="draft-recovery-actions">
+            <button
+              id="restoreHolidayDraftButton"
+              class="button button-primary"
+              type="button"
+            >
+              Restore draft
+            </button>
+
+            <button
+              id="discardStoredHolidayDraftButton"
+              class="button"
+              type="button"
+            >
+              Discard stored draft
+            </button>
+          </div>
+        </div>
+
+        <div class="holiday-editing-toolbar">
+          <div class="holiday-edit-note">
+            Changes stay local until you press Save.
+            <span
+              id="holidayDirtyIndicator"
+              class="holiday-dirty-indicator"
+            >
+              Unsaved changes
+            </span>
+          </div>
+
+          <button
+            id="holidayEditButton"
+            class="button button-primary"
+            type="button"
+          >
+            ✎ Enable editing
+          </button>
+
+          <button
+            id="holidayAddRowButton"
+            class="button"
+            type="button"
+            disabled
+          >
+            ＋ Add override
+          </button>
+
+          <button
+            id="holidayDiscardButton"
+            class="button"
+            type="button"
+            disabled
+          >
+            Undo local changes
+          </button>
+
+          <button
+            id="holidaySaveButton"
+            class="button holiday-save-button"
+            type="button"
+            disabled
+          >
+            Save Holiday Overrides
+          </button>
+        </div>
+
+        <div
+          id="holidayValidation"
+          class="holiday-validation"
+        ></div>
+
+        <div
+          id="holidayRepositoryWarning"
+          class="repository-save-warning"
+        ></div>
+
+        <div
+          id="holidaySaveMessage"
+          class="holiday-save-message"
+        ></div>
+
+        <section class="holiday-summary-grid">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Total rows
+            </div>
+
+            <div
+              id="holidayTotalCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Active now
+            </div>
+
+            <div
+              id="holidayActiveCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Upcoming
+            </div>
+
+            <div
+              id="holidayUpcomingCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Invalid rows
+            </div>
+
+            <div
+              id="holidayInvalidCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+        </section>
+
+        <div class="schedule-table-wrapper">
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Screen</th>
+                <th>Date range</th>
+                <th>Start time</th>
+                <th>Image filename</th>
+                <th>Fade</th>
+                <th>Status</th>
+                <th>Preview</th>
+              </tr>
+            </thead>
+
+            <tbody id="holidayTableBody">
+              <tr>
+                <td
+                  colspan="9"
+                  class="manager-empty"
+                >
+                  Open this workspace to load Holiday Overrides.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="backupHistoryWorkspace"
+      class="workspace"
+    >
+      <section class="backup-manager">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Backup History
+            </h2>
+
+            <p class="manager-description">
+              Review the automatic backups created before regular schedule and
+              Holiday Override saves. Restoration will be added after this history
+              view is verified.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="backup-toolbar">
+          <label class="backup-filter-field">
+            <span class="manager-label">
+              Backup type
+            </span>
+
+            <select
+              id="backupTypeFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All backups
+              </option>
+
+              <option value="regular">
+                Regular schedules
+              </option>
+
+              <option value="holiday">
+                Holiday Overrides
+              </option>
+            </select>
+          </label>
+
+          <label class="backup-filter-field">
+            <span class="manager-label">
+              Screen
+            </span>
+
+            <select
+              id="backupScreenFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All screens
+              </option>
+            </select>
+          </label>
+
+          <button
+            id="reloadBackupsButton"
+            class="button"
+            type="button"
+          >
+            ↻ Reload backups
+          </button>
+        </div>
+
+        <section class="backup-summary-grid">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Total backups
+            </div>
+
+            <div
+              id="backupTotalCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Regular schedules
+            </div>
+
+            <div
+              id="backupRegularCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Holiday Overrides
+            </div>
+
+            <div
+              id="backupHolidayCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Latest backup
+            </div>
+
+            <div
+              id="backupLatestTime"
+              class="manager-stat-value manager-filename"
+            >
+              —
+            </div>
+          </article>
+        </section>
+
+        <div class="schedule-table-wrapper">
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Screen</th>
+                <th>Rows</th>
+                <th>Saved data</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+
+            <tbody id="backupTableBody">
+              <tr>
+                <td
+                  colspan="7"
+                  class="manager-empty"
+                >
+                  Open this workspace to load backup history.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <section
+          id="backupDetails"
+          class="backup-details hidden"
+        >
+          <div class="backup-details-header">
+            <div>
+              <div class="eyebrow">
+                Selected backup
+              </div>
+
+              <div
+                id="backupDetailsTitle"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button
+                id="prepareRestoreButton"
+                class="button button-primary"
+                type="button"
+              >
+                Prepare restore preview
+              </button>
+
+              <button
+                id="closeBackupDetailsButton"
+                class="button"
+                type="button"
+              >
+                Close details
+              </button>
+            </div>
+          </div>
+
+          <pre id="backupDetailsJson"></pre>
+
+          <section
+            id="restorePreview"
+            class="restore-preview"
+          >
+            <div class="restore-preview-header">
+              <div>
+                <div class="eyebrow">
+                  Read-only comparison
+                </div>
+
+                <h3
+                  id="restorePreviewTitle"
+                  style="margin:5px 0 0;"
+                >
+                  Restore preview
+                </h3>
+              </div>
+
+              <button
+                id="closeRestorePreviewButton"
+                class="button"
+                type="button"
+              >
+                Close preview
+              </button>
+            </div>
+
+            <section class="restore-preview-grid">
+              <article class="manager-stat">
+                <div class="manager-stat-label">
+                  Destination
+                </div>
+
+                <div
+                  id="restoreDestination"
+                  class="manager-stat-value manager-filename"
+                >
+                  —
+                </div>
+              </article>
+
+              <article class="manager-stat">
+                <div class="manager-stat-label">
+                  Current rows
+                </div>
+
+                <div
+                  id="restoreCurrentRows"
+                  class="manager-stat-value"
+                >
+                  0
+                </div>
+              </article>
+
+              <article class="manager-stat">
+                <div class="manager-stat-label">
+                  Backup rows
+                </div>
+
+                <div
+                  id="restoreBackupRows"
+                  class="manager-stat-value"
+                >
+                  0
+                </div>
+              </article>
+
+              <article class="manager-stat">
+                <div class="manager-stat-label">
+                  Differences
+                </div>
+
+                <div
+                  id="restoreDifferenceCount"
+                  class="manager-stat-value"
+                >
+                  0
+                </div>
+              </article>
+            </section>
+
+            <div class="restore-comparison">
+              <section class="restore-column">
+                <h3>Current live data</h3>
+
+                <pre
+                  id="restoreCurrentData"
+                  class="restore-data"
+                ></pre>
+              </section>
+
+              <section class="restore-column">
+                <h3>Selected backup</h3>
+
+                <pre
+                  id="restoreBackupData"
+                  class="restore-data"
+                ></pre>
+              </section>
+            </div>
+
+            <section class="restore-changes">
+              <div class="eyebrow">
+                Difference summary
+              </div>
+
+              <div
+                id="restoreChangeList"
+                class="restore-change-list"
+              ></div>
+            </section>
+
+            <div class="restore-action-bar">
+              <button
+                id="restoreBackupButton"
+                class="button restore-save-button"
+                type="button"
+                disabled
+              >
+                Restore this backup
+              </button>
+            </div>
+
+            <div
+              id="restoreSaveMessage"
+              class="restore-save-message"
+            ></div>
+          </section>
+        </section>
+      </section>
+    </section>
+
+    <section
+      id="imageLibraryWorkspace"
+      class="workspace"
+    >
+      <section class="image-library">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Image Library
+            </h2>
+
+            <p class="manager-description">
+              Browse every image referenced by regular schedules and Holiday Overrides.
+              This workspace is read-only.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="image-library-toolbar">
+          <label class="image-library-field image-library-search">
+            <span class="manager-label">
+              Search filename
+            </span>
+
+            <input
+              id="imageLibrarySearch"
+              class="manager-input"
+              type="search"
+              placeholder="Search images…"
+            >
+          </label>
+
+          <label class="image-library-field">
+            <span class="manager-label">
+              Source
+            </span>
+
+            <select
+              id="imageLibrarySourceFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All sources
+              </option>
+
+              <option value="regular">
+                Regular schedules
+              </option>
+
+              <option value="holiday">
+                Holiday Overrides
+              </option>
+            </select>
+          </label>
+
+          <label class="image-library-field">
+            <span class="manager-label">
+              Screen
+            </span>
+
+            <select
+              id="imageLibraryScreenFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All screens
+              </option>
+            </select>
+          </label>
+
+          <button
+            id="reloadImageLibraryButton"
+            class="button"
+            type="button"
+          >
+            ↻ Rebuild index
+          </button>
+
+          <button
+            id="scanImageHealthButton"
+            class="button button-primary"
+            type="button"
+          >
+            Scan GitHub images
+          </button>
+        </div>
+
+        <section class="image-health-panel">
+          <div class="image-health-header">
+            <div>
+              <div class="eyebrow">
+                Repository image health
+              </div>
+
+              <div
+                id="imageHealthStatus"
+                class="image-health-status"
+              >
+                Not scanned yet.
+              </div>
+            </div>
+
+            <button
+              id="clearImageHealthButton"
+              class="button"
+              type="button"
+              disabled
+            >
+              Clear scan
+            </button>
+          </div>
+
+          <div class="image-health-grid">
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Repository images
+              </div>
+
+              <div
+                id="repositoryImageCount"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Missing references
+              </div>
+
+              <div
+                id="missingImageCount"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Unused files
+              </div>
+
+              <div
+                id="unusedImageCount"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+          </div>
+
+          <div
+            id="imageHealthList"
+            class="image-health-list"
+          ></div>
+        </section>
+
+        <section class="image-library-summary">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Unique images
+            </div>
+
+            <div
+              id="imageLibraryUniqueCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Total usages
+            </div>
+
+            <div
+              id="imageLibraryUsageCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Regular usages
+            </div>
+
+            <div
+              id="imageLibraryRegularCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Holiday usages
+            </div>
+
+            <div
+              id="imageLibraryHolidayCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+        </section>
+
+        <div
+          id="imageLibraryGrid"
+          class="image-library-grid"
+        >
+          <div class="image-library-empty">
+            Open this workspace to build the image index.
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="auditLogWorkspace"
+      class="workspace"
+    >
+      <section class="audit-manager">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Change Audit Log
+            </h2>
+
+            <p class="manager-description">
+              Review every dashboard save and restore attempt. The PIN is never stored.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="audit-toolbar">
+          <label class="audit-filter-field">
+            <span class="manager-label">
+              Action
+            </span>
+
+            <select
+              id="auditActionFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All actions
+              </option>
+
+              <option value="saveSchedule">
+                Regular schedule save
+              </option>
+
+              <option value="saveHolidayOverrides">
+                Holiday Override save
+              </option>
+
+              <option value="restoreBackup">
+                Backup restore
+              </option>
+            </select>
+          </label>
+
+          <label class="audit-filter-field">
+            <span class="manager-label">
+              Status
+            </span>
+
+            <select
+              id="auditStatusFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All statuses
+              </option>
+
+              <option value="success">
+                Success
+              </option>
+
+              <option value="error">
+                Error
+              </option>
+            </select>
+          </label>
+
+          <label class="audit-filter-field">
+            <span class="manager-label">
+              Destination
+            </span>
+
+            <select
+              id="auditDestinationFilter"
+              class="manager-select"
+            >
+              <option value="all">
+                All destinations
+              </option>
+            </select>
+          </label>
+
+          <button
+            id="reloadAuditButton"
+            class="button"
+            type="button"
+          >
+            ↻ Reload audit log
+          </button>
+        </div>
+
+        <section class="audit-summary-grid">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Total actions
+            </div>
+
+            <div
+              id="auditTotalCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Successful
+            </div>
+
+            <div
+              id="auditSuccessCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Failed
+            </div>
+
+            <div
+              id="auditErrorCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Latest action
+            </div>
+
+            <div
+              id="auditLatestTime"
+              class="manager-stat-value manager-filename"
+            >
+              —
+            </div>
+          </article>
+        </section>
+
+        <div class="schedule-table-wrapper">
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>Destination</th>
+                <th>Rows</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+
+            <tbody id="auditTableBody">
+              <tr>
+                <td
+                  colspan="7"
+                  class="manager-empty"
+                >
+                  Open this workspace to load the audit log.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="holidayCalendarWorkspace"
+      class="workspace"
+    >
+      <section class="holiday-calendar">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3
+            </div>
+
+            <h2 class="manager-title">
+              Holiday Calendar
+            </h2>
+
+            <p class="manager-description">
+              Review Holiday Overrides by date. This calendar is read-only.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="calendar-toolbar">
+          <div class="calendar-toolbar-group">
+            <button
+              id="previousCalendarMonthButton"
+              class="button"
+              type="button"
+            >
+              ← Previous
+            </button>
+
+            <button
+              id="todayCalendarButton"
+              class="button"
+              type="button"
+            >
+              Today
+            </button>
+
+            <button
+              id="nextCalendarMonthButton"
+              class="button"
+              type="button"
+            >
+              Next →
+            </button>
+          </div>
+
+          <div
+            id="calendarMonthLabel"
+            class="calendar-month-label"
+          >
+            —
+          </div>
+
+          <div class="calendar-toolbar-group">
+            <button
+              id="reloadCalendarButton"
+              class="button"
+              type="button"
+            >
+              ↻ Reload overrides
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="holidayCalendarGrid"
+          class="calendar-grid"
+        ></div>
+
+        <section
+          id="calendarDetails"
+          class="calendar-details hidden"
+        >
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Selected date
+              </div>
+
+              <div
+                id="calendarDetailsTitle"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </div>
+
+            <button
+              id="closeCalendarDetailsButton"
+              class="button"
+              type="button"
+            >
+              Close details
+            </button>
+          </div>
+
+          <div
+            id="calendarDetailsList"
+            class="calendar-details-list"
+          ></div>
+
+          <div class="calendar-details-actions">
+            <button
+              id="createHolidayForDateButton"
+              class="button button-primary"
+              type="button"
+            >
+              ＋ Create override for this date
+            </button>
+
+            <button
+              id="editHolidayForDateButton"
+              class="button calendar-edit-button"
+              type="button"
+            >
+              Edit overrides for this date
+            </button>
+          </div>
+        </section>
+      </section>
+    </section>
+
+    <section
+      id="compatibilityAuditWorkspace"
+      class="workspace"
+    >
+      <section class="compatibility-audit">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3.1
+            </div>
+
+            <h2 class="manager-title">
+              Compatibility Audit
+            </h2>
+
+            <p class="manager-description">
+              Review End Time readiness, older backups, drafts, repository checks,
+              and schedule safety across the complete signage system.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="compatibility-toolbar">
+          <div
+            id="compatibilityAuditStatus"
+            class="manager-description"
+          >
+            Open this workspace to run the audit.
+          </div>
+
+          <button
+            id="runCompatibilityAuditButton"
+            class="button button-primary"
+            type="button"
+          >
+            Run compatibility audit
+          </button>
+        </div>
+
+        <section class="compatibility-summary">
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Checks passed
+            </div>
+
+            <div
+              id="compatibilityPassCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Warnings
+            </div>
+
+            <div
+              id="compatibilityWarningCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Errors
+            </div>
+
+            <div
+              id="compatibilityErrorCount"
+              class="manager-stat-value"
+            >
+              0
+            </div>
+          </article>
+
+          <article class="manager-stat">
+            <div class="manager-stat-label">
+              Overall state
+            </div>
+
+            <div
+              id="compatibilityOverallState"
+              class="manager-stat-value"
+            >
+              —
+            </div>
+          </article>
+        </section>
+
+        <div
+          id="compatibilityAuditList"
+          class="compatibility-list"
+        >
+          <div class="compatibility-item compatibility-info">
+            Run the audit to inspect the current dashboard state.
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section
+      id="dailyScheduleCalendarWorkspace"
+      class="workspace"
+    >
+      <section class="daily-schedule-calendar">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">
+              Dashboard V3.1
+            </div>
+
+            <h2 class="manager-title">
+              Daily Schedule Calendar
+            </h2>
+
+            <p class="manager-description">
+              Compare every screen across a full day. This view is read-only.
+            </p>
+          </div>
+
+          <div class="manager-status">
+            Read-only
+          </div>
+        </div>
+
+        <div class="daily-calendar-toolbar">
+          <div class="daily-calendar-toolbar-group">
+            <button
+              id="dailyCalendarNowButton"
+              class="button"
+              type="button"
+            >
+              Jump to current time
+            </button>
+
+            <button
+              id="dailyCalendarReloadButton"
+              class="button"
+              type="button"
+            >
+              ↻ Reload schedules
+            </button>
+          </div>
+
+          <div class="daily-calendar-toolbar-group">
+            <label class="manager-label">
+              Start hour
+            </label>
+
+            <select
+              id="dailyCalendarStartHour"
+              class="manager-select"
+            >
+              <option value="0">00:00</option>
+              <option value="6">06:00</option>
+              <option value="8">08:00</option>
+              <option value="9" selected>09:00</option>
+              <option value="10">10:00</option>
+              <option value="12">12:00</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="daily-calendar-edit-note">
+          Click a block to edit its row. Double-click an empty time slot to create a new draft row.
+          Drag the bottom handle of a temporary block to adjust its End Time locally.
+        </div>
+
+        <div class="daily-calendar-legend">
+          <span class="persistent">
+            Persistent
+          </span>
+
+          <span class="temporary">
+            Temporary
+          </span>
+
+          <span class="fallback">
+            Fallback period
+          </span>
+
+          <span class="overlap">
+            Overlap
+          </span>
+        </div>
+
+        <div
+          id="dailyCalendarWrap"
+          class="daily-calendar-wrap"
+        >
+          <div
+            id="dailyCalendarGrid"
+            class="daily-calendar-grid"
+          ></div>
+        </div>
+
+        <section
+          id="dailyCalendarDetails"
+          class="daily-calendar-details hidden"
+        >
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Selected schedule block
+              </div>
+
+              <div
+                id="dailyCalendarDetailsTitle"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </div>
+
+            <button
+              id="closeDailyCalendarDetailsButton"
+              class="button"
+              type="button"
+            >
+              Close details
+            </button>
+          </div>
+
+          <section class="daily-calendar-details-grid">
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Screen
+              </div>
+
+              <div
+                id="dailyCalendarDetailsScreen"
+                class="manager-stat-value manager-filename"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Start
+              </div>
+
+              <div
+                id="dailyCalendarDetailsStart"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                End
+              </div>
+
+              <div
+                id="dailyCalendarDetailsEnd"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+
+            <article class="manager-stat">
+              <div class="manager-stat-label">
+                Type
+              </div>
+
+              <div
+                id="dailyCalendarDetailsType"
+                class="manager-stat-value"
+              >
+                —
+              </div>
+            </article>
+          </section>
+
+          <div
+            id="dailyCalendarDetailsDescription"
+            class="manager-description"
+            style="margin-top:14px;"
+          ></div>
+        </section>
+      </section>
+    </section>
+
+
+    <section
+      id="systemHealthWorkspace"
+      class="workspace"
+    >
+      <section class="system-health-workspace">
+        <div class="health-page-header">
+          <div>
+            <div class="eyebrow">Priority 1</div>
+            <h2 class="manager-title">System Health</h2>
+            <p class="manager-description">Live Apps Script telemetry from the temporary script cache.</p>
+          </div>
+          <div id="healthOverallState" class="health-state health-state-warning">Not loaded</div>
+        </div>
+
+        <div class="health-toolbar">
+          <div id="healthLastUpdated" class="manager-description">Open this workspace to load telemetry.</div>
+          <button id="refreshSystemHealthButton" class="button button-primary" type="button">Refresh health</button>
+        </div>
+
+        <section class="health-summary">
+          <article class="manager-stat"><div class="manager-stat-label">Requests today</div><div id="healthRequestCount" class="manager-stat-value">0</div></article>
+          <article class="manager-stat"><div class="manager-stat-label">Success rate</div><div id="healthSuccessRate" class="manager-stat-value">—</div></article>
+          <article class="manager-stat"><div class="manager-stat-label">Cache hit rate</div><div id="healthCacheHitRate" class="manager-stat-value">—</div></article>
+          <article class="manager-stat"><div class="manager-stat-label">Average response</div><div id="healthAverageResponse" class="manager-stat-value">—</div></article>
+        </section>
+
+        <section class="health-grid">
+          <article class="health-panel">
+            <h3 class="health-panel-title">Performance</h3>
+            <div class="health-list">
+              <div class="health-row"><div class="health-row-label">Successful requests</div><div id="healthSuccessCount" class="health-row-value">0</div></div>
+              <div class="health-row"><div class="health-row-label">Failed requests</div><div id="healthFailureCount" class="health-row-value">0</div></div>
+              <div class="health-row"><div class="health-row-label">Slowest response</div><div id="healthMaxResponse" class="health-row-value">—</div></div>
+              <div class="health-row"><div class="health-row-label">Last request</div><div id="healthLastRequest" class="health-row-value">—</div></div>
+            </div>
+          </article>
+          <article class="health-panel">
+            <h3 class="health-panel-title">Cache</h3>
+            <div class="health-list">
+              <div class="health-row"><div class="health-row-label">Cache hits</div><div id="healthCacheHits" class="health-row-value">0</div></div>
+              <div class="health-row"><div class="health-row-label">Cache misses</div><div id="healthCacheMisses" class="health-row-value">0</div></div>
+            </div>
+          </article>
+          <article class="health-panel"><h3 class="health-panel-title">Requests by action</h3><div id="healthActionsList" class="health-list"></div></article>
+          <article class="health-panel"><h3 class="health-panel-title">Requests by screen</h3><div id="healthScreensList" class="health-list"></div></article>
+        </section>
+
+        <section class="auto-health-checks">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Automatic diagnostics
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Service checks
+              </h3>
+
+              <p class="manager-description">
+                Runs automatically when System Health opens and every five minutes while this workspace remains active.
+              </p>
+            </div>
+
+            <button
+              id="runAutomaticHealthChecksButton"
+              class="button"
+              type="button"
+            >
+              Run checks now
+            </button>
+          </div>
+
+          <div
+            id="automaticHealthChecksStatus"
+            class="manager-description"
+            style="margin-top:10px;"
+          >
+            Checks have not run yet.
+          </div>
+
+          <div
+            id="automaticHealthChecksList"
+            class="auto-health-list"
+          ></div>
+        </section>
+
+        <section class="rollout-assistant">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Priority 8
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Controlled Rollout Assistant
+              </h3>
+
+              <p class="manager-description">
+                Deploy the approved player one screen at a time and verify each check-in before continuing.
+              </p>
+            </div>
+
+            <div style="display:grid;gap:8px;width:min(100%,220px);">
+              <button
+                id="refreshRolloutAssistantButton"
+                class="button"
+                type="button"
+              >
+                Refresh rollout
+              </button>
+
+              <button
+                id="resetRolloutProgressButton"
+                class="button"
+                type="button"
+              >
+                Reset rollout progress
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="rolloutAssistantSummary"
+            class="manager-description"
+            style="margin-top:10px;"
+          >
+            Waiting for player and schedule information.
+          </div>
+
+          <div
+            id="rolloutAssistantList"
+            class="rollout-list"
+          ></div>
+
+          <div
+            id="rolloutAssistantMessage"
+            class="rollout-message"
+          ></div>
+        </section>
+
+        <section class="player-version-panel">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Priority 7B
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Player Version Compliance
+              </h3>
+
+              <p class="manager-description">
+                Confirms that each screen is running the approved player build before rollout.
+              </p>
+            </div>
+
+            <button
+              id="refreshPlayerVersionsButton"
+              class="button"
+              type="button"
+            >
+              Refresh versions
+            </button>
+          </div>
+
+          <div
+            id="playerVersionSummary"
+            class="manager-description"
+            style="margin-top:10px;"
+          >
+            Expected version:
+            <strong id="expectedPlayerVersionLabel"></strong>
+          </div>
+
+          <div
+            id="playerVersionList"
+            class="player-version-list"
+          ></div>
+        </section>
+
+        <section class="go-live-readiness">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">Priority 7</div>
+              <h3 style="margin:5px 0 0;">Go-Live Readiness</h3>
+              <p class="manager-description">
+                Final preflight check before returning the store screens to the custom player.
+              </p>
+            </div>
+
+            <button
+              id="refreshGoLiveReadinessButton"
+              class="button"
+              type="button"
+            >
+              Run preflight
+            </button>
+          </div>
+
+          <div class="go-live-readiness-summary">
+            <div>
+              <div
+                id="goLiveReadinessHeadline"
+                class="health-panel-title"
+                style="margin:0;"
+              >
+                Waiting for checks
+              </div>
+
+              <div
+                id="goLiveReadinessDescription"
+                class="manager-description"
+                style="margin-top:4px;"
+              >
+                Open System Health or run the preflight manually.
+              </div>
+            </div>
+
+            <div
+              id="goLiveReadinessState"
+              class="go-live-readiness-state go-live-warning"
+            >
+              Waiting
+            </div>
+          </div>
+
+          <div
+            id="goLiveReadinessList"
+            class="go-live-readiness-list"
+          ></div>
+        </section>
+
+        <section class="health-score-panel">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">
+                Priority 6
+              </div>
+
+              <h3 style="margin:5px 0 0;">
+                Health score
+              </h3>
+
+              <p class="manager-description">
+                Transparent scoring based on reliability, response time, and cache performance.
+              </p>
+            </div>
+          </div>
+
+          <div class="health-score-layout">
+            <div
+              id="healthScoreNumber"
+              class="health-score-number"
+            >
+              Waiting
+              <span>/100</span>
+            </div>
+
+            <div
+              id="healthScoreReasons"
+              class="health-reasons"
+            >
+              <div class="health-reason">
+                <div class="health-reason-icon">⏳</div>
+                <div class="health-reason-text">
+                  Waiting for telemetry.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="player-heartbeat-panel">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">Priority 5</div>
+              <h3 style="margin:5px 0 0;">Player Heartbeat</h3>
+              <p class="manager-description">
+                Uses each player's normal schedule request—no extra polling.
+              </p>
+            </div>
+
+            <button
+              id="refreshPlayerHeartbeatsButton"
+              class="button"
+              type="button"
+            >
+              Refresh players
+            </button>
+          </div>
+
+          <div
+            id="playerHeartbeatSummary"
+            class="manager-description"
+            style="margin-top:10px;"
+          >
+            Player status has not loaded yet.
+          </div>
+
+          <div
+            id="playerHeartbeatMeta"
+            class="player-heartbeat-meta"
+          >
+            Quiet hours: 22:00–10:00
+          </div>
+
+          <div
+            id="playerHeartbeatGrid"
+            class="player-heartbeat-grid"
+          ></div>
+        </section>
+
+        <section class="health-admin-actions">
+          <div class="manager-header">
+            <div>
+              <div class="eyebrow">System Health v2</div>
+              <h3 style="margin:5px 0 0;">Maintenance controls</h3>
+              <p class="manager-description">
+                Protected by the same PIN used for schedule saves.
+              </p>
+            </div>
+          </div>
+
+          <div class="health-admin-buttons">
+            <button id="testHealthConnectionButton" class="button button-primary" type="button">Test connection</button>
+            <button id="clearHealthLastErrorButton" class="button" type="button">Clear last error</button>
+            <button id="resetHealthTelemetryButton" class="button" type="button">Reset statistics</button>
+            <button id="clearHealthCacheButton" class="button" type="button">Clear schedule cache</button>
+            <button id="exportHealthTelemetryButton" class="button" type="button">Export telemetry JSON</button>
+          </div>
+
+          <div id="healthAdminMessage" class="health-admin-message"></div>
+        </section>
+
+        <div id="healthErrorBox" class="health-error-box"></div>
+      </section>
+    </section>
+  </main>
+
+  <iframe
+    id="healthAdminFrame"
+    name="healthAdminFrame"
+    title="System Health response"
+    style="display:none"
+  ></iframe>
+
+  <form
+    id="healthAdminForm"
+    method="post"
+    target="healthAdminFrame"
+    style="display:none"
+  >
+    <input name="action" value="healthAdmin">
+    <input id="healthAdminPinField" name="pin">
+    <input id="healthAdminOperationField" name="operation">
+    <input id="healthAdminRequestIdField" name="requestId">
+  </form>
+
+  <iframe
+    id="restoreBackupFrame"
+    name="restoreBackupFrame"
+    title="Backup restore response"
+    style="display:none"
+  ></iframe>
+
+  <form
+    id="restoreBackupForm"
+    method="post"
+    target="restoreBackupFrame"
+    style="display:none"
+  >
+    <input
+      name="action"
+      value="restoreBackup"
+    >
+
+    <input
+      id="restorePinField"
+      name="pin"
+    >
+
+    <input
+      id="restoreTypeField"
+      name="backupType"
+    >
+
+    <input
+      id="restoreScreenField"
+      name="screen"
+    >
+
+    <input
+      id="restoreDataField"
+      name="backupData"
+    >
+
+    <input
+      id="restoreRequestIdField"
+      name="requestId"
+    >
+  </form>
+
+  <iframe
+    id="scheduleSaveFrame"
+    name="scheduleSaveFrame"
+    title="Schedule save response"
+    style="display:none"
+  ></iframe>
+
+  <form
+    id="scheduleSaveForm"
+    method="post"
+    target="scheduleSaveFrame"
+    style="display:none"
+  >
+    <input
+      id="saveActionField"
+      name="action"
+      value="saveSchedule"
+    >
+
+    <input
+      id="saveScreenField"
+      name="screen"
+    >
+
+    <input
+      id="savePinField"
+      name="pin"
+    >
+
+    <input
+      id="saveScheduleField"
+      name="schedule"
+    >
+
+    <input
+      id="saveRequestIdField"
+      name="requestId"
+    >
+  </form>
+
+  <iframe
+    id="holidaySaveFrame"
+    name="holidaySaveFrame"
+    title="Holiday override save response"
+    style="display:none"
+  ></iframe>
+
+  <form
+    id="holidaySaveForm"
+    method="post"
+    target="holidaySaveFrame"
+    style="display:none"
+  >
+    <input
+      name="action"
+      value="saveHolidayOverrides"
+    >
+
+    <input
+      id="holidaySavePinField"
+      name="pin"
+    >
+
+    <input
+      id="holidaySaveDataField"
+      name="overrides"
+    >
+
+    <input
+      id="holidaySaveRequestIdField"
+      name="requestId"
+    >
+  </form>
+
+  <section
+    id="imagePickerDialog"
+    class="image-picker-dialog"
+    aria-hidden="true"
+  >
+    <div class="image-picker-panel">
+      <div class="image-picker-header">
+        <div>
+          <div class="eyebrow">
+            GitHub repository
+          </div>
+
+          <h3 style="margin:5px 0 0;">
+            Select an image
+          </h3>
+
+          <p class="manager-description">
+            The exact GitHub filename and capitalization will be inserted.
+          </p>
+        </div>
+
+        <button
+          id="closeImagePickerButton"
+          class="button"
+          type="button"
+        >
+          Close
+        </button>
+      </div>
+
+      <div class="image-picker-search-wrap">
+        <input
+          id="imagePickerSearch"
+          class="manager-input"
+          type="search"
+          placeholder="Search repository images…"
+        >
+      </div>
+
+      <div
+        id="imagePickerGrid"
+        class="image-picker-grid"
+      ></div>
+    </div>
+  </section>
+
+  <div
+    id="dailyCalendarHoverPreview"
+    class="daily-calendar-hover-preview"
+  >
+    <img
+      id="dailyCalendarHoverPreviewImage"
+      alt=""
+    >
+
+    <div
+      id="dailyCalendarHoverPreviewName"
+      class="daily-calendar-hover-preview-name"
+    ></div>
+  </div>
+
+    <script src="js/dashboard.js" defer></script>
+
+</body>
+</html>
