@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.63] — Mission Control Step 1B
+
+### Added
+
+- Branded Mission Control hero banner.
+- Version 1.0 Stable Candidate badge.
+- Build 63 development-environment label.
+- Live health score and health-state display on Home.
+
 ## [1.0.0-build.62] — Mission Control Step 1A
 
 ### Added

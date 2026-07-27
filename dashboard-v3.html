@@ -26,7 +26,7 @@
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="62">
+  <meta name="dashboard-build" content="63">
 </head>
 
 <body>
@@ -189,26 +189,50 @@
       class="workspace active home-workspace"
       aria-labelledby="homeWorkspaceTitle"
     >
-      <section class="home-placeholder-card">
-        <div class="eyebrow">
-          Version 1.0
+      <section class="mission-hero">
+        <div class="mission-hero-copy">
+          <div class="mission-version-badge">
+            Version 1.0 Stable Candidate
+          </div>
+
+          <h2
+            id="homeWorkspaceTitle"
+            class="mission-hero-title"
+          >
+            Mini Golf Signage Manager
+          </h2>
+
+          <p class="mission-hero-description">
+            Your central workspace for schedules, content, player monitoring,
+            diagnostics, and controlled deployments.
+          </p>
+
+          <div class="mission-build-line">
+            <span>Build 63</span>
+            <span aria-hidden="true">•</span>
+            <span>Development Environment</span>
+          </div>
         </div>
 
-        <h2
-          id="homeWorkspaceTitle"
-          class="home-placeholder-title"
+        <div
+          id="missionHeroHealth"
+          class="mission-hero-health mission-health-waiting"
         >
-          Mission Control
-        </h2>
+          <div class="mission-health-label">
+            System Health
+          </div>
 
-        <p class="home-placeholder-description">
-          Welcome to Mini Golf Signage Manager.
-          The complete Mission Control overview will be added in the next steps.
-        </p>
+          <div class="mission-health-score">
+            <span id="missionHeroHealthScore">—</span>
+            <small>/100</small>
+          </div>
 
-        <div class="home-placeholder-status">
-          <span aria-hidden="true">✅</span>
-          Home navigation is ready.
+          <div
+            id="missionHeroHealthState"
+            class="mission-health-state"
+          >
+            Waiting for telemetry
+          </div>
         </div>
       </section>
     </section>
