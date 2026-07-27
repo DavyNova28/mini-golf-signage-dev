@@ -303,6 +303,101 @@
         "missionHeroHealthState"
       );
 
+    const missionStatusUpdated =
+      document.getElementById(
+        "missionStatusUpdated"
+      );
+
+    const missionAppsScriptCard =
+      document.getElementById(
+        "missionAppsScriptCard"
+      );
+
+    const missionAppsScriptValue =
+      document.getElementById(
+        "missionAppsScriptValue"
+      );
+
+    const missionAppsScriptDetail =
+      document.getElementById(
+        "missionAppsScriptDetail"
+      );
+
+    const missionGitHubCard =
+      document.getElementById(
+        "missionGitHubCard"
+      );
+
+    const missionGitHubValue =
+      document.getElementById(
+        "missionGitHubValue"
+      );
+
+    const missionGitHubDetail =
+      document.getElementById(
+        "missionGitHubDetail"
+      );
+
+    const missionPlayersCard =
+      document.getElementById(
+        "missionPlayersCard"
+      );
+
+    const missionPlayersValue =
+      document.getElementById(
+        "missionPlayersValue"
+      );
+
+    const missionPlayersDetail =
+      document.getElementById(
+        "missionPlayersDetail"
+      );
+
+    const missionCacheCard =
+      document.getElementById(
+        "missionCacheCard"
+      );
+
+    const missionCacheValue =
+      document.getElementById(
+        "missionCacheValue"
+      );
+
+    const missionCacheDetail =
+      document.getElementById(
+        "missionCacheDetail"
+      );
+
+    const missionBackupCard =
+      document.getElementById(
+        "missionBackupCard"
+      );
+
+    const missionBackupValue =
+      document.getElementById(
+        "missionBackupValue"
+      );
+
+    const missionBackupDetail =
+      document.getElementById(
+        "missionBackupDetail"
+      );
+
+    const missionSchedulesCard =
+      document.getElementById(
+        "missionSchedulesCard"
+      );
+
+    const missionSchedulesValue =
+      document.getElementById(
+        "missionSchedulesValue"
+      );
+
+    const missionSchedulesDetail =
+      document.getElementById(
+        "missionSchedulesDetail"
+      );
+
     const controlCenterTab =
       document.getElementById(
         "controlCenterTab"
@@ -3436,6 +3531,10 @@
 
       const showControl =
         workspaceName === "control";
+
+      if (showHome) {
+        renderMissionControlStatuses();
+      }
 
       const showManager =
         workspaceName === "manager";
@@ -15592,6 +15691,205 @@
     }
 
 
+    function setMissionStatusCard(
+      card,
+      valueElement,
+      detailElement,
+      status,
+      value,
+      detail
+    ) {
+      if (
+        !card ||
+        !valueElement ||
+        !detailElement
+      ) {
+        return;
+      }
+
+      card.className =
+        `mission-status-card mission-status-${status}`;
+
+      valueElement.textContent =
+        value;
+
+      detailElement.textContent =
+        detail;
+    }
+
+
+    function renderMissionControlStatuses() {
+      if (!missionStatusUpdated) {
+        return;
+      }
+
+      missionStatusUpdated.textContent =
+        `Updated ${new Date().toLocaleTimeString()}`;
+
+      /*
+       * GitHub Pages is considered available when this page,
+       * its external CSS, and its external JavaScript loaded.
+       */
+      setMissionStatusCard(
+        missionGitHubCard,
+        missionGitHubValue,
+        missionGitHubDetail,
+        "ok",
+        "Connected",
+        "The development site and modular assets loaded successfully."
+      );
+
+      const loadedScreenCount =
+        SCREEN_NAMES.filter(
+          screenName =>
+            screenStates.has(
+              screenName
+            )
+        ).length;
+
+      setMissionStatusCard(
+        missionSchedulesCard,
+        missionSchedulesValue,
+        missionSchedulesDetail,
+        loadedScreenCount ===
+          SCREEN_NAMES.length
+          ? "ok"
+          : loadedScreenCount > 0
+            ? "warning"
+            : "error",
+        `${loadedScreenCount}/${SCREEN_NAMES.length}`,
+        loadedScreenCount ===
+          SCREEN_NAMES.length
+          ? "All configured screen schedules are loaded."
+          : "Some configured screen schedules are still unavailable."
+      );
+
+      const quietHours =
+        typeof isPlayerQuietHours === "function"
+          ? isPlayerQuietHours()
+          : false;
+
+      const onlinePlayers =
+        latestPlayerHeartbeats.filter(
+          player =>
+            player.status === "online"
+        ).length;
+
+      setMissionStatusCard(
+        missionPlayersCard,
+        missionPlayersValue,
+        missionPlayersDetail,
+        quietHours ||
+        onlinePlayers === SCREEN_NAMES.length
+          ? "ok"
+          : onlinePlayers > 0
+            ? "warning"
+            : "error",
+        quietHours
+          ? "Sleeping"
+          : `${onlinePlayers}/${SCREEN_NAMES.length}`,
+        quietHours
+          ? "Quiet hours are active; inactive players are expected."
+          : onlinePlayers === SCREEN_NAMES.length
+            ? "All players are checking in normally."
+            : `${SCREEN_NAMES.length - onlinePlayers} player(s) are not currently online.`
+      );
+
+      const snapshotSavedAt =
+        dashboardOfflineSnapshot &&
+        dashboardOfflineSnapshot.savedAt
+          ? new Date(
+              dashboardOfflineSnapshot.savedAt
+            )
+          : null;
+
+      const snapshotValid =
+        snapshotSavedAt &&
+        Number.isFinite(
+          snapshotSavedAt.getTime()
+        ) &&
+        Date.now() -
+          snapshotSavedAt.getTime() <=
+          DASHBOARD_OFFLINE_MAX_AGE_MS;
+
+      setMissionStatusCard(
+        missionBackupCard,
+        missionBackupValue,
+        missionBackupDetail,
+        snapshotValid
+          ? "ok"
+          : "warning",
+        snapshotValid
+          ? "Ready"
+          : "Review",
+        snapshotValid
+          ? `Offline recovery snapshot available (${formatOfflineSnapshotAge(snapshotSavedAt)}).`
+          : "No recent offline recovery snapshot is available."
+      );
+
+      if (latestHealthTelemetry) {
+        const cacheHitRate =
+          Number(
+            latestHealthTelemetry.cacheHitRate || 0
+          );
+
+        const averageDuration =
+          Number(
+            latestHealthTelemetry.averageDurationMs || 0
+          );
+
+        setMissionStatusCard(
+          missionCacheCard,
+          missionCacheValue,
+          missionCacheDetail,
+          averageDuration <= 2000
+            ? "ok"
+            : averageDuration <= 3500
+              ? "warning"
+              : "error",
+          `${cacheHitRate.toFixed(1)}%`,
+          averageDuration <= 2000
+            ? `Average response remains acceptable at ${averageDuration} ms.`
+            : `Average response is ${averageDuration} ms and should be reviewed.`
+        );
+
+        setMissionStatusCard(
+          missionAppsScriptCard,
+          missionAppsScriptValue,
+          missionAppsScriptDetail,
+          latestHealthTelemetry.lastError
+            ? "warning"
+            : "ok",
+          latestHealthTelemetry.lastError
+            ? "Connected"
+            : "Connected",
+          latestHealthTelemetry.lastError
+            ? `Connected, with a recorded error: ${latestHealthTelemetry.lastError}`
+            : "Telemetry is loading successfully from Apps Script."
+        );
+
+      } else {
+        setMissionStatusCard(
+          missionCacheCard,
+          missionCacheValue,
+          missionCacheDetail,
+          "waiting",
+          "Waiting",
+          "Telemetry has not loaded yet."
+        );
+
+        setMissionStatusCard(
+          missionAppsScriptCard,
+          missionAppsScriptValue,
+          missionAppsScriptDetail,
+          "waiting",
+          "Checking",
+          "Waiting for Apps Script telemetry."
+        );
+      }
+    }
+
+
     function renderMissionHeroHealth(
       result
     ) {
@@ -15661,6 +15959,8 @@
       renderMissionHeroHealth(
         result
       );
+
+      renderMissionControlStatuses();
       if (
         !healthScoreNumber ||
         !healthScoreReasons
@@ -15708,6 +16008,7 @@
 
       runGoLiveReadinessCheck();
       renderRolloutAssistant();
+      renderMissionControlStatuses();
     }
 
 

@@ -2,6 +2,18 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.64] — Mission Control Step 1C
+
+### Added
+
+- Live Mission Control platform-status cards.
+- Apps Script connection summary.
+- GitHub Pages availability summary.
+- Player heartbeat status.
+- Cache performance summary.
+- Offline recovery snapshot status.
+- Configured schedule coverage.
+
 ## [1.0.0-build.63] — Mission Control Step 1B
 
 ### Added

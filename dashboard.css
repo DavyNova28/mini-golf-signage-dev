@@ -6146,3 +6146,118 @@ html[data-theme="light"] .mission-version-badge {
   }
 }
 
+
+
+/*
+ * =========================================================
+ * MISSION CONTROL — STEP 1C
+ * =========================================================
+ */
+
+.mission-status-section {
+  width: 100%;
+  min-width: 0;
+  margin-top: 18px;
+  padding: clamp(18px, 3vw, 28px);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.mission-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mission-section-title {
+  margin: 5px 0 0;
+  font-size: 20px;
+}
+
+.mission-status-updated {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.mission-status-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.mission-status-card {
+  min-width: 0;
+  padding: 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 13px;
+
+  background: var(--surface-light);
+}
+
+.mission-status-card.mission-status-ok {
+  border-color: rgba(54, 201, 135, 0.5);
+}
+
+.mission-status-card.mission-status-warning {
+  border-color: rgba(242, 170, 63, 0.58);
+}
+
+.mission-status-card.mission-status-error {
+  border-color: rgba(255, 104, 104, 0.58);
+}
+
+.mission-status-icon {
+  font-size: 20px;
+}
+
+.mission-status-label {
+  margin-top: 12px;
+
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mission-status-value {
+  margin-top: 5px;
+
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.mission-status-detail {
+  margin-top: 6px;
+
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 680px) {
+  .mission-status-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1080px) {
+  .mission-status-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+

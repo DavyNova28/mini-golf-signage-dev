@@ -26,7 +26,7 @@
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="63">
+  <meta name="dashboard-build" content="64">
 </head>
 
 <body>
@@ -233,6 +233,149 @@
           >
             Waiting for telemetry
           </div>
+        </div>
+      </section>
+
+      <section class="mission-status-section">
+        <div class="mission-section-heading">
+          <div>
+            <div class="eyebrow">
+              Live overview
+            </div>
+
+            <h3 class="mission-section-title">
+              Platform status
+            </h3>
+          </div>
+
+          <div
+            id="missionStatusUpdated"
+            class="mission-status-updated"
+          >
+            Waiting for dashboard data
+          </div>
+        </div>
+
+        <div class="mission-status-grid">
+          <article
+            id="missionAppsScriptCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">⚙️</div>
+            <div class="mission-status-label">Apps Script</div>
+            <div
+              id="missionAppsScriptValue"
+              class="mission-status-value"
+            >
+              Checking
+            </div>
+            <div
+              id="missionAppsScriptDetail"
+              class="mission-status-detail"
+            >
+              Waiting for connection test
+            </div>
+          </article>
+
+          <article
+            id="missionGitHubCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">🌐</div>
+            <div class="mission-status-label">GitHub Pages</div>
+            <div
+              id="missionGitHubValue"
+              class="mission-status-value"
+            >
+              Checking
+            </div>
+            <div
+              id="missionGitHubDetail"
+              class="mission-status-detail"
+            >
+              Waiting for page verification
+            </div>
+          </article>
+
+          <article
+            id="missionPlayersCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">📺</div>
+            <div class="mission-status-label">Players</div>
+            <div
+              id="missionPlayersValue"
+              class="mission-status-value"
+            >
+              —
+            </div>
+            <div
+              id="missionPlayersDetail"
+              class="mission-status-detail"
+            >
+              Waiting for heartbeat data
+            </div>
+          </article>
+
+          <article
+            id="missionCacheCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">💾</div>
+            <div class="mission-status-label">Cache</div>
+            <div
+              id="missionCacheValue"
+              class="mission-status-value"
+            >
+              —
+            </div>
+            <div
+              id="missionCacheDetail"
+              class="mission-status-detail"
+            >
+              Waiting for telemetry
+            </div>
+          </article>
+
+          <article
+            id="missionBackupCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">🛡️</div>
+            <div class="mission-status-label">Recovery</div>
+            <div
+              id="missionBackupValue"
+              class="mission-status-value"
+            >
+              Checking
+            </div>
+            <div
+              id="missionBackupDetail"
+              class="mission-status-detail"
+            >
+              Waiting for snapshot status
+            </div>
+          </article>
+
+          <article
+            id="missionSchedulesCard"
+            class="mission-status-card mission-status-waiting"
+          >
+            <div class="mission-status-icon">📅</div>
+            <div class="mission-status-label">Schedules</div>
+            <div
+              id="missionSchedulesValue"
+              class="mission-status-value"
+            >
+              —
+            </div>
+            <div
+              id="missionSchedulesDetail"
+              class="mission-status-detail"
+            >
+              Waiting for schedule data
+            </div>
+          </article>
         </div>
       </section>
     </section>
