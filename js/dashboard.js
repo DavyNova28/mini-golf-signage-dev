@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -396,6 +396,31 @@
     const missionSchedulesDetail =
       document.getElementById(
         "missionSchedulesDetail"
+      );
+
+    const missionGreeting =
+      document.getElementById(
+        "missionGreeting"
+      );
+
+    const missionScheduleActionStatus =
+      document.getElementById(
+        "missionScheduleActionStatus"
+      );
+
+    const missionImagesActionStatus =
+      document.getElementById(
+        "missionImagesActionStatus"
+      );
+
+    const missionHealthActionStatus =
+      document.getElementById(
+        "missionHealthActionStatus"
+      );
+
+    const missionRolloutActionStatus =
+      document.getElementById(
+        "missionRolloutActionStatus"
       );
 
     const controlCenterTab =
@@ -15691,6 +15716,145 @@
     }
 
 
+    function setupMissionQuickActions() {
+      document
+        .querySelectorAll(
+          "[data-mission-workspace]"
+        )
+        .forEach(
+          card => {
+            card.addEventListener(
+              "click",
+              function() {
+                const workspaceName =
+                  card.getAttribute(
+                    "data-mission-workspace"
+                  );
+
+                openWorkspace(
+                  workspaceName
+                );
+
+                const healthAnchor =
+                  card.getAttribute(
+                    "data-mission-health-anchor"
+                  );
+
+                if (healthAnchor === "rollout") {
+                  setTimeout(
+                    function() {
+                      const rolloutPanel =
+                        document.querySelector(
+                          ".rollout-assistant"
+                        );
+
+                      if (rolloutPanel) {
+                        rolloutPanel.scrollIntoView({
+                          behavior:
+                            "smooth",
+
+                          block:
+                            "start"
+                        });
+                      }
+                    },
+                    100
+                  );
+                }
+              }
+            );
+          }
+        );
+    }
+
+
+    function renderMissionGreeting() {
+      if (!missionGreeting) {
+        return;
+      }
+
+      const hour =
+        new Date().getHours();
+
+      const greeting =
+        hour < 12
+          ? "Good morning"
+          : hour < 18
+            ? "Good afternoon"
+            : "Good evening";
+
+      const onlinePlayers =
+        latestPlayerHeartbeats.filter(
+          player =>
+            player.status === "online"
+        ).length;
+
+      const playerMessage =
+        typeof isPlayerQuietHours === "function" &&
+        isPlayerQuietHours()
+          ? "Quiet hours are active."
+          : `${onlinePlayers}/${SCREEN_NAMES.length} players are online.`;
+
+      missionGreeting.textContent =
+        `${greeting}. ${playerMessage}`;
+    }
+
+
+    function renderMissionQuickActionStatuses() {
+      if (missionScheduleActionStatus) {
+        const loadedScreenCount =
+          SCREEN_NAMES.filter(
+            screenName =>
+              screenStates.has(
+                screenName
+              )
+          ).length;
+
+        missionScheduleActionStatus.textContent =
+          `${loadedScreenCount}/${SCREEN_NAMES.length} schedules loaded`;
+      }
+
+      if (missionHealthActionStatus) {
+        missionHealthActionStatus.textContent =
+          latestHealthScoreResult &&
+          Number.isFinite(
+            latestHealthScoreResult.score
+          )
+            ? `${latestHealthScoreResult.score}/100 · ${latestHealthScoreResult.label}`
+            : "Waiting for health score";
+      }
+
+      if (missionRolloutActionStatus) {
+        const readyCount =
+          SCREEN_NAMES.filter(
+            screenName =>
+              getRolloutStateForScreen(
+                screenName
+              ).state === "ready"
+          ).length;
+
+        missionRolloutActionStatus.textContent =
+          `${readyCount}/${SCREEN_NAMES.length} screens ready`;
+      }
+
+      if (missionImagesActionStatus) {
+        const imageCount =
+          Array.isArray(
+            githubImageLibrary
+          )
+            ? githubImageLibrary.length
+            : 0;
+
+        missionImagesActionStatus.textContent =
+          imageCount > 0
+            ? `${imageCount} image${imageCount === 1 ? "" : "s"} indexed`
+            : "Browse image library";
+      }
+
+      renderMissionGreeting();
+    }
+
+
     function setMissionStatusCard(
       card,
       valueElement,
@@ -15887,6 +16051,8 @@
           "Waiting for Apps Script telemetry."
         );
       }
+
+      renderMissionQuickActionStatuses();
     }
 
 
@@ -17586,6 +17752,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupMissionQuickActions();
 
     openWorkspace("home");
     refreshDashboard();
