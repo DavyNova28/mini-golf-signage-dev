@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.66] — Mission Control Step 1D Corrected
+
+### Fixed
+
+- Corrected all Quick Action workspace destinations.
+- Corrected the Image Library count variable.
+- Added Build 66 cache identifiers to CSS and JavaScript links.
+- Prevented mismatched cached assets from breaking Home navigation.
+
 ## [1.0.0-build.65] — Mission Control Step 1D
 
 ### Added
