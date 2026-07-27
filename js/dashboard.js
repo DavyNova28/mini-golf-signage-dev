@@ -25,7 +25,7 @@
      * Change only when the repository name or branch changes.
      */
     const GITHUB_REPOSITORY =
-      "davynova28/arcadepricefeed";
+      "davynova28/mini-golf-signage-dev";
 
     const GITHUB_BRANCH =
       "main";
