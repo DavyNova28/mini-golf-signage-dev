@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -301,6 +301,31 @@
     const missionHeroHealthState =
       document.getElementById(
         "missionHeroHealthState"
+      );
+
+    const missionConfidenceBanner =
+      document.getElementById(
+        "missionConfidenceBanner"
+      );
+
+    const missionConfidenceIcon =
+      document.getElementById(
+        "missionConfidenceIcon"
+      );
+
+    const missionConfidenceTitle =
+      document.getElementById(
+        "missionConfidenceTitle"
+      );
+
+    const missionConfidenceSummary =
+      document.getElementById(
+        "missionConfidenceSummary"
+      );
+
+    const missionConfidenceDetails =
+      document.getElementById(
+        "missionConfidenceDetails"
       );
 
     const missionStatusUpdated =
@@ -15716,6 +15741,22 @@
     }
 
 
+    function setupMissionConfidenceBanner() {
+      if (!missionConfidenceBanner) {
+        return;
+      }
+
+      missionConfidenceBanner.addEventListener(
+        "click",
+        function() {
+          openWorkspace(
+            "systemHealth"
+          );
+        }
+      );
+    }
+
+
     function setupMissionQuickActions() {
       document
         .querySelectorAll(
@@ -15852,6 +15893,245 @@
       }
 
       renderMissionGreeting();
+    }
+
+
+    function renderMissionConfidenceBanner() {
+      if (
+        !missionConfidenceBanner ||
+        !missionConfidenceIcon ||
+        !missionConfidenceTitle ||
+        !missionConfidenceSummary ||
+        !missionConfidenceDetails
+      ) {
+        return;
+      }
+
+      const loadedStates =
+        SCREEN_NAMES
+          .map(
+            screenName =>
+              screenStates.get(
+                screenName
+              )
+          )
+          .filter(Boolean);
+
+      const missingSchedules =
+        SCREEN_NAMES.filter(
+          screenName =>
+            !screenStates.has(
+              screenName
+            )
+        );
+
+      const missingImages =
+        loadedStates
+          .filter(
+            state =>
+              state.imageMissing === true
+          )
+          .map(
+            state =>
+              state.screenName
+          );
+
+      const offlineDataScreens =
+        loadedStates
+          .filter(
+            state =>
+              state.offlineSnapshot === true
+          )
+          .map(
+            state =>
+              state.screenName
+          );
+
+      const quietHours =
+        typeof isPlayerQuietHours === "function"
+          ? isPlayerQuietHours()
+          : false;
+
+      const onlinePlayers =
+        latestPlayerHeartbeats.filter(
+          player =>
+            player.status === "online"
+        ).length;
+
+      const offlinePlayerCount =
+        quietHours
+          ? 0
+          : Math.max(
+              0,
+              SCREEN_NAMES.length -
+                onlinePlayers
+            );
+
+      const healthScore =
+        latestHealthScoreResult &&
+        Number.isFinite(
+          latestHealthScoreResult.score
+        )
+          ? latestHealthScoreResult.score
+          : null;
+
+      const appsScriptReady =
+        Boolean(
+          latestHealthTelemetry
+        );
+
+      const snapshotSavedAt =
+        dashboardOfflineSnapshot &&
+        dashboardOfflineSnapshot.savedAt
+          ? new Date(
+              dashboardOfflineSnapshot.savedAt
+            )
+          : null;
+
+      const snapshotValid =
+        Boolean(
+          snapshotSavedAt &&
+          Number.isFinite(
+            snapshotSavedAt.getTime()
+          ) &&
+          Date.now() -
+            snapshotSavedAt.getTime() <=
+            DASHBOARD_OFFLINE_MAX_AGE_MS
+        );
+
+      const blockingIssues =
+        [];
+
+      const observations =
+        [];
+
+      if (missingSchedules.length > 0) {
+        blockingIssues.push(
+          `${missingSchedules.length} schedule(s) unavailable`
+        );
+      }
+
+      if (missingImages.length > 0) {
+        blockingIssues.push(
+          `${missingImages.length} active image(s) missing`
+        );
+      }
+
+      if (
+        healthScore !== null &&
+        healthScore < 65
+      ) {
+        blockingIssues.push(
+          `health score is ${healthScore}/100`
+        );
+      }
+
+      if (!appsScriptReady) {
+        observations.push(
+          "Apps Script telemetry is still loading"
+        );
+      }
+
+      if (
+        healthScore !== null &&
+        healthScore >= 65 &&
+        healthScore < 88
+      ) {
+        observations.push(
+          `health score is ${healthScore}/100`
+        );
+      }
+
+      if (offlinePlayerCount > 0) {
+        observations.push(
+          `${offlinePlayerCount} player(s) offline`
+        );
+      }
+
+      if (offlineDataScreens.length > 0) {
+        observations.push(
+          `${offlineDataScreens.length} schedule(s) using cached data`
+        );
+      }
+
+      if (!snapshotValid) {
+        observations.push(
+          "recovery snapshot needs attention"
+        );
+      }
+
+      let state =
+        "ready";
+
+      let icon =
+        "✅";
+
+      let title =
+        "Ready for Today";
+
+      let summary =
+        "Core signage checks are passing.";
+
+      if (observations.length > 0) {
+        state =
+          "review";
+
+        icon =
+          "🟠";
+
+        title =
+          "Review Recommended";
+
+        summary =
+          "The system is operational, with a few observations.";
+      }
+
+      if (blockingIssues.length > 0) {
+        state =
+          "attention";
+
+        icon =
+          "🔴";
+
+        title =
+          "Attention Required";
+
+        summary =
+          "One or more core checks need action.";
+      }
+
+      const detailParts =
+        blockingIssues.length > 0
+          ? blockingIssues
+          : observations.length > 0
+            ? observations
+            : [
+                `${SCREEN_NAMES.length}/${SCREEN_NAMES.length} schedules loaded`,
+                quietHours
+                  ? "quiet hours active"
+                  : `${onlinePlayers}/${SCREEN_NAMES.length} players online`,
+                healthScore === null
+                  ? "health score loading"
+                  : `health ${healthScore}/100`,
+                snapshotValid
+                  ? "recovery ready"
+                  : "recovery pending"
+              ];
+
+      missionConfidenceBanner.className =
+        `mission-confidence-banner mission-confidence-${state}`;
+
+      missionConfidenceIcon.textContent =
+        icon;
+
+      missionConfidenceTitle.textContent =
+        title;
+
+      missionConfidenceSummary.textContent =
+        summary;
+
+      missionConfidenceDetails.textContent =
+        detailParts.join(" · ");
     }
 
 
@@ -16053,6 +16333,7 @@
       }
 
       renderMissionQuickActionStatuses();
+      renderMissionConfidenceBanner();
     }
 
 
@@ -17752,6 +18033,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupMissionConfidenceBanner();
     setupMissionQuickActions();
 
     openWorkspace("home");
