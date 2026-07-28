@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.72] — About and Release Notes
+
+### Added
+
+- About dialog with version, build, environment, technology, player version, and current Health Score.
+- Built-in Release Notes dialog with major Version 1.0 milestones.
+- Administration menu shortcuts for About and Release Notes.
+- Keyboard and outside-click dialog closing.
+
 ## [1.0.0-build.71] — Command Palette Mouse Fix
 
 ### Fixed

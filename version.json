@@ -2,8 +2,8 @@
   "name": "Mini Golf Signage Manager",
   "version": "1.0.0",
   "label": "Version 1.0 Stable Candidate",
-  "build": 71,
+  "build": 72,
   "channel": "stable-candidate",
   "expectedPlayerVersion": "v3.1-heartbeat-1",
-  "milestone": "Command Palette Mouse Fix"
+  "milestone": "Version 1.0 About and Release Notes"
 }

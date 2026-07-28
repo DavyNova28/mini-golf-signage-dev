@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=71">
+    <link rel="stylesheet" href="css/dashboard.css?build=72">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="71">
+  <meta name="dashboard-build" content="72">
 </head>
 
 <body>
@@ -218,6 +218,22 @@
           <button id="backupHistoryTab" class="workspace-nav-item" type="button">
             Backup History
           </button>
+
+          <button
+            id="releaseNotesButton"
+            class="workspace-nav-item"
+            type="button"
+          >
+            Release Notes
+          </button>
+
+          <button
+            id="aboutApplicationButton"
+            class="workspace-nav-item"
+            type="button"
+          >
+            About
+          </button>
         </div>
       </div>
       </nav>
@@ -259,7 +275,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 71</span>
+            <span>Build 72</span>
             <span aria-hidden="true">•</span>
             <span>Development Environment</span>
           </div>
@@ -3556,7 +3572,201 @@
     </section>
   </div>
 
-    <script src="js/dashboard.js?build=71" defer></script>
+  <!--
+    =========================================================
+    VERSION 1.0 — ABOUT & RELEASE NOTES
+    BUILD 72
+    =========================================================
+  -->
+
+  <div
+    id="aboutApplicationOverlay"
+    class="application-dialog-overlay"
+    hidden
+  >
+    <section
+      class="application-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aboutApplicationTitle"
+    >
+      <div class="application-dialog-header">
+        <div>
+          <div class="eyebrow">About</div>
+          <h2 id="aboutApplicationTitle" class="application-dialog-title">
+            Mini Golf Signage Manager
+          </h2>
+        </div>
+
+        <button
+          id="closeAboutApplicationButton"
+          class="application-dialog-close"
+          type="button"
+          aria-label="Close About dialog"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="about-identity-card">
+        <div class="about-product-mark" aria-hidden="true">🎯</div>
+
+        <div>
+          <div class="about-product-name">
+            Mini Golf Signage Manager
+          </div>
+
+          <div class="about-product-version">
+            Version 1.0 Stable Candidate · Build 72
+          </div>
+
+          <div class="about-environment-badge">
+            🧪 Development Environment
+          </div>
+        </div>
+      </div>
+
+      <div class="about-information-grid">
+        <div class="about-information-card">
+          <div class="about-information-label">Purpose</div>
+          <div class="about-information-value">
+            Central management for schedules, signage content, monitoring,
+            recovery, and controlled player deployment.
+          </div>
+        </div>
+
+        <div class="about-information-card">
+          <div class="about-information-label">Technology</div>
+          <div class="about-information-value">
+            GitHub Pages · Google Apps Script · Google Sheets · OptiSigns
+          </div>
+        </div>
+
+        <div class="about-information-card">
+          <div class="about-information-label">Player version</div>
+          <div id="aboutPlayerVersion" class="about-information-value">
+            v3.1-heartbeat-1
+          </div>
+        </div>
+
+        <div class="about-information-card">
+          <div class="about-information-label">Current Health</div>
+          <div id="aboutHealthScore" class="about-information-value">
+            Waiting for telemetry
+          </div>
+        </div>
+      </div>
+
+      <div class="about-credits">
+        Created for the mini-golf signage operation and developed with ChatGPT.
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="releaseNotesOverlay"
+    class="application-dialog-overlay"
+    hidden
+  >
+    <section
+      class="application-dialog application-dialog-wide"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="releaseNotesTitle"
+    >
+      <div class="application-dialog-header">
+        <div>
+          <div class="eyebrow">Version history</div>
+          <h2 id="releaseNotesTitle" class="application-dialog-title">
+            Release Notes
+          </h2>
+        </div>
+
+        <button
+          id="closeReleaseNotesButton"
+          class="application-dialog-close"
+          type="button"
+          aria-label="Close Release Notes"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="release-notes-current">
+        <div>
+          <div class="release-notes-version">
+            Version 1.0 Stable Candidate
+          </div>
+
+          <div class="release-notes-build">
+            Build 72 · Development Release
+          </div>
+        </div>
+
+        <div class="release-notes-status">
+          Feature complete candidate
+        </div>
+      </div>
+
+      <div class="release-notes-list">
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 72</div>
+          <h3>About and Release Notes</h3>
+          <p>
+            Added product identity, version details, technology information,
+            and a built-in release history.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 71</div>
+          <h3>Command Palette Mouse Fix</h3>
+          <p>
+            Restored reliable mouse selection while preserving full keyboard
+            navigation.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 70</div>
+          <h3>Command Palette</h3>
+          <p>
+            Added Ctrl/Command + K global navigation with searchable
+            workspaces.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 69</div>
+          <h3>Grouped Navigation</h3>
+          <p>
+            Reorganized navigation into Operations, Content, Monitoring, and
+            Administration.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
+          <div class="release-note-build">Builds 62–68</div>
+          <h3>Mission Control</h3>
+          <p>
+            Added Home, branded health overview, status cards, Quick Actions,
+            confidence banner, and recent activity.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
+          <div class="release-note-build">Builds 55–61</div>
+          <h3>System Health and Rollout</h3>
+          <p>
+            Added telemetry, Health Score, heartbeat, player version
+            compliance, go-live checks, and controlled rollout tracking.
+          </p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+    <script src="js/dashboard.js?build=72" defer></script>
 
 </body>
 </html>
