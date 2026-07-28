@@ -2,6 +2,14 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.77] — Notification Center
+
+### Added
+
+- Proactive Notification Center with an active-alert badge.
+- Alerts for Health Score, offline players, unavailable schedules, missing images, cached data, recovery readiness, and Apps Script errors.
+- Direct navigation from each alert to the relevant workspace.
+
 ## [1.1.0-dev.76] — Navigation Polish
 
 ### Added

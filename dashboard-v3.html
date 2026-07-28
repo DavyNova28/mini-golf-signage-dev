@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=76">
+    <link rel="stylesheet" href="css/dashboard.css?build=77">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="76">
+  <meta name="dashboard-build" content="77">
 </head>
 
 <body>
@@ -263,17 +263,33 @@
       </div>
       </nav>
 
-      <button
-        id="commandPaletteButton"
-        class="command-palette-button"
-        type="button"
-        aria-haspopup="dialog"
-        aria-controls="commandPaletteDialog"
-      >
-        <span aria-hidden="true">⌨️</span>
-        <span>Go to…</span>
-        <kbd>Ctrl K</kbd>
-      </button>
+      <div class="workspace-navigation-tools">
+        <button
+          id="notificationCenterButton"
+          class="notification-center-button"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="notificationCenterOverlay"
+          aria-label="Open notifications"
+          title="Notifications"
+        >
+          <span aria-hidden="true">🔔</span>
+          <span>Notifications</span>
+          <span id="notificationCenterBadge" class="notification-center-badge" hidden>0</span>
+        </button>
+
+        <button
+          id="commandPaletteButton"
+          class="command-palette-button"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="commandPaletteDialog"
+        >
+          <span aria-hidden="true">⌨️</span>
+          <span>Go to…</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+      </div>
     </div>
 
     <section
@@ -300,7 +316,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 76</span>
+            <span>Build 77</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -3548,6 +3564,28 @@
     ></div>
   </div>
 
+  <!-- VERSION 1.1 DEVELOPMENT — NOTIFICATION CENTER — BUILD 77 -->
+  <div id="notificationCenterOverlay" class="notification-center-overlay" hidden>
+    <section class="notification-center-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="notificationCenterTitle">
+      <div class="notification-center-header">
+        <div>
+          <div class="eyebrow">Proactive monitoring</div>
+          <h2 id="notificationCenterTitle" class="notification-center-title">Notifications</h2>
+        </div>
+        <button id="closeNotificationCenterButton" class="notification-center-close"
+          type="button" aria-label="Close notifications">×</button>
+      </div>
+      <div class="notification-center-summary">
+        <span id="notificationCenterSummary">Checking system status…</span>
+        <button id="refreshNotificationCenterButton" class="button" type="button">Refresh</button>
+      </div>
+      <div id="notificationCenterList" class="notification-center-list">
+        <div class="notification-center-empty">Waiting for dashboard data.</div>
+      </div>
+    </section>
+  </div>
+
   <!-- VERSION 1.0 — COMMAND PALETTE -->
   <div id="commandPaletteOverlay" class="command-palette-overlay" hidden>
     <section
@@ -3738,6 +3776,12 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry">
+          <div class="release-note-build">Build 77</div>
+          <h3>Notification Center</h3>
+          <p>Added proactive alerts for health, players, schedules, images, cached data, and recovery readiness.</p>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 76</div>
           <h3>Version 1.1 Navigation Polish</h3>
           <p>
@@ -3843,7 +3887,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=76" defer></script>
+    <script src="js/dashboard.js?build=77" defer></script>
 
 </body>
 </html>
