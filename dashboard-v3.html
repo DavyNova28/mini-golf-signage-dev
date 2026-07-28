@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=73">
+    <link rel="stylesheet" href="css/dashboard.css?build=74">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="73">
+  <meta name="dashboard-build" content="74">
 </head>
 
 <body>
@@ -220,6 +220,14 @@
           </button>
 
           <button
+            id="exportDiagnosticsButton"
+            class="workspace-nav-item"
+            type="button"
+          >
+            Export Diagnostics
+          </button>
+
+          <button
             id="releaseNotesButton"
             class="workspace-nav-item"
             type="button"
@@ -275,7 +283,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 73</span>
+            <span>Build 74</span>
             <span aria-hidden="true">•</span>
             <span>Development Environment</span>
           </div>
@@ -3617,7 +3625,7 @@
           </div>
 
           <div class="about-product-version">
-            Version 1.0 Stable Candidate · Build 73
+            Version 1.0 Release Candidate · Build 74
           </div>
 
           <div class="about-environment-badge">
@@ -3699,16 +3707,25 @@
           </div>
 
           <div class="release-notes-build">
-            Build 73 · Development Release
+            Build 74 · Release Candidate
           </div>
         </div>
 
         <div class="release-notes-status">
-          Feature complete candidate
+          Release candidate
         </div>
       </div>
 
       <div class="release-notes-list">
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 74</div>
+          <h3>Release Candidate Diagnostics</h3>
+          <p>
+            Added a complete downloadable diagnostics snapshot for support,
+            troubleshooting, release verification, and future rollback review.
+          </p>
+        </article>
+
         <article class="release-note-entry">
           <div class="release-note-build">Build 73</div>
           <h3>Health Score Stability</h3>
@@ -3776,7 +3793,7 @@
     </section>
   </div>
 
-    <script src="js/dashboard.js?build=73" defer></script>
+    <script src="js/dashboard.js?build=74" defer></script>
 
 </body>
 </html>

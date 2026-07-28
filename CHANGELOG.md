@@ -2,6 +2,19 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.74] — Release Candidate Diagnostics
+
+### Added
+
+- Export Diagnostics command under Administration.
+- Single downloadable JSON snapshot for support and release verification.
+- Version, build, environment, Health Score, telemetry, heartbeats, schedules, recovery, rollout, and image-index information.
+- Basic redaction for fields whose names indicate passwords, tokens, secrets, or authorization data.
+
+### Release status
+
+- Promoted the development build label to Version 1.0 Release Candidate.
+
 ## [1.0.0-build.73] — Health Score Stability
 
 ### Improved
