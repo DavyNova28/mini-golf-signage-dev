@@ -7366,3 +7366,156 @@ html[data-theme="light"] .about-environment-production {
   color: #15543a;
   background: #d9f7ea;
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.1 DEVELOPMENT — BUILD 76
+ * SCROLL PROGRESS + BACK TO TOP
+ * =========================================================
+ */
+
+.dashboard-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1300;
+
+  width: 100%;
+  height: 3px;
+
+  pointer-events: none;
+
+  background: transparent;
+}
+
+.dashboard-scroll-progress-bar {
+  width: 0%;
+  height: 100%;
+
+  border-radius: 0 999px 999px 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #4f9cff,
+      #36c987
+    );
+
+  box-shadow:
+    0 0 10px rgba(79, 156, 255, 0.45);
+
+  transition:
+    width 80ms linear;
+}
+
+.back-to-top-button {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 1200;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-width: 46px;
+  min-height: 46px;
+  padding: 10px 13px;
+
+  border: 1px solid rgba(93, 170, 255, 0.5);
+  border-radius: 999px;
+
+  color: var(--text);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93, 170, 255, 0.13),
+      rgba(54, 201, 135, 0.08)
+    ),
+    var(--surface);
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.28);
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  opacity: 1;
+  transform: translateY(0) scale(1);
+
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.back-to-top-button[hidden] {
+  display: inline-flex;
+
+  opacity: 0;
+  transform: translateY(14px) scale(0.92);
+
+  pointer-events: none;
+}
+
+.back-to-top-button:hover {
+  transform: translateY(-3px) scale(1.02);
+
+  border-color: rgba(93, 170, 255, 0.82);
+
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+.back-to-top-button:focus-visible {
+  outline: 3px solid rgba(93, 170, 255, 0.5);
+  outline-offset: 3px;
+}
+
+.back-to-top-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.back-to-top-label {
+  display: none;
+}
+
+.back-to-top-button.back-to-top-at-bottom
+.back-to-top-label {
+  display: inline;
+}
+
+html[data-theme="light"] .back-to-top-button {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93, 170, 255, 0.12),
+      rgba(54, 201, 135, 0.08)
+    ),
+    var(--surface);
+}
+
+@media (min-width: 760px) {
+  .back-to-top-button.back-to-top-at-bottom {
+    min-width: 74px;
+  }
+
+  .back-to-top-button.back-to-top-at-bottom
+  .back-to-top-label {
+    display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-scroll-progress-bar,
+  .back-to-top-button {
+    transition: none;
+  }
+}
