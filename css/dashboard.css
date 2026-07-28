@@ -7348,3 +7348,21 @@ html[data-theme="light"] .release-notes-status {
     max-height: calc(100vh - 24px);
   }
 }
+
+
+/*
+ * =========================================================
+ * BUILD 75 — STABLE ENVIRONMENT IDENTITY
+ * =========================================================
+ */
+
+.about-environment-production {
+  color: #caffea;
+  border-color: rgba(54, 201, 135, 0.48);
+  background: rgba(23, 75, 56, 0.46);
+}
+
+html[data-theme="light"] .about-environment-production {
+  color: #15543a;
+  background: #d9f7ea;
+}
