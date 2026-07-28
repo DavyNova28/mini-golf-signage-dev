@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -276,6 +276,16 @@
     const themeButtonText =
       document.getElementById(
         "themeButtonText"
+      );
+
+    const dashboardScrollProgressBar =
+      document.getElementById(
+        "dashboardScrollProgressBar"
+      );
+
+    const backToTopButton =
+      document.getElementById(
+        "backToTopButton"
       );
 
     const exportDiagnosticsButton =
@@ -15838,6 +15848,122 @@
     }
 
 
+    function updateDashboardScrollNavigation() {
+      const documentElement =
+        document.documentElement;
+
+      const scrollTop =
+        window.scrollY ||
+        documentElement.scrollTop ||
+        0;
+
+      const scrollableDistance =
+        Math.max(
+          0,
+          documentElement.scrollHeight -
+            window.innerHeight
+        );
+
+      const progress =
+        scrollableDistance > 0
+          ? Math.min(
+              1,
+              scrollTop /
+                scrollableDistance
+            )
+          : 0;
+
+      if (dashboardScrollProgressBar) {
+        dashboardScrollProgressBar.style.width =
+          `${progress * 100}%`;
+      }
+
+      if (backToTopButton) {
+        const shouldShow =
+          scrollTop >= 420;
+
+        backToTopButton.hidden =
+          !shouldShow;
+
+        const nearBottom =
+          scrollableDistance > 0 &&
+          scrollableDistance -
+            scrollTop <=
+            180;
+
+        backToTopButton.classList.toggle(
+          "back-to-top-at-bottom",
+          nearBottom
+        );
+      }
+    }
+
+
+    function scrollDashboardToTop() {
+      const prefersReducedMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+      window.scrollTo({
+        top:
+          0,
+
+        behavior:
+          prefersReducedMotion
+            ? "auto"
+            : "smooth"
+      });
+    }
+
+
+    function setupDashboardScrollNavigation() {
+      if (backToTopButton) {
+        backToTopButton.addEventListener(
+          "click",
+          scrollDashboardToTop
+        );
+      }
+
+      let scrollFrameRequested =
+        false;
+
+      function requestScrollUpdate() {
+        if (scrollFrameRequested) {
+          return;
+        }
+
+        scrollFrameRequested =
+          true;
+
+        window.requestAnimationFrame(
+          function() {
+            scrollFrameRequested =
+              false;
+
+            updateDashboardScrollNavigation();
+          }
+        );
+      }
+
+      window.addEventListener(
+        "scroll",
+        requestScrollUpdate,
+        {
+          passive:
+            true
+        }
+      );
+
+      window.addEventListener(
+        "resize",
+        requestScrollUpdate
+      );
+
+      updateDashboardScrollNavigation();
+    }
+
+
     function getApplicationEnvironment() {
       const locationText =
         `${window.location.hostname}${window.location.pathname}`
@@ -16100,10 +16226,10 @@
               "1.0.0",
 
             label:
-              "Version 1.0 Stable",
+              "Version 1.1 Development",
 
             build:
-              75,
+              76,
 
             environment:
               getApplicationEnvironment().key,
@@ -16249,7 +16375,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-75-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-76-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -19385,6 +19511,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupDashboardScrollNavigation();
     renderApplicationEnvironment();
     setupDiagnosticsExport();
     setupApplicationInformationDialogs();
