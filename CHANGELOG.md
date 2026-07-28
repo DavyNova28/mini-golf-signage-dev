@@ -2,6 +2,20 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0] — Version 1.0 Stable — Build 75
+
+### Added
+
+- Automatic Development, Production, and Local Preview environment detection.
+- Stable Version 1.0 identity across Home, About, Release Notes, diagnostics, and metadata.
+- Final GitHub release and production-promotion documentation.
+
+### Release status
+
+- Version 1.0.0 Stable.
+- Git tag: `v1.0.0`.
+- Permanent rollback baseline.
+
 ## [1.0.0-build.74] — Release Candidate Diagnostics
 
 ### Added

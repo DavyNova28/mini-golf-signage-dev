@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.0.0 Stable Candidate** — Build **61**
+Version **1.0.0 Stable** — Build **75**
 
 ## Project structure
 
@@ -40,4 +40,4 @@ Do not flatten the `css` or `js` folders. The HTML uses these relative paths:
 1. Test this modular build in GitHub Pages.
 2. Confirm Schedule Manager, Image Library, System Health, Heartbeat, and Rollout Assistant.
 3. Keep the store screens on the current safe setup until the preflight passes.
-4. Tag the final tested commit as `v1.0.0`.
+4. The final tested production commit is tagged as `v1.0.0`.
