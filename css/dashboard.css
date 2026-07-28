@@ -6423,3 +6423,160 @@ html[data-theme="light"] .mission-version-badge {
       repeat(3, minmax(0, 1fr));
   }
 }
+
+
+/*
+ * =========================================================
+ * MISSION CONTROL — STEP 1E: CONFIDENCE BANNER
+ * =========================================================
+ */
+
+.mission-confidence-banner {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+
+  width: 100%;
+  min-width: 0;
+  margin-top: 18px;
+  padding: 18px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  color: var(--text);
+  background: var(--surface);
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  box-shadow: var(--shadow);
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.mission-confidence-banner:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.2);
+}
+
+.mission-confidence-banner:focus-visible {
+  outline: 3px solid rgba(93, 170, 255, 0.5);
+  outline-offset: 3px;
+}
+
+.mission-confidence-ready {
+  border-color: rgba(54, 201, 135, 0.62);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(54, 201, 135, 0.12),
+      transparent 48%
+    ),
+    var(--surface);
+}
+
+.mission-confidence-review {
+  border-color: rgba(242, 170, 63, 0.66);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(242, 170, 63, 0.13),
+      transparent 48%
+    ),
+    var(--surface);
+}
+
+.mission-confidence-attention {
+  border-color: rgba(255, 104, 104, 0.68);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 104, 104, 0.13),
+      transparent 48%
+    ),
+    var(--surface);
+}
+
+.mission-confidence-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 48px;
+  height: 48px;
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  background: var(--surface-light);
+
+  font-size: 23px;
+}
+
+.mission-confidence-content {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.mission-confidence-title {
+  font-size: clamp(17px, 2.3vw, 23px);
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.mission-confidence-summary {
+  margin-top: 5px;
+
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.mission-confidence-details {
+  margin-top: 5px;
+
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.mission-confidence-action {
+  grid-column: 2;
+
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+@media (min-width: 760px) {
+  .mission-confidence-banner {
+    grid-template-columns:
+      auto
+      minmax(0, 1fr)
+      auto;
+    padding: 20px 22px;
+  }
+
+  .mission-confidence-action {
+    grid-column: auto;
+    align-self: center;
+  }
+}
+
