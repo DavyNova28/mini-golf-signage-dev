@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -419,6 +419,16 @@
     const notificationPreferenceAppsScript =
       document.getElementById(
         "notificationPreferenceAppsScript"
+      );
+
+    const notificationSnoozeMenu =
+      document.getElementById(
+        "notificationSnoozeMenu"
+      );
+
+    const cancelNotificationSnoozeButton =
+      document.getElementById(
+        "cancelNotificationSnoozeButton"
       );
 
     const commandPaletteButton =
@@ -16307,7 +16317,7 @@
               "Version 1.1 Development",
 
             build:
-              79,
+              80,
 
             environment:
               getApplicationEnvironment().key,
@@ -16453,7 +16463,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-79-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-80-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16706,6 +16716,16 @@
     }
 
 
+    const NOTIFICATION_SNOOZE_KEY =
+      "miniGolfSignageNotificationSnoozeV1";
+
+    let notificationSnoozes =
+      {};
+
+    let notificationSnoozeTargetFingerprint =
+      null;
+
+
     const NOTIFICATION_PREFERENCES_KEY =
       "miniGolfSignageNotificationPreferencesV1";
 
@@ -16750,6 +16770,317 @@
         fingerprints:
           {}
       };
+
+
+    function loadNotificationSnoozes() {
+      try {
+        const savedValue =
+          localStorage.getItem(
+            NOTIFICATION_SNOOZE_KEY
+          );
+
+        if (!savedValue) {
+          return;
+        }
+
+        const parsedValue =
+          JSON.parse(
+            savedValue
+          );
+
+        if (
+          parsedValue &&
+          typeof parsedValue === "object"
+        ) {
+          notificationSnoozes =
+            parsedValue;
+        }
+      } catch (error) {
+        console.warn(
+          "Notification snoozes could not be loaded.",
+          error
+        );
+      }
+
+      removeExpiredNotificationSnoozes();
+    }
+
+
+    function saveNotificationSnoozes() {
+      try {
+        localStorage.setItem(
+          NOTIFICATION_SNOOZE_KEY,
+          JSON.stringify(
+            notificationSnoozes
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Notification snoozes could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function removeExpiredNotificationSnoozes() {
+      const now =
+        Date.now();
+
+      let changed =
+        false;
+
+      Object.keys(
+        notificationSnoozes
+      ).forEach(
+        fingerprint => {
+          const expiresAt =
+            Number(
+              notificationSnoozes[
+                fingerprint
+              ]
+            );
+
+          if (
+            !Number.isFinite(
+              expiresAt
+            ) ||
+            expiresAt <= now
+          ) {
+            delete notificationSnoozes[
+              fingerprint
+            ];
+
+            changed =
+              true;
+          }
+        }
+      );
+
+      if (changed) {
+        saveNotificationSnoozes();
+      }
+    }
+
+
+    function isNotificationSnoozed(
+      notification
+    ) {
+      const expiresAt =
+        Number(
+          notificationSnoozes[
+            notification.fingerprint
+          ]
+        );
+
+      return Number.isFinite(
+        expiresAt
+      ) &&
+      expiresAt > Date.now();
+    }
+
+
+    function calculateTomorrowMorningTimestamp() {
+      const tomorrow =
+        new Date();
+
+      tomorrow.setDate(
+        tomorrow.getDate() + 1
+      );
+
+      tomorrow.setHours(
+        8,
+        0,
+        0,
+        0
+      );
+
+      return tomorrow.getTime();
+    }
+
+
+    function snoozeNotification(
+      fingerprint,
+      expiresAt
+    ) {
+      if (
+        !fingerprint ||
+        !Number.isFinite(
+          expiresAt
+        )
+      ) {
+        return;
+      }
+
+      notificationSnoozes[
+        fingerprint
+      ] =
+        expiresAt;
+
+      saveNotificationSnoozes();
+      closeNotificationSnoozeMenu();
+      renderNotificationCenter();
+
+      if (
+        typeof showToast === "function"
+      ) {
+        showToast(
+          "Notification snoozed.",
+          "success"
+        );
+      }
+    }
+
+
+    function openNotificationSnoozeMenu(
+      event,
+      fingerprint
+    ) {
+      if (!notificationSnoozeMenu) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      notificationSnoozeTargetFingerprint =
+        fingerprint;
+
+      const button =
+        event.currentTarget;
+
+      const rectangle =
+        button.getBoundingClientRect();
+
+      const menuWidth =
+        240;
+
+      const left =
+        Math.min(
+          window.innerWidth -
+            menuWidth -
+            12,
+          Math.max(
+            12,
+            rectangle.right -
+              menuWidth
+          )
+        );
+
+      const top =
+        Math.min(
+          window.innerHeight -
+            260,
+          rectangle.bottom + 7
+        );
+
+      notificationSnoozeMenu.style.left =
+        `${left}px`;
+
+      notificationSnoozeMenu.style.top =
+        `${Math.max(12, top)}px`;
+
+      notificationSnoozeMenu.hidden =
+        false;
+    }
+
+
+    function closeNotificationSnoozeMenu() {
+      if (!notificationSnoozeMenu) {
+        return;
+      }
+
+      notificationSnoozeMenu.hidden =
+        true;
+
+      notificationSnoozeTargetFingerprint =
+        null;
+    }
+
+
+    function setupNotificationSnoozeMenu() {
+      if (!notificationSnoozeMenu) {
+        return;
+      }
+
+      notificationSnoozeMenu
+        .querySelectorAll(
+          "[data-snooze-minutes]"
+        )
+        .forEach(
+          button => {
+            button.addEventListener(
+              "click",
+              function() {
+                const minutes =
+                  Number(
+                    button.dataset.snoozeMinutes
+                  );
+
+                snoozeNotification(
+                  notificationSnoozeTargetFingerprint,
+                  Date.now() +
+                    minutes *
+                    60000
+                );
+              }
+            );
+          }
+        );
+
+      const tomorrowButton =
+        notificationSnoozeMenu.querySelector(
+          '[data-snooze-until="tomorrow"]'
+        );
+
+      if (tomorrowButton) {
+        tomorrowButton.addEventListener(
+          "click",
+          function() {
+            snoozeNotification(
+              notificationSnoozeTargetFingerprint,
+              calculateTomorrowMorningTimestamp()
+            );
+          }
+        );
+      }
+
+      if (cancelNotificationSnoozeButton) {
+        cancelNotificationSnoozeButton.addEventListener(
+          "click",
+          closeNotificationSnoozeMenu
+        );
+      }
+
+      document.addEventListener(
+        "click",
+        function(event) {
+          if (
+            !notificationSnoozeMenu.hidden &&
+            !event.target.closest(
+              ".notification-snooze-menu"
+            ) &&
+            !event.target.closest(
+              ".notification-item-snooze"
+            )
+          ) {
+            closeNotificationSnoozeMenu();
+          }
+        }
+      );
+
+      document.addEventListener(
+        "keydown",
+        function(event) {
+          if (
+            event.key === "Escape" &&
+            !notificationSnoozeMenu.hidden
+          ) {
+            closeNotificationSnoozeMenu();
+          }
+        }
+      );
+    }
 
 
     function loadNotificationPreferences() {
@@ -17214,9 +17545,27 @@
 
     function renderNotificationCenter() {
       if (!notificationCenterBadge || !notificationCenterSummary || !notificationCenterList) return;
-      const items =
+      removeExpiredNotificationSnoozes();
+
+      const allItems =
         enrichDashboardNotifications(
           buildDashboardNotifications()
+        );
+
+      const snoozedItems =
+        allItems.filter(
+          item =>
+            isNotificationSnoozed(
+              item
+            )
+        );
+
+      const items =
+        allItems.filter(
+          item =>
+            !isNotificationSnoozed(
+              item
+            )
         );
 
       const unreadCount =
@@ -17244,7 +17593,10 @@
       }
 
       if (!items.length) {
-        notificationCenterSummary.textContent = "No active alerts. Core monitoring checks are clear.";
+        notificationCenterSummary.textContent =
+          snoozedItems.length > 0
+            ? `No visible alerts · ${snoozedItems.length} snoozed.`
+            : "No active alerts. Core monitoring checks are clear.";
         notificationCenterList.innerHTML =
           '<div class="notification-center-empty">✅ Everything currently looks good.<br>New alerts will appear here automatically.</div>';
         return;
@@ -17258,8 +17610,8 @@
 
       notificationCenterSummary.textContent =
         unreadCount > 0
-          ? `${unreadCount} new notification(s) · ${items.length} active total${critical ? ` · ${critical} critical` : ""}.`
-          : `${items.length} active notification(s), all reviewed${critical ? ` · ${critical} critical` : ""}.`;
+          ? `${unreadCount} new · ${items.length} visible${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`
+          : `${items.length} visible, all reviewed${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`;
 
       notificationCenterList.innerHTML = items.map((item,index) => `
         <button
@@ -17277,28 +17629,78 @@
             </span>
           </span>
 
-          <span class="notification-item-action">Open →</span>
+          <span class="notification-item-actions">
+            <span
+              class="notification-item-open"
+              data-notification-open="${index}"
+            >
+              Open →
+            </span>
+
+            <span
+              class="notification-item-snooze"
+              data-notification-snooze="${index}"
+            >
+              Snooze
+            </span>
+          </span>
         </button>`).join("");
 
-      notificationCenterList.querySelectorAll("[data-notification-index]").forEach(button => {
-        button.addEventListener("click", () => {
-          const item = items[Number(button.dataset.notificationIndex)];
-          if (!item) return;
+      notificationCenterList
+        .querySelectorAll(
+          "[data-notification-index]"
+        )
+        .forEach(
+          button => {
+            button.addEventListener(
+              "click",
+              function(event) {
+                const index =
+                  Number(
+                    button.dataset.notificationIndex
+                  );
 
-          notificationMemory.fingerprints[
-            item.fingerprint
-          ] =
-            true;
+                const item =
+                  items[
+                    index
+                  ];
 
-          notificationMemory.reviewedAt =
-            new Date().toISOString();
+                if (!item) {
+                  return;
+                }
 
-          saveNotificationMemory();
+                const snoozeTarget =
+                  event.target.closest(
+                    "[data-notification-snooze]"
+                  );
 
-          closeNotificationCenter();
-          openWorkspace(item.workspace);
-        });
-      });
+                if (snoozeTarget) {
+                  openNotificationSnoozeMenu(
+                    event,
+                    item.fingerprint
+                  );
+
+                  return;
+                }
+
+                notificationMemory.fingerprints[
+                  item.fingerprint
+                ] =
+                  true;
+
+                notificationMemory.reviewedAt =
+                  new Date().toISOString();
+
+                saveNotificationMemory();
+
+                closeNotificationCenter();
+                openWorkspace(
+                  item.workspace
+                );
+              }
+            );
+          }
+        );
     }
 
     function openNotificationCenter() {
@@ -17319,6 +17721,8 @@
           true;
       }
 
+      closeNotificationSnoozeMenu();
+
       notificationCenterOverlay.hidden = true;
       document.body.style.overflow = "";
       if (notificationCenterButton) notificationCenterButton.focus();
@@ -17327,6 +17731,8 @@
     function setupNotificationCenter() {
       loadNotificationPreferences();
       loadNotificationMemory();
+      loadNotificationSnoozes();
+      setupNotificationSnoozeMenu();
 
       if (!notificationCenterButton || !notificationCenterOverlay) return;
 
