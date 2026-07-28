@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -15831,21 +15831,48 @@
           <span class="command-palette-result-group">${escapeHtml(item.group)}</span>
         </button>`).join("");
 
-      commandPaletteResults.querySelectorAll("[data-command-index]").forEach(button => {
-        button.addEventListener("mouseenter", () => {
-    commandPaletteActiveIndex = Number(button.dataset.commandIndex);
+      commandPaletteResults
+        .querySelectorAll(
+          "[data-command-index]"
+        )
+        .forEach(
+          button => {
+            button.addEventListener(
+              "mouseenter",
+              function() {
+                commandPaletteActiveIndex =
+                  Number(
+                    button.dataset.commandIndex
+                  );
 
-    commandPaletteResults
-        .querySelectorAll(".command-palette-result")
-        .forEach((result, index) => {
-            result.classList.toggle(
-                "active",
-                index === commandPaletteActiveIndex
+                commandPaletteResults
+                  .querySelectorAll(
+                    ".command-palette-result"
+                  )
+                  .forEach(
+                    (result, index) => {
+                      const isActive =
+                        index ===
+                        commandPaletteActiveIndex;
+
+                      result.classList.toggle(
+                        "active",
+                        isActive
+                      );
+
+                      result.setAttribute(
+                        "aria-selected",
+                        isActive
+                          ? "true"
+                          : "false"
+                      );
+                    }
+                  );
+              }
             );
-        });
-});
-        button.addEventListener("click", () => activateCommandPaletteItem(Number(button.dataset.commandIndex)));
-      });
+          }
+        );
+
       const active = commandPaletteResults.querySelector(".active");
       if (active) active.scrollIntoView({block:"nearest"});
     }
@@ -15864,6 +15891,35 @@
       commandPaletteOverlay.addEventListener("click", event => {
         if (event.target === commandPaletteOverlay) closeCommandPalette();
       });
+
+      commandPaletteResults.addEventListener(
+        "click",
+        function(event) {
+          const resultButton =
+            event.target.closest(
+              "[data-command-index]"
+            );
+
+          if (
+            !resultButton ||
+            !commandPaletteResults.contains(
+              resultButton
+            )
+          ) {
+            return;
+          }
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          activateCommandPaletteItem(
+            Number(
+              resultButton.dataset.commandIndex
+            )
+          );
+        }
+      );
+
       commandPaletteSearch.addEventListener("input", () => {
         commandPaletteActiveIndex = 0;
         renderCommandPaletteResults();
