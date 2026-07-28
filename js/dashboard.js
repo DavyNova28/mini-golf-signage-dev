@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -446,6 +446,16 @@
     const missionRolloutActionStatus =
       document.getElementById(
         "missionRolloutActionStatus"
+      );
+
+    const refreshMissionActivityButton =
+      document.getElementById(
+        "refreshMissionActivityButton"
+      );
+
+    const missionRecentActivityList =
+      document.getElementById(
+        "missionRecentActivityList"
       );
 
     const controlCenterTab =
@@ -15741,6 +15751,20 @@
     }
 
 
+    function setupMissionRecentActivity() {
+      if (!refreshMissionActivityButton) {
+        return;
+      }
+
+      refreshMissionActivityButton.addEventListener(
+        "click",
+        function() {
+          renderMissionRecentActivity();
+        }
+      );
+    }
+
+
     function setupMissionConfidenceBanner() {
       if (!missionConfidenceBanner) {
         return;
@@ -15893,6 +15917,271 @@
       }
 
       renderMissionGreeting();
+    }
+
+
+    function formatMissionActivityTime(
+      dateValue
+    ) {
+      const date =
+        dateValue instanceof Date
+          ? dateValue
+          : new Date(
+              dateValue
+            );
+
+      if (
+        !Number.isFinite(
+          date.getTime()
+        )
+      ) {
+        return "Recently";
+      }
+
+      const difference =
+        Date.now() -
+        date.getTime();
+
+      if (difference < 60000) {
+        return "Just now";
+      }
+
+      if (difference < 3600000) {
+        return `${Math.max(
+          1,
+          Math.round(
+            difference / 60000
+          )
+        )} min ago`;
+      }
+
+      if (difference < 86400000) {
+        return `${Math.max(
+          1,
+          Math.round(
+            difference / 3600000
+          )
+        )} hr ago`;
+      }
+
+      return date.toLocaleDateString();
+    }
+
+
+    function buildMissionRecentActivity() {
+      const activity =
+        [];
+
+      if (
+        latestHealthScoreResult &&
+        Number.isFinite(
+          latestHealthScoreResult.score
+        )
+      ) {
+        activity.push({
+          icon:
+            "❤️",
+
+          title:
+            `Health score updated to ${latestHealthScoreResult.score}/100`,
+
+          detail:
+            latestHealthScoreResult.label ||
+            "System Health refreshed.",
+
+          timestamp:
+            new Date()
+        });
+      }
+
+      latestPlayerHeartbeats
+        .filter(
+          player =>
+            player &&
+            player.screen
+        )
+        .forEach(
+          player => {
+            const timestamp =
+              player.lastSeenAt
+                ? new Date(
+                    player.lastSeenAt
+                  )
+                : null;
+
+            activity.push({
+              icon:
+                player.status === "online"
+                  ? "📺"
+                  : "⚠️",
+
+              title:
+                `${player.screen} player ${player.status === "online" ? "checked in" : "is offline"}`,
+
+              detail:
+                player.playerVersion
+                  ? `Player version ${player.playerVersion}`
+                  : "Player version not reported.",
+
+              timestamp:
+                timestamp
+            });
+          }
+        );
+
+      screenStates.forEach(
+        state => {
+          if (!state) {
+            return;
+          }
+
+          activity.push({
+            icon:
+              state.offlineSnapshot === true
+                ? "💾"
+                : "📅",
+
+            title:
+              `${state.screenName} schedule loaded`,
+
+            detail:
+              state.offlineSnapshot === true
+                ? "Loaded from cached dashboard data."
+                : `${Array.isArray(state.schedule) ? state.schedule.length : 0} schedule row(s) available.`,
+
+            timestamp:
+              state.loadedAt
+                ? new Date(
+                    state.loadedAt
+                  )
+                : null
+          });
+        }
+      );
+
+      if (
+        Array.isArray(
+          imageLibraryIndex
+        ) &&
+        imageLibraryIndex.length > 0
+      ) {
+        activity.push({
+          icon:
+            "🖼️",
+
+          title:
+            "Image Library available",
+
+          detail:
+            `${imageLibraryIndex.length} image${imageLibraryIndex.length === 1 ? "" : "s"} indexed.`,
+
+          timestamp:
+            new Date()
+        });
+      }
+
+      if (
+        dashboardOfflineSnapshot &&
+        dashboardOfflineSnapshot.savedAt
+      ) {
+        activity.push({
+          icon:
+            "🛡️",
+
+          title:
+            "Recovery snapshot available",
+
+          detail:
+            "Offline dashboard recovery data is ready.",
+
+          timestamp:
+            new Date(
+              dashboardOfflineSnapshot.savedAt
+            )
+        });
+      }
+
+      return activity
+        .sort(
+          (first, second) => {
+            const firstTime =
+              first.timestamp instanceof Date &&
+              Number.isFinite(
+                first.timestamp.getTime()
+              )
+                ? first.timestamp.getTime()
+                : 0;
+
+            const secondTime =
+              second.timestamp instanceof Date &&
+              Number.isFinite(
+                second.timestamp.getTime()
+              )
+                ? second.timestamp.getTime()
+                : 0;
+
+            return secondTime - firstTime;
+          }
+        )
+        .slice(
+          0,
+          8
+        );
+    }
+
+
+    function renderMissionRecentActivity() {
+      if (!missionRecentActivityList) {
+        return;
+      }
+
+      const activity =
+        buildMissionRecentActivity();
+
+      if (activity.length === 0) {
+        missionRecentActivityList.innerHTML =
+          `
+            <div class="mission-recent-empty">
+              No recent dashboard activity is available yet.
+            </div>
+          `;
+
+        return;
+      }
+
+      missionRecentActivityList.innerHTML =
+        activity
+          .map(
+            item => `
+              <article class="mission-recent-item">
+                <div
+                  class="mission-recent-icon"
+                  aria-hidden="true"
+                >
+                  ${escapeHtml(item.icon)}
+                </div>
+
+                <div class="mission-recent-copy">
+                  <div class="mission-recent-title">
+                    ${escapeHtml(item.title)}
+                  </div>
+
+                  <div class="mission-recent-detail">
+                    ${escapeHtml(item.detail)}
+                  </div>
+                </div>
+
+                <div class="mission-recent-time">
+                  ${escapeHtml(
+                    formatMissionActivityTime(
+                      item.timestamp
+                    )
+                  )}
+                </div>
+              </article>
+            `
+          )
+          .join("");
     }
 
 
@@ -16334,6 +16623,7 @@
 
       renderMissionQuickActionStatuses();
       renderMissionConfidenceBanner();
+      renderMissionRecentActivity();
     }
 
 
@@ -18033,6 +18323,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupMissionRecentActivity();
     setupMissionConfidenceBanner();
     setupMissionQuickActions();
 
