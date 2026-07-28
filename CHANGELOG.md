@@ -2,6 +2,21 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.69] — Grouped Navigation
+
+### Added
+
+- Grouped top navigation for Operations, Content, Monitoring, and Administration.
+- Responsive dropdown navigation menus.
+- Escape-key and outside-click menu closing.
+- Mobile-friendly navigation presentation.
+
+### Improved
+
+- Reduced top-navigation crowding.
+- Preserved direct Home access.
+- Kept every existing workspace accessible.
+
 ## [1.0.0-build.68] — Mission Control Step 1F
 
 ### Added

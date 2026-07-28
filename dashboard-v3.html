@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=68">
+    <link rel="stylesheet" href="css/dashboard.css?build=69">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="68">
+  <meta name="dashboard-build" content="69">
 </head>
 
 <body>
@@ -92,97 +92,134 @@
   </header>
 
   <main>
-    <nav class="workspace-tabs">
+    <nav
+      class="workspace-tabs workspace-navigation"
+      aria-label="Dashboard navigation"
+    >
       <button
         id="homeTab"
-        class="workspace-tab active"
+        class="workspace-tab active workspace-home-tab"
         type="button"
       >
         🏠 Home
       </button>
 
-      <button
-        id="controlCenterTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Control Center
-      </button>
+      <div class="workspace-nav-group">
+        <button
+          class="workspace-nav-trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="operationsNavigationMenu"
+          data-workspace-menu-trigger="operationsNavigationMenu"
+        >
+          📅 Operations
+          <span aria-hidden="true">▾</span>
+        </button>
 
-      <button
-        id="scheduleManagerTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Schedule Manager
-      </button>
-      <button
-        id="dailyScheduleCalendarTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Daily Schedule
-      </button>
-    
+        <div
+          id="operationsNavigationMenu"
+          class="workspace-nav-menu"
+          hidden
+        >
+          <button id="scheduleManagerTab" class="workspace-nav-item" type="button">
+            Schedule Manager
+          </button>
 
+          <button id="dailyScheduleCalendarTab" class="workspace-nav-item" type="button">
+            Daily Schedule
+          </button>
 
-      <button
-        id="holidayManagerTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Holiday Overrides
-      </button>
+          <button id="holidayCalendarTab" class="workspace-nav-item" type="button">
+            Holiday Calendar
+          </button>
 
-      <button
-        id="backupHistoryTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Backup History
-      </button>
+          <button id="holidayManagerTab" class="workspace-nav-item" type="button">
+            Holiday Overrides
+          </button>
+        </div>
+      </div>
 
-      <button
-        id="imageLibraryTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Image Library
-      </button>
+      <div class="workspace-nav-group">
+        <button
+          class="workspace-nav-trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="contentNavigationMenu"
+          data-workspace-menu-trigger="contentNavigationMenu"
+        >
+          🖼️ Content
+          <span aria-hidden="true">▾</span>
+        </button>
 
-      <button
-        id="auditLogTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Audit Log
-      </button>
+        <div
+          id="contentNavigationMenu"
+          class="workspace-nav-menu"
+          hidden
+        >
+          <button id="imageLibraryTab" class="workspace-nav-item" type="button">
+            Image Library
+          </button>
+        </div>
+      </div>
 
-      <button
-        id="holidayCalendarTab"
-        class="workspace-tab"
-        type="button"
-      >
-        Holiday Calendar
-      </button>
+      <div class="workspace-nav-group">
+        <button
+          class="workspace-nav-trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="monitoringNavigationMenu"
+          data-workspace-menu-trigger="monitoringNavigationMenu"
+        >
+          ❤️ Monitoring
+          <span aria-hidden="true">▾</span>
+        </button>
 
-      <button
-        id="compatibilityAuditTab"
-        class="workspace-tab"
-        type="button"
-      >
-        V3.1 Audit
-      </button>
+        <div
+          id="monitoringNavigationMenu"
+          class="workspace-nav-menu"
+          hidden
+        >
+          <button id="systemHealthTab" class="workspace-nav-item" type="button">
+            System Health
+          </button>
 
-      <button
-        id="systemHealthTab"
-        class="workspace-tab"
-        type="button"
-      >
-        System Health
-      </button>
+          <button id="auditLogTab" class="workspace-nav-item" type="button">
+            Audit Log
+          </button>
 
-</nav>
+          <button id="compatibilityAuditTab" class="workspace-nav-item" type="button">
+            V3.1 Audit
+          </button>
+        </div>
+      </div>
+
+      <div class="workspace-nav-group">
+        <button
+          class="workspace-nav-trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="administrationNavigationMenu"
+          data-workspace-menu-trigger="administrationNavigationMenu"
+        >
+          🛠️ Administration
+          <span aria-hidden="true">▾</span>
+        </button>
+
+        <div
+          id="administrationNavigationMenu"
+          class="workspace-nav-menu workspace-nav-menu-right"
+          hidden
+        >
+          <button id="controlCenterTab" class="workspace-nav-item" type="button">
+            Control Center
+          </button>
+
+          <button id="backupHistoryTab" class="workspace-nav-item" type="button">
+            Backup History
+          </button>
+        </div>
+      </div>
+    </nav>
 
     <section
       id="homeWorkspace"
@@ -208,7 +245,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 68</span>
+            <span>Build 69</span>
             <span aria-hidden="true">•</span>
             <span>Development Environment</span>
           </div>
@@ -3456,7 +3493,7 @@
     ></div>
   </div>
 
-    <script src="js/dashboard.js?build=68" defer></script>
+    <script src="js/dashboard.js?build=69" defer></script>
 
 </body>
 </html>
