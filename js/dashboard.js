@@ -54,23 +54,31 @@
     let playerVersionMemory =
       {};
 
-    function isScreenExpectedToday(
-      screenName,
-      date = new Date()
-    ) {
-      const day =
-        date.getDay();
+   function isScreenExpectedToday(
+  screenName,
+  date = new Date()
+) {
+  const day =
+    date.getDay();
 
-      if (screenName === "ArcadeSunday") {
-        return day === 0;
-      }
+  // Sunday
+  if (screenName === "ArcadeSunday") {
+    return day === 0;
+  }
 
-      if (screenName === "ArcadeWeek") {
-        return day !== 0;
-      }
+  // Monday through Thursday
+  if (screenName === "ArcadeWeek") {
+    return day >= 1 && day <= 4;
+  }
 
-      return true;
-    }
+  // Friday and Saturday
+  if (screenName === "Arcade") {
+    return day === 5 || day === 6;
+  }
+
+  // All other screens are expected every day
+  return true;
+}
 
     function loadPlayerVersionMemory() {
       try {
