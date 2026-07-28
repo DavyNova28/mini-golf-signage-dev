@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -359,6 +359,66 @@
     const notificationCenterLastReviewed =
       document.getElementById(
         "notificationCenterLastReviewed"
+      );
+
+    const notificationPreferencesButton =
+      document.getElementById(
+        "notificationPreferencesButton"
+      );
+
+    const notificationPreferencesPanel =
+      document.getElementById(
+        "notificationPreferencesPanel"
+      );
+
+    const closeNotificationPreferencesButton =
+      document.getElementById(
+        "closeNotificationPreferencesButton"
+      );
+
+    const saveNotificationPreferencesButton =
+      document.getElementById(
+        "saveNotificationPreferencesButton"
+      );
+
+    const resetNotificationPreferencesButton =
+      document.getElementById(
+        "resetNotificationPreferencesButton"
+      );
+
+    const notificationHealthThreshold =
+      document.getElementById(
+        "notificationHealthThreshold"
+      );
+
+    const notificationPreferenceHealth =
+      document.getElementById(
+        "notificationPreferenceHealth"
+      );
+
+    const notificationPreferencePlayers =
+      document.getElementById(
+        "notificationPreferencePlayers"
+      );
+
+    const notificationPreferenceSchedules =
+      document.getElementById(
+        "notificationPreferenceSchedules"
+      );
+
+    const notificationPreferenceImages =
+      document.getElementById(
+        "notificationPreferenceImages"
+      );
+
+    const notificationPreferenceRecovery =
+      document.getElementById(
+        "notificationPreferenceRecovery"
+      );
+
+    const notificationPreferenceAppsScript =
+      document.getElementById(
+        "notificationPreferenceAppsScript"
       );
 
     const commandPaletteButton =
@@ -16247,7 +16307,7 @@
               "Version 1.1 Development",
 
             build:
-              78,
+              79,
 
             environment:
               getApplicationEnvironment().key,
@@ -16393,7 +16453,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-78-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-79-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16646,6 +16706,39 @@
     }
 
 
+    const NOTIFICATION_PREFERENCES_KEY =
+      "miniGolfSignageNotificationPreferencesV1";
+
+    const DEFAULT_NOTIFICATION_PREFERENCES =
+      {
+        health:
+          true,
+
+        players:
+          true,
+
+        schedules:
+          true,
+
+        images:
+          true,
+
+        recovery:
+          true,
+
+        appsScript:
+          true,
+
+        healthThreshold:
+          90
+      };
+
+    let notificationPreferences =
+      {
+        ...DEFAULT_NOTIFICATION_PREFERENCES
+      };
+
+
     const NOTIFICATION_MEMORY_KEY =
       "miniGolfSignageNotificationMemoryV1";
 
@@ -16657,6 +16750,215 @@
         fingerprints:
           {}
       };
+
+
+    function loadNotificationPreferences() {
+      try {
+        const savedValue =
+          localStorage.getItem(
+            NOTIFICATION_PREFERENCES_KEY
+          );
+
+        if (!savedValue) {
+          return;
+        }
+
+        const parsedValue =
+          JSON.parse(
+            savedValue
+          );
+
+        if (
+          parsedValue &&
+          typeof parsedValue === "object"
+        ) {
+          notificationPreferences =
+            {
+              ...DEFAULT_NOTIFICATION_PREFERENCES,
+              ...parsedValue
+            };
+        }
+      } catch (error) {
+        console.warn(
+          "Notification preferences could not be loaded.",
+          error
+        );
+      }
+    }
+
+
+    function saveNotificationPreferences() {
+      try {
+        localStorage.setItem(
+          NOTIFICATION_PREFERENCES_KEY,
+          JSON.stringify(
+            notificationPreferences
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Notification preferences could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function populateNotificationPreferencesForm() {
+      if (notificationPreferenceHealth) {
+        notificationPreferenceHealth.checked =
+          notificationPreferences.health;
+      }
+
+      if (notificationPreferencePlayers) {
+        notificationPreferencePlayers.checked =
+          notificationPreferences.players;
+      }
+
+      if (notificationPreferenceSchedules) {
+        notificationPreferenceSchedules.checked =
+          notificationPreferences.schedules;
+      }
+
+      if (notificationPreferenceImages) {
+        notificationPreferenceImages.checked =
+          notificationPreferences.images;
+      }
+
+      if (notificationPreferenceRecovery) {
+        notificationPreferenceRecovery.checked =
+          notificationPreferences.recovery;
+      }
+
+      if (notificationPreferenceAppsScript) {
+        notificationPreferenceAppsScript.checked =
+          notificationPreferences.appsScript;
+      }
+
+      if (notificationHealthThreshold) {
+        notificationHealthThreshold.value =
+          String(
+            notificationPreferences.healthThreshold
+          );
+      }
+    }
+
+
+    function readNotificationPreferencesForm() {
+      return {
+        health:
+          notificationPreferenceHealth
+            ? notificationPreferenceHealth.checked
+            : true,
+
+        players:
+          notificationPreferencePlayers
+            ? notificationPreferencePlayers.checked
+            : true,
+
+        schedules:
+          notificationPreferenceSchedules
+            ? notificationPreferenceSchedules.checked
+            : true,
+
+        images:
+          notificationPreferenceImages
+            ? notificationPreferenceImages.checked
+            : true,
+
+        recovery:
+          notificationPreferenceRecovery
+            ? notificationPreferenceRecovery.checked
+            : true,
+
+        appsScript:
+          notificationPreferenceAppsScript
+            ? notificationPreferenceAppsScript.checked
+            : true,
+
+        healthThreshold:
+          notificationHealthThreshold
+            ? Number(
+                notificationHealthThreshold.value
+              )
+            : 90
+      };
+    }
+
+
+    function openNotificationPreferences() {
+      if (!notificationPreferencesPanel) {
+        return;
+      }
+
+      populateNotificationPreferencesForm();
+
+      notificationPreferencesPanel.hidden =
+        false;
+
+      if (notificationPreferenceHealth) {
+        setTimeout(
+          function() {
+            notificationPreferenceHealth.focus();
+          },
+          0
+        );
+      }
+    }
+
+
+    function closeNotificationPreferences() {
+      if (!notificationPreferencesPanel) {
+        return;
+      }
+
+      notificationPreferencesPanel.hidden =
+        true;
+
+      if (notificationPreferencesButton) {
+        notificationPreferencesButton.focus();
+      }
+    }
+
+
+    function applyNotificationPreferences() {
+      notificationPreferences =
+        readNotificationPreferencesForm();
+
+      saveNotificationPreferences();
+      closeNotificationPreferences();
+      renderNotificationCenter();
+
+      if (
+        typeof showToast === "function"
+      ) {
+        showToast(
+          "Notification preferences saved.",
+          "success"
+        );
+      }
+    }
+
+
+    function resetNotificationPreferences() {
+      notificationPreferences =
+        {
+          ...DEFAULT_NOTIFICATION_PREFERENCES
+        };
+
+      saveNotificationPreferences();
+      populateNotificationPreferencesForm();
+      renderNotificationCenter();
+
+      if (
+        typeof showToast === "function"
+      ) {
+        showToast(
+          "Notification preferences reset.",
+          "success"
+        );
+      }
+    }
 
 
     function loadNotificationMemory() {
@@ -16820,7 +17122,12 @@
       const score = latestHealthScoreResult && Number.isFinite(latestHealthScoreResult.score)
         ? latestHealthScoreResult.score : null;
 
-      if (score !== null && score < 90) items.push({
+      if (
+        notificationPreferences.health &&
+        score !== null &&
+        score <
+          notificationPreferences.healthThreshold
+      ) items.push({
         severity: score < 75 ? "critical" : "warning",
         icon: score < 75 ? "🔴" : "🟠",
         title: `Health Score is ${score}/100`,
@@ -16830,7 +17137,10 @@
 
       const missingSchedules = Math.max(0, SCREEN_NAMES.length -
         SCREEN_NAMES.filter(name => screenStates.has(name)).length);
-      if (missingSchedules) items.push({
+      if (
+        notificationPreferences.schedules &&
+        missingSchedules
+      ) items.push({
         severity:"critical", icon:"📅",
         title:`${missingSchedules} schedule(s) unavailable`,
         description:"One or more configured screens do not have loaded schedule data.",
@@ -16839,7 +17149,10 @@
 
       const states = Array.from(screenStates.values()).filter(Boolean);
       const missingImages = states.filter(state => state.imageMissing === true).length;
-      if (missingImages) items.push({
+      if (
+        notificationPreferences.images &&
+        missingImages
+      ) items.push({
         severity:"critical", icon:"🖼️",
         title:`${missingImages} active image(s) missing`,
         description:"Open the Image Library to review unavailable signage assets.",
@@ -16847,14 +17160,20 @@
       });
 
       const cached = states.filter(state => state.offlineSnapshot === true).length;
-      if (cached) items.push({
+      if (
+        notificationPreferences.schedules &&
+        cached
+      ) items.push({
         severity:"warning", icon:"💾",
         title:`${cached} schedule(s) using cached data`,
         description:"Fresh Apps Script data was not available for these screens.",
         workspace:"systemHealth"
       });
 
-      if (!quiet) {
+      if (
+        notificationPreferences.players &&
+        !quiet
+      ) {
         const online = latestPlayerHeartbeats.filter(player => player.status === "online").length;
         const offline = Math.max(0, SCREEN_NAMES.length - online);
         if (offline) items.push({
@@ -16869,14 +17188,21 @@
         ? new Date(dashboardOfflineSnapshot.savedAt) : null;
       const snapshotValid = Boolean(savedAt && Number.isFinite(savedAt.getTime()) &&
         Date.now() - savedAt.getTime() <= DASHBOARD_OFFLINE_MAX_AGE_MS);
-      if (!snapshotValid) items.push({
+      if (
+        notificationPreferences.recovery &&
+        !snapshotValid
+      ) items.push({
         severity:"warning", icon:"🛡️",
         title:"Recovery snapshot needs attention",
         description:"No recent offline recovery snapshot is currently available.",
         workspace:"backup"
       });
 
-      if (latestHealthTelemetry && latestHealthTelemetry.lastError) items.push({
+      if (
+        notificationPreferences.appsScript &&
+        latestHealthTelemetry &&
+        latestHealthTelemetry.lastError
+      ) items.push({
         severity:"warning", icon:"⚙️",
         title:"Apps Script recorded an error",
         description:String(latestHealthTelemetry.lastError),
@@ -16987,12 +17313,19 @@
 
     function closeNotificationCenter() {
       if (!notificationCenterOverlay) return;
+
+      if (notificationPreferencesPanel) {
+        notificationPreferencesPanel.hidden =
+          true;
+      }
+
       notificationCenterOverlay.hidden = true;
       document.body.style.overflow = "";
       if (notificationCenterButton) notificationCenterButton.focus();
     }
 
     function setupNotificationCenter() {
+      loadNotificationPreferences();
       loadNotificationMemory();
 
       if (!notificationCenterButton || !notificationCenterOverlay) return;
@@ -17010,6 +17343,34 @@
         markNotificationsReadButton.addEventListener(
           "click",
           markAllNotificationsAsRead
+        );
+      }
+
+      if (notificationPreferencesButton) {
+        notificationPreferencesButton.addEventListener(
+          "click",
+          openNotificationPreferences
+        );
+      }
+
+      if (closeNotificationPreferencesButton) {
+        closeNotificationPreferencesButton.addEventListener(
+          "click",
+          closeNotificationPreferences
+        );
+      }
+
+      if (saveNotificationPreferencesButton) {
+        saveNotificationPreferencesButton.addEventListener(
+          "click",
+          applyNotificationPreferences
+        );
+      }
+
+      if (resetNotificationPreferencesButton) {
+        resetNotificationPreferencesButton.addEventListener(
+          "click",
+          resetNotificationPreferences
         );
       }
 
