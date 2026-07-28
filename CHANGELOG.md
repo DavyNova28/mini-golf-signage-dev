@@ -2,6 +2,14 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.81] — Notification History
+
+### Added
+
+- Active and History tabs in the Notification Center.
+- Persistent local history for alerts appearing, being reviewed, snoozed, and resolved.
+- Clear-history control and retention of the latest 100 events.
+
 ## [1.1.0-dev.80] — Notification Snoozing
 
 ### Added
