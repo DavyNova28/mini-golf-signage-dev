@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -277,6 +277,17 @@
       document.getElementById(
         "themeButtonText"
       );
+
+    const homeLayoutPreferencesButton = document.getElementById("homeLayoutPreferencesButton");
+    const homeLayoutPreferencesOverlay = document.getElementById("homeLayoutPreferencesOverlay");
+    const closeHomeLayoutPreferencesButton = document.getElementById("closeHomeLayoutPreferencesButton");
+    const saveHomeLayoutPreferencesButton = document.getElementById("saveHomeLayoutPreferencesButton");
+    const resetHomeLayoutPreferencesButton = document.getElementById("resetHomeLayoutPreferencesButton");
+    const homePreferenceConfidence = document.getElementById("homePreferenceConfidence");
+    const homePreferenceStatus = document.getElementById("homePreferenceStatus");
+    const homePreferenceQuickActions = document.getElementById("homePreferenceQuickActions");
+    const homePreferenceRecentActivity = document.getElementById("homePreferenceRecentActivity");
+    const homePreferenceDensity = document.getElementById("homePreferenceDensity");
 
     const dashboardScrollProgressBar =
       document.getElementById(
@@ -15951,6 +15962,108 @@
     }
 
 
+    const HOME_LAYOUT_PREFERENCES_KEY = "miniGolfSignageHomeLayoutPreferencesV1";
+    const DEFAULT_HOME_LAYOUT_PREFERENCES = {
+      confidence:true, status:true, quickActions:true,
+      recentActivity:true, density:"comfortable"
+    };
+    let homeLayoutPreferences={...DEFAULT_HOME_LAYOUT_PREFERENCES};
+
+    function loadHomeLayoutPreferences(){
+      try{
+        const raw=localStorage.getItem(HOME_LAYOUT_PREFERENCES_KEY);
+        if(raw) homeLayoutPreferences={
+          ...DEFAULT_HOME_LAYOUT_PREFERENCES,
+          ...JSON.parse(raw)
+        };
+      }catch(error){console.warn("Home layout preferences could not be loaded.",error);}
+    }
+
+    function saveHomeLayoutPreferencesToStorage(){
+      try{
+        localStorage.setItem(HOME_LAYOUT_PREFERENCES_KEY,
+          JSON.stringify(homeLayoutPreferences));
+      }catch(error){console.warn("Home layout preferences could not be saved.",error);}
+    }
+
+    function applyHomeLayoutPreferences(){
+      document.querySelectorAll("[data-home-section]").forEach(section=>{
+        const visible=homeLayoutPreferences[section.dataset.homeSection]!==false;
+        section.classList.toggle("home-section-hidden",!visible);
+      });
+      if(homeWorkspace) homeWorkspace.classList.toggle(
+        "home-density-compact",homeLayoutPreferences.density==="compact");
+      updateDashboardScrollNavigation();
+    }
+
+    function populateHomeLayoutPreferencesForm(){
+      if(homePreferenceConfidence) homePreferenceConfidence.checked=homeLayoutPreferences.confidence;
+      if(homePreferenceStatus) homePreferenceStatus.checked=homeLayoutPreferences.status;
+      if(homePreferenceQuickActions) homePreferenceQuickActions.checked=homeLayoutPreferences.quickActions;
+      if(homePreferenceRecentActivity) homePreferenceRecentActivity.checked=homeLayoutPreferences.recentActivity;
+      if(homePreferenceDensity) homePreferenceDensity.value=homeLayoutPreferences.density;
+    }
+
+    function openHomeLayoutPreferences(){
+      if(!homeLayoutPreferencesOverlay) return;
+      closeWorkspaceNavigationMenus();
+      closeCommandPalette();
+      closeNotificationCenter();
+      populateHomeLayoutPreferencesForm();
+      homeLayoutPreferencesOverlay.hidden=false;
+      document.body.style.overflow="hidden";
+      setTimeout(()=>homePreferenceConfidence && homePreferenceConfidence.focus(),0);
+    }
+
+    function closeHomeLayoutPreferences(){
+      if(!homeLayoutPreferencesOverlay) return;
+      homeLayoutPreferencesOverlay.hidden=true;
+      document.body.style.overflow="";
+      if(homeLayoutPreferencesButton) homeLayoutPreferencesButton.focus();
+    }
+
+    function saveHomeLayoutPreferences(){
+      homeLayoutPreferences={
+        confidence:homePreferenceConfidence ? homePreferenceConfidence.checked : true,
+        status:homePreferenceStatus ? homePreferenceStatus.checked : true,
+        quickActions:homePreferenceQuickActions ? homePreferenceQuickActions.checked : true,
+        recentActivity:homePreferenceRecentActivity ? homePreferenceRecentActivity.checked : true,
+        density:homePreferenceDensity && homePreferenceDensity.value==="compact"
+          ? "compact":"comfortable"
+      };
+      saveHomeLayoutPreferencesToStorage();
+      applyHomeLayoutPreferences();
+      closeHomeLayoutPreferences();
+      if(typeof showToast==="function") showToast("Home layout saved.","success");
+    }
+
+    function resetHomeLayoutPreferences(){
+      homeLayoutPreferences={...DEFAULT_HOME_LAYOUT_PREFERENCES};
+      saveHomeLayoutPreferencesToStorage();
+      populateHomeLayoutPreferencesForm();
+      applyHomeLayoutPreferences();
+      if(typeof showToast==="function") showToast("Home layout restored.","success");
+    }
+
+    function setupHomeLayoutPreferences(){
+      loadHomeLayoutPreferences();
+      applyHomeLayoutPreferences();
+      if(!homeLayoutPreferencesButton || !homeLayoutPreferencesOverlay) return;
+      homeLayoutPreferencesButton.addEventListener("click",openHomeLayoutPreferences);
+      if(closeHomeLayoutPreferencesButton) closeHomeLayoutPreferencesButton.addEventListener("click",closeHomeLayoutPreferences);
+      if(saveHomeLayoutPreferencesButton) saveHomeLayoutPreferencesButton.addEventListener("click",saveHomeLayoutPreferences);
+      if(resetHomeLayoutPreferencesButton) resetHomeLayoutPreferencesButton.addEventListener("click",resetHomeLayoutPreferences);
+      homeLayoutPreferencesOverlay.addEventListener("click",event=>{
+        if(event.target===homeLayoutPreferencesOverlay) closeHomeLayoutPreferences();
+      });
+      document.addEventListener("keydown",event=>{
+        if(event.key==="Escape" && !homeLayoutPreferencesOverlay.hidden){
+          event.preventDefault(); closeHomeLayoutPreferences();
+        }
+      });
+    }
+
+
     function updateDashboardScrollNavigation() {
       const documentElement =
         document.documentElement;
@@ -16332,7 +16445,7 @@
               "Version 1.1 Development",
 
             build:
-              82,
+              83,
 
             environment:
               getApplicationEnvironment().key,
@@ -16478,7 +16591,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-82-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-83-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -20905,6 +21018,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupHomeLayoutPreferences();
     setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
