@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -311,6 +311,16 @@
     const closeReleaseNotesButton =
       document.getElementById(
         "closeReleaseNotesButton"
+      );
+
+    const aboutEnvironmentBadge =
+      document.getElementById(
+        "aboutEnvironmentBadge"
+      );
+
+    const missionEnvironmentLabel =
+      document.getElementById(
+        "missionEnvironmentLabel"
       );
 
     const aboutHealthScore =
@@ -15828,6 +15838,88 @@
     }
 
 
+    function getApplicationEnvironment() {
+      const locationText =
+        `${window.location.hostname}${window.location.pathname}`
+          .toLowerCase();
+
+      if (
+        locationText.includes(
+          "mini-golf-signage-dev"
+        )
+      ) {
+        return {
+          key:
+            "development",
+
+          label:
+            "Development Environment",
+
+          badge:
+            "🧪 Development",
+
+          stable:
+            false
+        };
+      }
+
+      if (
+        locationText.includes(
+          "mini-golf-signage"
+        )
+      ) {
+        return {
+          key:
+            "production",
+
+          label:
+            "Production Environment",
+
+          badge:
+            "🟢 Production",
+
+          stable:
+            true
+        };
+      }
+
+      return {
+        key:
+          "local",
+
+        label:
+          "Local Preview",
+
+        badge:
+          "💻 Local Preview",
+
+        stable:
+          false
+      };
+    }
+
+
+    function renderApplicationEnvironment() {
+      const environment =
+        getApplicationEnvironment();
+
+      if (missionEnvironmentLabel) {
+        missionEnvironmentLabel.textContent =
+          environment.label;
+      }
+
+      if (aboutEnvironmentBadge) {
+        aboutEnvironmentBadge.textContent =
+          environment.badge;
+
+        aboutEnvironmentBadge.classList.toggle(
+          "about-environment-production",
+          environment.key === "production"
+        );
+      }
+    }
+
+
     function sanitizeDiagnosticsValue(
       value,
       depth = 0
@@ -16008,13 +16100,13 @@
               "1.0.0",
 
             label:
-              "Version 1.0 Release Candidate",
+              "Version 1.0 Stable",
 
             build:
-              74,
+              75,
 
             environment:
-              "development",
+              getApplicationEnvironment().key,
 
             expectedPlayerVersion:
               EXPECTED_PLAYER_VERSION
@@ -16157,7 +16249,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-74-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-75-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -19293,6 +19385,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    renderApplicationEnvironment();
     setupDiagnosticsExport();
     setupApplicationInformationDialogs();
     setupCommandPalette();
