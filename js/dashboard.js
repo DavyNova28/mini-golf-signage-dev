@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
 
     const SCREEN_NAMES = [
       "Arcade",
