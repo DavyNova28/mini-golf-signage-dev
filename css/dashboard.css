@@ -7027,3 +7027,20 @@ html[data-theme="light"] .mission-version-badge {
   .command-palette-overlay { padding: max(18px, env(safe-area-inset-top)) 12px 12px; }
   .command-palette-dialog { max-height: calc(100vh - 30px); }
 }
+
+
+/*
+ * =========================================================
+ * BUILD 71 — COMMAND PALETTE MOUSE FIX
+ * =========================================================
+ */
+
+.command-palette-result {
+  position: relative;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.command-palette-result * {
+  pointer-events: none;
+}
