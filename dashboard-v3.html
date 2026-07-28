@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=78">
+    <link rel="stylesheet" href="css/dashboard.css?build=79">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="78">
+  <meta name="dashboard-build" content="79">
 </head>
 
 <body>
@@ -316,7 +316,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 78</span>
+            <span>Build 79</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -3592,6 +3592,14 @@
 
         <div class="notification-center-actions">
           <button
+            id="notificationPreferencesButton"
+            class="button"
+            type="button"
+          >
+            Preferences
+          </button>
+
+          <button
             id="markNotificationsReadButton"
             class="button"
             type="button"
@@ -3608,6 +3616,149 @@
           </button>
         </div>
       </div>
+      <section
+        id="notificationPreferencesPanel"
+        class="notification-preferences-panel"
+        hidden
+        aria-labelledby="notificationPreferencesTitle"
+      >
+        <div class="notification-preferences-header">
+          <div>
+            <div class="eyebrow">
+              Local settings
+            </div>
+
+            <h3
+              id="notificationPreferencesTitle"
+              class="notification-preferences-title"
+            >
+              Notification Preferences
+            </h3>
+          </div>
+
+          <button
+            id="closeNotificationPreferencesButton"
+            class="notification-preferences-close"
+            type="button"
+            aria-label="Close notification preferences"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="notification-preferences-grid">
+          <label class="notification-preference-row">
+            <span>
+              <strong>Health Score</strong>
+              <small>Alert when the score falls below your threshold.</small>
+            </span>
+
+            <input
+              id="notificationPreferenceHealth"
+              type="checkbox"
+              checked
+            >
+          </label>
+
+          <label class="notification-preference-row">
+            <span>
+              <strong>Players</strong>
+              <small>Offline-player alerts outside quiet hours.</small>
+            </span>
+
+            <input
+              id="notificationPreferencePlayers"
+              type="checkbox"
+              checked
+            >
+          </label>
+
+          <label class="notification-preference-row">
+            <span>
+              <strong>Schedules</strong>
+              <small>Unavailable or cached schedule warnings.</small>
+            </span>
+
+            <input
+              id="notificationPreferenceSchedules"
+              type="checkbox"
+              checked
+            >
+          </label>
+
+          <label class="notification-preference-row">
+            <span>
+              <strong>Images</strong>
+              <small>Missing active-image alerts.</small>
+            </span>
+
+            <input
+              id="notificationPreferenceImages"
+              type="checkbox"
+              checked
+            >
+          </label>
+
+          <label class="notification-preference-row">
+            <span>
+              <strong>Recovery</strong>
+              <small>Offline recovery snapshot warnings.</small>
+            </span>
+
+            <input
+              id="notificationPreferenceRecovery"
+              type="checkbox"
+              checked
+            >
+          </label>
+
+          <label class="notification-preference-row">
+            <span>
+              <strong>Apps Script</strong>
+              <small>Recorded backend-error alerts.</small>
+            </span>
+
+            <input
+              id="notificationPreferenceAppsScript"
+              type="checkbox"
+              checked
+            >
+          </label>
+        </div>
+
+        <label class="notification-threshold-field">
+          <span>
+            Health alert threshold
+          </span>
+
+          <select id="notificationHealthThreshold">
+            <option value="95">Below 95</option>
+            <option value="90" selected>Below 90</option>
+            <option value="85">Below 85</option>
+            <option value="80">Below 80</option>
+            <option value="75">Below 75</option>
+          </select>
+        </label>
+
+        <div class="notification-preferences-footer">
+          <button
+            id="resetNotificationPreferencesButton"
+            class="button"
+            type="button"
+          >
+            Reset defaults
+          </button>
+
+          <button
+            id="saveNotificationPreferencesButton"
+            class="button button-primary"
+            type="button"
+          >
+            Save preferences
+          </button>
+        </div>
+      </section>
+
       <div id="notificationCenterList" class="notification-center-list">
         <div class="notification-center-empty">Waiting for dashboard data.</div>
       </div>
@@ -3804,6 +3955,15 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry">
+          <div class="release-note-build">Build 79</div>
+          <h3>Notification Preferences</h3>
+          <p>
+            Added category controls and a configurable Health Score alert
+            threshold with persistent local settings.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 78</div>
           <h3>Notification Memory</h3>
           <p>
@@ -3924,7 +4084,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=78" defer></script>
+    <script src="js/dashboard.js?build=79" defer></script>
 
 </body>
 </html>

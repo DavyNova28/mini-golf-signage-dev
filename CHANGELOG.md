@@ -2,6 +2,21 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.79] — Notification Preferences
+
+### Added
+
+- Persistent notification-category preferences.
+- Individual controls for Health, Players, Schedules, Images, Recovery, and Apps Script alerts.
+- Configurable Health Score alert threshold: 95, 90, 85, 80, or 75.
+- Reset-defaults control.
+- Preferences stored locally in the browser.
+
+### Behavior
+
+- Disabled categories no longer create alerts or contribute to the badge.
+- Changing preferences updates the Notification Center immediately.
+
 ## [1.1.0-dev.78] — Notification Memory
 
 ### Added
