@@ -7961,3 +7961,11 @@ html[data-theme="light"] .back-to-top-button {
 #homeWorkspace.home-density-compact .mission-action-card{min-height:180px;padding:14px}
 @media(min-width:680px){.home-layout-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.home-layout-overlay{padding:max(14px,env(safe-area-inset-top)) 10px 10px}.home-layout-density{align-items:stretch;flex-direction:column}.home-layout-density select{width:100%}.home-layout-footer .button{flex:1 1 auto}}
+
+
+/*
+ * =========================================================
+ * VERSION 1.1.0 STABLE — BUILD 84
+ * RELEASE FINALIZATION
+ * =========================================================
+ */
