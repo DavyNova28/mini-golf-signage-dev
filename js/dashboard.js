@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -342,6 +342,14 @@
       document.getElementById(
         "aboutPlayerVersion"
       );
+
+    const notificationCenterButton = document.getElementById("notificationCenterButton");
+    const notificationCenterBadge = document.getElementById("notificationCenterBadge");
+    const notificationCenterOverlay = document.getElementById("notificationCenterOverlay");
+    const closeNotificationCenterButton = document.getElementById("closeNotificationCenterButton");
+    const refreshNotificationCenterButton = document.getElementById("refreshNotificationCenterButton");
+    const notificationCenterSummary = document.getElementById("notificationCenterSummary");
+    const notificationCenterList = document.getElementById("notificationCenterList");
 
     const commandPaletteButton =
       document.getElementById("commandPaletteButton");
@@ -16229,7 +16237,7 @@
               "Version 1.1 Development",
 
             build:
-              76,
+              77,
 
             environment:
               getApplicationEnvironment().key,
@@ -16375,7 +16383,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-76-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-77-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16625,6 +16633,151 @@
           }
         }
       );
+    }
+
+
+    function buildDashboardNotifications() {
+      const items = [];
+      const quiet = typeof isPlayerQuietHours === "function" ? isPlayerQuietHours() : false;
+      const score = latestHealthScoreResult && Number.isFinite(latestHealthScoreResult.score)
+        ? latestHealthScoreResult.score : null;
+
+      if (score !== null && score < 90) items.push({
+        severity: score < 75 ? "critical" : "warning",
+        icon: score < 75 ? "🔴" : "🟠",
+        title: `Health Score is ${score}/100`,
+        description: "Open System Health for the full explanation.",
+        workspace: "systemHealth"
+      });
+
+      const missingSchedules = Math.max(0, SCREEN_NAMES.length -
+        SCREEN_NAMES.filter(name => screenStates.has(name)).length);
+      if (missingSchedules) items.push({
+        severity:"critical", icon:"📅",
+        title:`${missingSchedules} schedule(s) unavailable`,
+        description:"One or more configured screens do not have loaded schedule data.",
+        workspace:"manager"
+      });
+
+      const states = Array.from(screenStates.values()).filter(Boolean);
+      const missingImages = states.filter(state => state.imageMissing === true).length;
+      if (missingImages) items.push({
+        severity:"critical", icon:"🖼️",
+        title:`${missingImages} active image(s) missing`,
+        description:"Open the Image Library to review unavailable signage assets.",
+        workspace:"images"
+      });
+
+      const cached = states.filter(state => state.offlineSnapshot === true).length;
+      if (cached) items.push({
+        severity:"warning", icon:"💾",
+        title:`${cached} schedule(s) using cached data`,
+        description:"Fresh Apps Script data was not available for these screens.",
+        workspace:"systemHealth"
+      });
+
+      if (!quiet) {
+        const online = latestPlayerHeartbeats.filter(player => player.status === "online").length;
+        const offline = Math.max(0, SCREEN_NAMES.length - online);
+        if (offline) items.push({
+          severity: offline === SCREEN_NAMES.length ? "critical" : "warning",
+          icon:"📺", title:`${offline} player(s) offline`,
+          description:"One or more players have not reported an active heartbeat.",
+          workspace:"systemHealth"
+        });
+      }
+
+      const savedAt = dashboardOfflineSnapshot && dashboardOfflineSnapshot.savedAt
+        ? new Date(dashboardOfflineSnapshot.savedAt) : null;
+      const snapshotValid = Boolean(savedAt && Number.isFinite(savedAt.getTime()) &&
+        Date.now() - savedAt.getTime() <= DASHBOARD_OFFLINE_MAX_AGE_MS);
+      if (!snapshotValid) items.push({
+        severity:"warning", icon:"🛡️",
+        title:"Recovery snapshot needs attention",
+        description:"No recent offline recovery snapshot is currently available.",
+        workspace:"backup"
+      });
+
+      if (latestHealthTelemetry && latestHealthTelemetry.lastError) items.push({
+        severity:"warning", icon:"⚙️",
+        title:"Apps Script recorded an error",
+        description:String(latestHealthTelemetry.lastError),
+        workspace:"systemHealth"
+      });
+
+      return items;
+    }
+
+    function renderNotificationCenter() {
+      if (!notificationCenterBadge || !notificationCenterSummary || !notificationCenterList) return;
+      const items = buildDashboardNotifications();
+      notificationCenterBadge.textContent = String(items.length);
+      notificationCenterBadge.hidden = items.length === 0;
+
+      if (!items.length) {
+        notificationCenterSummary.textContent = "No active alerts. Core monitoring checks are clear.";
+        notificationCenterList.innerHTML =
+          '<div class="notification-center-empty">✅ Everything currently looks good.<br>New alerts will appear here automatically.</div>';
+        return;
+      }
+
+      const critical = items.filter(item => item.severity === "critical").length;
+      notificationCenterSummary.textContent = critical
+        ? `${items.length} active notification(s), including ${critical} critical item(s).`
+        : `${items.length} active notification(s) require review.`;
+
+      notificationCenterList.innerHTML = items.map((item,index) => `
+        <button class="notification-item notification-item-${escapeHtml(item.severity)}"
+          type="button" data-notification-index="${index}">
+          <span class="notification-item-icon">${escapeHtml(item.icon)}</span>
+          <span>
+            <span class="notification-item-title">${escapeHtml(item.title)}</span>
+            <span class="notification-item-description">${escapeHtml(item.description)}</span>
+          </span>
+          <span class="notification-item-action">Open →</span>
+        </button>`).join("");
+
+      notificationCenterList.querySelectorAll("[data-notification-index]").forEach(button => {
+        button.addEventListener("click", () => {
+          const item = items[Number(button.dataset.notificationIndex)];
+          if (!item) return;
+          closeNotificationCenter();
+          openWorkspace(item.workspace);
+        });
+      });
+    }
+
+    function openNotificationCenter() {
+      if (!notificationCenterOverlay) return;
+      closeWorkspaceNavigationMenus();
+      closeCommandPalette();
+      renderNotificationCenter();
+      notificationCenterOverlay.hidden = false;
+      document.body.style.overflow = "hidden";
+      setTimeout(() => closeNotificationCenterButton && closeNotificationCenterButton.focus(),0);
+    }
+
+    function closeNotificationCenter() {
+      if (!notificationCenterOverlay) return;
+      notificationCenterOverlay.hidden = true;
+      document.body.style.overflow = "";
+      if (notificationCenterButton) notificationCenterButton.focus();
+    }
+
+    function setupNotificationCenter() {
+      if (!notificationCenterButton || !notificationCenterOverlay) return;
+      notificationCenterButton.addEventListener("click",openNotificationCenter);
+      if (closeNotificationCenterButton) closeNotificationCenterButton.addEventListener("click",closeNotificationCenter);
+      if (refreshNotificationCenterButton) refreshNotificationCenterButton.addEventListener("click",renderNotificationCenter);
+      notificationCenterOverlay.addEventListener("click",event => {
+        if (event.target === notificationCenterOverlay) closeNotificationCenter();
+      });
+      document.addEventListener("keydown",event => {
+        if (event.key === "Escape" && !notificationCenterOverlay.hidden) {
+          event.preventDefault(); closeNotificationCenter();
+        }
+      });
+      renderNotificationCenter();
     }
 
 
@@ -17811,6 +17964,7 @@
       renderMissionQuickActionStatuses();
       renderMissionConfidenceBanner();
       renderMissionRecentActivity();
+      renderNotificationCenter();
     }
 
 
@@ -19511,6 +19665,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
     setupDiagnosticsExport();
