@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -276,6 +276,11 @@
     const themeButtonText =
       document.getElementById(
         "themeButtonText"
+      );
+
+    const exportDiagnosticsButton =
+      document.getElementById(
+        "exportDiagnosticsButton"
       );
 
     const aboutApplicationButton =
@@ -15823,6 +15828,387 @@
     }
 
 
+    function sanitizeDiagnosticsValue(
+      value,
+      depth = 0
+    ) {
+      if (depth > 6) {
+        return "[Maximum depth reached]";
+      }
+
+      if (
+        value === null ||
+        value === undefined
+      ) {
+        return value ?? null;
+      }
+
+      if (value instanceof Date) {
+        return Number.isFinite(
+          value.getTime()
+        )
+          ? value.toISOString()
+          : null;
+      }
+
+      if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
+        return value;
+      }
+
+      if (Array.isArray(value)) {
+        return value.map(
+          item =>
+            sanitizeDiagnosticsValue(
+              item,
+              depth + 1
+            )
+        );
+      }
+
+      if (value instanceof Map) {
+        return Object.fromEntries(
+          Array.from(
+            value.entries()
+          ).map(
+            ([key, item]) => [
+              String(key),
+              sanitizeDiagnosticsValue(
+                item,
+                depth + 1
+              )
+            ]
+          )
+        );
+      }
+
+      if (typeof value === "object") {
+        const cleanObject =
+          {};
+
+        Object.keys(value).forEach(
+          key => {
+            const lowerKey =
+              key.toLowerCase();
+
+            if (
+              lowerKey.includes("token") ||
+              lowerKey.includes("secret") ||
+              lowerKey.includes("password") ||
+              lowerKey.includes("authorization")
+            ) {
+              cleanObject[key] =
+                "[Redacted]";
+
+              return;
+            }
+
+            try {
+              cleanObject[key] =
+                sanitizeDiagnosticsValue(
+                  value[key],
+                  depth + 1
+                );
+            } catch (error) {
+              cleanObject[key] =
+                `[Unavailable: ${error.message}]`;
+            }
+          }
+        );
+
+        return cleanObject;
+      }
+
+      return String(value);
+    }
+
+
+    function buildDiagnosticsSnapshot() {
+      const now =
+        new Date();
+
+      const loadedScreens =
+        SCREEN_NAMES.filter(
+          screenName =>
+            screenStates.has(
+              screenName
+            )
+        );
+
+      const onlinePlayers =
+        latestPlayerHeartbeats.filter(
+          player =>
+            player.status === "online"
+        );
+
+      const rolloutSummary =
+        SCREEN_NAMES.map(
+          screenName => {
+            const rolloutState =
+              typeof getRolloutStateForScreen === "function"
+                ? getRolloutStateForScreen(
+                    screenName
+                  )
+                : null;
+
+            return {
+              screen:
+                screenName,
+
+              savedStage:
+                typeof getRolloutStage === "function"
+                  ? getRolloutStage(
+                      screenName
+                    )
+                  : null,
+
+              readiness:
+                rolloutState
+                  ? rolloutState.state
+                  : null,
+
+              details:
+                rolloutState
+                  ? sanitizeDiagnosticsValue(
+                      rolloutState
+                    )
+                  : null
+            };
+          }
+        );
+
+      return {
+        export:
+          {
+            createdAt:
+              now.toISOString(),
+
+            localTime:
+              now.toLocaleString(),
+
+            source:
+              window.location.href,
+
+            userAgent:
+              navigator.userAgent,
+
+            online:
+              navigator.onLine
+          },
+
+        application:
+          {
+            name:
+              "Mini Golf Signage Manager",
+
+            version:
+              "1.0.0",
+
+            label:
+              "Version 1.0 Release Candidate",
+
+            build:
+              74,
+
+            environment:
+              "development",
+
+            expectedPlayerVersion:
+              EXPECTED_PLAYER_VERSION
+          },
+
+        health:
+          {
+            score:
+              latestHealthScoreResult
+                ? latestHealthScoreResult.score
+                : null,
+
+            label:
+              latestHealthScoreResult
+                ? latestHealthScoreResult.label
+                : null,
+
+            explanation:
+              sanitizeDiagnosticsValue(
+                latestHealthScoreResult
+              ),
+
+            telemetry:
+              sanitizeDiagnosticsValue(
+                latestHealthTelemetry
+              )
+          },
+
+        players:
+          {
+            configured:
+              SCREEN_NAMES.length,
+
+            online:
+              onlinePlayers.length,
+
+            quietHours:
+              typeof isPlayerQuietHours === "function"
+                ? isPlayerQuietHours()
+                : null,
+
+            heartbeats:
+              sanitizeDiagnosticsValue(
+                latestPlayerHeartbeats
+              )
+          },
+
+        schedules:
+          {
+            configuredScreens:
+              SCREEN_NAMES,
+
+            loadedCount:
+              loadedScreens.length,
+
+            loadedScreens:
+              loadedScreens,
+
+            states:
+              sanitizeDiagnosticsValue(
+                screenStates
+              )
+          },
+
+        recovery:
+          {
+            snapshot:
+              sanitizeDiagnosticsValue(
+                dashboardOfflineSnapshot
+              ),
+
+            storageAvailable:
+              typeof localStorage !== "undefined"
+          },
+
+        rollout:
+          {
+            progress:
+              sanitizeDiagnosticsValue(
+                rolloutProgress
+              ),
+
+            screens:
+              rolloutSummary
+          },
+
+        imageLibrary:
+          {
+            indexedCount:
+              Array.isArray(
+                imageLibraryIndex
+              )
+                ? imageLibraryIndex.length
+                : 0
+          }
+      };
+    }
+
+
+    function downloadDiagnosticsSnapshot() {
+      try {
+        const snapshot =
+          buildDiagnosticsSnapshot();
+
+        const jsonText =
+          JSON.stringify(
+            snapshot,
+            null,
+            2
+          );
+
+        const blob =
+          new Blob(
+            [jsonText],
+            {
+              type:
+                "application/json"
+            }
+          );
+
+        const objectUrl =
+          URL.createObjectURL(
+            blob
+          );
+
+        const dateStamp =
+          new Date()
+            .toISOString()
+            .replace(
+              /[:.]/g,
+              "-"
+            );
+
+        const link =
+          document.createElement(
+            "a"
+          );
+
+        link.href =
+          objectUrl;
+
+        link.download =
+          `mini-golf-signage-diagnostics-build-74-${dateStamp}.json`;
+
+        document.body.appendChild(
+          link
+        );
+
+        link.click();
+        link.remove();
+
+        setTimeout(
+          function() {
+            URL.revokeObjectURL(
+              objectUrl
+            );
+          },
+          1000
+        );
+
+        showToast(
+          "Diagnostics exported successfully.",
+          "success"
+        );
+
+      } catch (error) {
+        console.error(
+          "Diagnostics export failed.",
+          error
+        );
+
+        showToast(
+          `Diagnostics export failed: ${error.message}`,
+          "error"
+        );
+      }
+    }
+
+
+    function setupDiagnosticsExport() {
+      if (!exportDiagnosticsButton) {
+        return;
+      }
+
+      exportDiagnosticsButton.addEventListener(
+        "click",
+        function() {
+          closeWorkspaceNavigationMenus();
+          downloadDiagnosticsSnapshot();
+        }
+      );
+    }
+
+
     function openApplicationDialog(
       overlay
     ) {
@@ -18907,6 +19293,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupDiagnosticsExport();
     setupApplicationInformationDialogs();
     setupCommandPalette();
     setupWorkspaceNavigationMenus();
