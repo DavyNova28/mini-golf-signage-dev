@@ -2,6 +2,16 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.73] — Health Score Stability
+
+### Improved
+
+- Recalibrated strong-reliability scoring for failure rates at or below 1%.
+- Expanded the normal Apps Script response range from 1,200 ms to 1,500 ms.
+- Excluded isolated cold-start peaks from deductions when average performance remains healthy.
+- Retained full penalties when high peaks accompany sustained slow responses.
+- Added transparent scoring explanations for excluded cold-start outliers.
+
 ## [1.0.0-build.72] — About and Release Notes
 
 ### Added
