@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -3586,6 +3586,8 @@
      */
 
     function openWorkspace(workspaceName) {
+      closeWorkspaceNavigationMenus();
+
       const showHome =
         workspaceName === "home";
 
@@ -15751,6 +15753,134 @@
     }
 
 
+    function closeWorkspaceNavigationMenus(
+      exceptMenuId
+    ) {
+      document
+        .querySelectorAll(
+          "[data-workspace-menu-trigger]"
+        )
+        .forEach(
+          trigger => {
+            const menuId =
+              trigger.getAttribute(
+                "data-workspace-menu-trigger"
+              );
+
+            if (
+              exceptMenuId &&
+              menuId === exceptMenuId
+            ) {
+              return;
+            }
+
+            const menu =
+              document.getElementById(
+                menuId
+              );
+
+            trigger.setAttribute(
+              "aria-expanded",
+              "false"
+            );
+
+            if (menu) {
+              menu.hidden =
+                true;
+            }
+          }
+        );
+    }
+
+
+    function setupWorkspaceNavigationMenus() {
+      document
+        .querySelectorAll(
+          "[data-workspace-menu-trigger]"
+        )
+        .forEach(
+          trigger => {
+            trigger.addEventListener(
+              "click",
+              function(event) {
+                event.stopPropagation();
+
+                const menuId =
+                  trigger.getAttribute(
+                    "data-workspace-menu-trigger"
+                  );
+
+                const menu =
+                  document.getElementById(
+                    menuId
+                  );
+
+                if (!menu) {
+                  return;
+                }
+
+                const shouldOpen =
+                  menu.hidden;
+
+                closeWorkspaceNavigationMenus(
+                  shouldOpen
+                    ? menuId
+                    : null
+                );
+
+                menu.hidden =
+                  !shouldOpen;
+
+                trigger.setAttribute(
+                  "aria-expanded",
+                  shouldOpen
+                    ? "true"
+                    : "false"
+                );
+              }
+            );
+          }
+        );
+
+      document.addEventListener(
+        "click",
+        function(event) {
+          if (
+            !event.target.closest(
+              ".workspace-nav-group"
+            )
+          ) {
+            closeWorkspaceNavigationMenus();
+          }
+        }
+      );
+
+      document.addEventListener(
+        "keydown",
+        function(event) {
+          if (event.key === "Escape") {
+            closeWorkspaceNavigationMenus();
+          }
+        }
+      );
+
+      document
+        .querySelectorAll(
+          ".workspace-nav-item"
+        )
+        .forEach(
+          item => {
+            item.addEventListener(
+              "click",
+              function() {
+                closeWorkspaceNavigationMenus();
+              }
+            );
+          }
+        );
+    }
+
+
     function setupMissionRecentActivity() {
       if (!refreshMissionActivityButton) {
         return;
@@ -18323,6 +18453,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupWorkspaceNavigationMenus();
     setupMissionRecentActivity();
     setupMissionConfidenceBanner();
     setupMissionQuickActions();
