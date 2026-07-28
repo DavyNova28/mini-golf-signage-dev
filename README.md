@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.1 Development** — Build **81**
+Version **1.1 Development** — Build **82**
 
 ## Project structure
 

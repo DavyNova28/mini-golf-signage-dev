@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.82] — Notification History Insights
+
+### Added
+
+- Search and event-type filters for Notification History.
+- Last-24-hours summary metrics.
+- JSON history export.
+- Filtered-result counts and no-results feedback.
+
 ## [1.1.0-dev.81] — Notification History
 
 ### Added
