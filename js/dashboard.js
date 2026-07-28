@@ -15833,9 +15833,17 @@
 
       commandPaletteResults.querySelectorAll("[data-command-index]").forEach(button => {
         button.addEventListener("mouseenter", () => {
-          commandPaletteActiveIndex = Number(button.dataset.commandIndex);
-          renderCommandPaletteResults();
+    commandPaletteActiveIndex = Number(button.dataset.commandIndex);
+
+    commandPaletteResults
+        .querySelectorAll(".command-palette-result")
+        .forEach((result, index) => {
+            result.classList.toggle(
+                "active",
+                index === commandPaletteActiveIndex
+            );
         });
+});
         button.addEventListener("click", () => activateCommandPaletteItem(Number(button.dataset.commandIndex)));
       });
       const active = commandPaletteResults.querySelector(".active");
