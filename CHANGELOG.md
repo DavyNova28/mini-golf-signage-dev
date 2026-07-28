@@ -2,6 +2,21 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.80] — Notification Snoozing
+
+### Added
+
+- Snooze individual alerts for 15 minutes, 1 hour, 4 hours, or until tomorrow.
+- Persistent snooze state stored locally in the browser.
+- Snoozed-alert count in the Notification Center summary.
+- Automatic reappearance when a snooze expires.
+
+### Behavior
+
+- Snoozed alerts remain tracked but are temporarily hidden.
+- Changed alert fingerprints appear immediately as new alerts.
+- Closing the Notification Center also closes the snooze menu.
+
 ## [1.1.0-dev.79] — Notification Preferences
 
 ### Added
