@@ -7613,3 +7613,179 @@ html[data-theme="light"] .back-to-top-button {
     flex: 1 1 auto;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.1 DEVELOPMENT — BUILD 79
+ * NOTIFICATION PREFERENCES
+ * =========================================================
+ */
+
+.notification-preferences-panel {
+  margin-top: 14px;
+  padding: 14px;
+
+  border: 1px solid rgba(93, 170, 255, 0.42);
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93, 170, 255, 0.08),
+      transparent 52%
+    ),
+    var(--surface-light);
+}
+
+.notification-preferences-panel[hidden] {
+  display: none;
+}
+
+.notification-preferences-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notification-preferences-title {
+  margin: 5px 0 0;
+  font-size: 16px;
+}
+
+.notification-preferences-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  color: var(--muted);
+  background: var(--surface);
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+.notification-preferences-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+
+  margin-top: 13px;
+}
+
+.notification-preference-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 11px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--surface);
+
+  cursor: pointer;
+}
+
+.notification-preference-row span {
+  min-width: 0;
+}
+
+.notification-preference-row strong {
+  display: block;
+
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.notification-preference-row small {
+  display: block;
+  margin-top: 3px;
+
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.notification-preference-row input {
+  flex: 0 0 auto;
+
+  width: 18px;
+  height: 18px;
+
+  accent-color: #5daaff;
+}
+
+.notification-threshold-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-top: 10px;
+  padding: 11px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--surface);
+
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.notification-threshold-field select {
+  min-width: 120px;
+  padding: 8px 9px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  color: var(--text);
+  background: var(--surface-light);
+
+  font: inherit;
+  font-size: 10px;
+}
+
+.notification-preferences-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  margin-top: 12px;
+}
+
+@media (min-width: 680px) {
+  .notification-preferences-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .notification-threshold-field {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notification-threshold-field select {
+    width: 100%;
+  }
+
+  .notification-preferences-footer .button {
+    flex: 1 1 auto;
+  }
+}
