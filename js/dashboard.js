@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -276,6 +276,46 @@
     const themeButtonText =
       document.getElementById(
         "themeButtonText"
+      );
+
+    const aboutApplicationButton =
+      document.getElementById(
+        "aboutApplicationButton"
+      );
+
+    const releaseNotesButton =
+      document.getElementById(
+        "releaseNotesButton"
+      );
+
+    const aboutApplicationOverlay =
+      document.getElementById(
+        "aboutApplicationOverlay"
+      );
+
+    const releaseNotesOverlay =
+      document.getElementById(
+        "releaseNotesOverlay"
+      );
+
+    const closeAboutApplicationButton =
+      document.getElementById(
+        "closeAboutApplicationButton"
+      );
+
+    const closeReleaseNotesButton =
+      document.getElementById(
+        "closeReleaseNotesButton"
+      );
+
+    const aboutHealthScore =
+      document.getElementById(
+        "aboutHealthScore"
+      );
+
+    const aboutPlayerVersion =
+      document.getElementById(
+        "aboutPlayerVersion"
       );
 
     const commandPaletteButton =
@@ -15768,6 +15808,207 @@
     }
 
 
+    function openApplicationDialog(
+      overlay
+    ) {
+      if (!overlay) {
+        return;
+      }
+
+      closeWorkspaceNavigationMenus();
+      closeCommandPalette();
+
+      overlay.hidden =
+        false;
+
+      document.body.style.overflow =
+        "hidden";
+
+      const closeButton =
+        overlay.querySelector(
+          ".application-dialog-close"
+        );
+
+      if (closeButton) {
+        setTimeout(
+          function() {
+            closeButton.focus();
+          },
+          0
+        );
+      }
+    }
+
+
+    function closeApplicationDialog(
+      overlay,
+      returnFocusElement
+    ) {
+      if (!overlay) {
+        return;
+      }
+
+      overlay.hidden =
+        true;
+
+      document.body.style.overflow =
+        "";
+
+      if (returnFocusElement) {
+        returnFocusElement.focus();
+      }
+    }
+
+
+    function updateAboutApplicationDetails() {
+      if (aboutPlayerVersion) {
+        aboutPlayerVersion.textContent =
+          EXPECTED_PLAYER_VERSION;
+      }
+
+      if (aboutHealthScore) {
+        aboutHealthScore.textContent =
+          latestHealthScoreResult &&
+          Number.isFinite(
+            latestHealthScoreResult.score
+          )
+            ? `${latestHealthScoreResult.score}/100 · ${latestHealthScoreResult.label}`
+            : "Waiting for telemetry";
+      }
+    }
+
+
+    function setupApplicationInformationDialogs() {
+      if (
+        aboutApplicationButton &&
+        aboutApplicationOverlay
+      ) {
+        aboutApplicationButton.addEventListener(
+          "click",
+          function() {
+            updateAboutApplicationDetails();
+
+            openApplicationDialog(
+              aboutApplicationOverlay
+            );
+          }
+        );
+      }
+
+      if (
+        releaseNotesButton &&
+        releaseNotesOverlay
+      ) {
+        releaseNotesButton.addEventListener(
+          "click",
+          function() {
+            openApplicationDialog(
+              releaseNotesOverlay
+            );
+          }
+        );
+      }
+
+      if (closeAboutApplicationButton) {
+        closeAboutApplicationButton.addEventListener(
+          "click",
+          function() {
+            closeApplicationDialog(
+              aboutApplicationOverlay,
+              aboutApplicationButton
+            );
+          }
+        );
+      }
+
+      if (closeReleaseNotesButton) {
+        closeReleaseNotesButton.addEventListener(
+          "click",
+          function() {
+            closeApplicationDialog(
+              releaseNotesOverlay,
+              releaseNotesButton
+            );
+          }
+        );
+      }
+
+      [
+        {
+          overlay:
+            aboutApplicationOverlay,
+
+          returnFocus:
+            aboutApplicationButton
+        },
+
+        {
+          overlay:
+            releaseNotesOverlay,
+
+          returnFocus:
+            releaseNotesButton
+        }
+      ].forEach(
+        item => {
+          if (!item.overlay) {
+            return;
+          }
+
+          item.overlay.addEventListener(
+            "click",
+            function(event) {
+              if (
+                event.target ===
+                item.overlay
+              ) {
+                closeApplicationDialog(
+                  item.overlay,
+                  item.returnFocus
+                );
+              }
+            }
+          );
+        }
+      );
+
+      document.addEventListener(
+        "keydown",
+        function(event) {
+          if (event.key !== "Escape") {
+            return;
+          }
+
+          if (
+            aboutApplicationOverlay &&
+            !aboutApplicationOverlay.hidden
+          ) {
+            event.preventDefault();
+
+            closeApplicationDialog(
+              aboutApplicationOverlay,
+              aboutApplicationButton
+            );
+
+            return;
+          }
+
+          if (
+            releaseNotesOverlay &&
+            !releaseNotesOverlay.hidden
+          ) {
+            event.preventDefault();
+
+            closeApplicationDialog(
+              releaseNotesOverlay,
+              releaseNotesButton
+            );
+          }
+        }
+      );
+    }
+
+
     const COMMAND_PALETTE_ITEMS = [
       ["🏠","Home","Open Mission Control.","General","home"],
       ["📅","Schedule Manager","Edit and publish screen schedules.","Operations","manager"],
@@ -17024,6 +17265,7 @@
         result
       );
 
+      updateAboutApplicationDetails();
       renderMissionControlStatuses();
       if (
         !healthScoreNumber ||
@@ -18650,6 +18892,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupApplicationInformationDialogs();
     setupCommandPalette();
     setupWorkspaceNavigationMenus();
     setupMissionRecentActivity();
