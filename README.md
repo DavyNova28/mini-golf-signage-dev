@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.1.0 Stable** — Build **84**
+Version **1.2 Development** — Build **85**
 
 ## Project structure
 
@@ -59,3 +59,14 @@ Do not flatten the `css` or `js` folders. The HTML uses these relative paths:
 - Build: `84`
 - Channel: `stable`
 - Git tag: `v1.1.0`
+
+
+## Version 1.2 development
+
+Build 85 begins the Monitoring Accuracy milestone:
+
+- Persistent player-version memory
+- Day-aware compliance
+- Health warm-up presentation
+- Correct persistent/temporary timeline rendering
+- Daily Schedule Light Mode polish

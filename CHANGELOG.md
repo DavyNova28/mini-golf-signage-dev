@@ -2,6 +2,24 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.85] — Monitoring Accuracy
+
+### Fixed
+
+- Player versions now retain the last known valid value for up to 24 hours.
+- Empty heartbeat responses no longer immediately replace a valid version with `Unknown`.
+- Player Version Compliance now shows the last version-confirmation time.
+- `ArcadeWeek` and `ArcadeSunday` are evaluated according to the current day.
+- Screens not expected today show `Not scheduled today` and do not reduce Go-Live Readiness.
+- Persistent no-End-Time timeline items now resume after temporary overrides.
+- Control Center and Daily Schedule timelines now show clear Override indicators.
+- Daily Schedule spacing and Light Mode contrast were corrected.
+
+### Added
+
+- Health Score `Warming Up` presentation for healthy cold-start telemetry.
+- Version 1.2 Development identity.
+
 ## [1.1.0] — Version 1.1.0 Stable — Build 84
 
 ### Added in Version 1.1
