@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=69">
+    <link rel="stylesheet" href="css/dashboard.css?build=70">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="69">
+  <meta name="dashboard-build" content="70">
 </head>
 
 <body>
@@ -92,10 +92,11 @@
   </header>
 
   <main>
-    <nav
-      class="workspace-tabs workspace-navigation"
-      aria-label="Dashboard navigation"
-    >
+    <div class="workspace-navigation-row">
+      <nav
+        class="workspace-tabs workspace-navigation"
+        aria-label="Dashboard navigation"
+      >
       <button
         id="homeTab"
         class="workspace-tab active workspace-home-tab"
@@ -219,7 +220,20 @@
           </button>
         </div>
       </div>
-    </nav>
+      </nav>
+
+      <button
+        id="commandPaletteButton"
+        class="command-palette-button"
+        type="button"
+        aria-haspopup="dialog"
+        aria-controls="commandPaletteDialog"
+      >
+        <span aria-hidden="true">⌨️</span>
+        <span>Go to…</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+    </div>
 
     <section
       id="homeWorkspace"
@@ -245,7 +259,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 69</span>
+            <span>Build 70</span>
             <span aria-hidden="true">•</span>
             <span>Development Environment</span>
           </div>
@@ -3493,7 +3507,56 @@
     ></div>
   </div>
 
-    <script src="js/dashboard.js?build=69" defer></script>
+  <!-- VERSION 1.0 — COMMAND PALETTE -->
+  <div id="commandPaletteOverlay" class="command-palette-overlay" hidden>
+    <section
+      id="commandPaletteDialog"
+      class="command-palette-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="commandPaletteTitle"
+    >
+      <div class="command-palette-header">
+        <div>
+          <div class="eyebrow">Quick navigation</div>
+          <h2 id="commandPaletteTitle" class="command-palette-title">Go to…</h2>
+        </div>
+
+        <button
+          id="closeCommandPaletteButton"
+          class="command-palette-close"
+          type="button"
+          aria-label="Close command palette"
+        >×</button>
+      </div>
+
+      <label class="command-palette-search-wrap" for="commandPaletteSearch">
+        <span aria-hidden="true">🔎</span>
+        <input
+          id="commandPaletteSearch"
+          class="command-palette-search"
+          type="search"
+          placeholder="Search workspaces…"
+          autocomplete="off"
+        >
+      </label>
+
+      <div
+        id="commandPaletteResults"
+        class="command-palette-results"
+        role="listbox"
+        aria-label="Workspace results"
+      ></div>
+
+      <div class="command-palette-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+        <span><kbd>Enter</kbd> Open</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </section>
+  </div>
+
+    <script src="js/dashboard.js?build=70" defer></script>
 
 </body>
 </html>

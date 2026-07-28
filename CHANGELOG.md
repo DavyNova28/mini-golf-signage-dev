@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.70] — Command Palette
+
+### Added
+
+- Global Ctrl+K and Command+K workspace launcher.
+- Searchable workspace navigation.
+- Arrow-key selection, Enter to open, and Escape to close.
+- Visible Go to button for mouse and touch access.
+
 ## [1.0.0-build.69] — Grouped Navigation
 
 ### Added

@@ -2,8 +2,8 @@
   "name": "Mini Golf Signage Manager",
   "version": "1.0.0",
   "label": "Version 1.0 Stable Candidate",
-  "build": 69,
+  "build": 70,
   "channel": "stable-candidate",
   "expectedPlayerVersion": "v3.1-heartbeat-1",
-  "milestone": "Version 1.0 Grouped Navigation"
+  "milestone": "Version 1.0 Command Palette"
 }
