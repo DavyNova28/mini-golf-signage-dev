@@ -2,6 +2,18 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.68] — Mission Control Step 1F
+
+### Added
+
+- Recent Activity timeline on Mission Control.
+- Health score update entries.
+- Player heartbeat and offline entries.
+- Schedule loading activity.
+- Image Library availability.
+- Recovery snapshot activity.
+- Manual Refresh Activity control.
+
 ## [1.0.0-build.67] — Mission Control Step 1E
 
 ### Added
