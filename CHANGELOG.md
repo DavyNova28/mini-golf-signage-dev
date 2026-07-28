@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.83] — Home Personalization
+
+### Added
+
+- Customize Home control.
+- Visibility preferences for Confidence Banner, Platform Status, Quick Actions, and Recent Activity.
+- Comfortable and Compact spacing.
+- Persistent local preferences and Restore defaults.
+
 ## [1.1.0-dev.82] — Notification History Insights
 
 ### Added

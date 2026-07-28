@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=82">
+    <link rel="stylesheet" href="css/dashboard.css?build=83">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="82">
+  <meta name="dashboard-build" content="83">
 </head>
 
 <body>
@@ -265,6 +265,17 @@
 
       <div class="workspace-navigation-tools">
         <button
+          id="homeLayoutPreferencesButton"
+          class="command-palette-button"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="homeLayoutPreferencesOverlay"
+        >
+          <span aria-hidden="true">⚙️</span>
+          <span>Customize Home</span>
+        </button>
+
+        <button
           id="notificationCenterButton"
           class="notification-center-button"
           type="button"
@@ -316,7 +327,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 82</span>
+            <span>Build 83</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -351,6 +362,7 @@
       -->
       <button
         id="missionConfidenceBanner"
+        data-home-section="confidence"
         class="mission-confidence-banner mission-confidence-waiting"
         type="button"
         aria-label="Open System Health"
@@ -391,7 +403,7 @@
         </span>
       </button>
 
-      <section class="mission-status-section">
+      <section class="mission-status-section" data-home-section="status">
         <div class="mission-section-heading">
           <div>
             <div class="eyebrow">
@@ -539,7 +551,7 @@
         MISSION CONTROL — STEP 1D: QUICK ACTIONS
         =====================================================
       -->
-      <section class="mission-quick-actions-section">
+      <section class="mission-quick-actions-section" data-home-section="quickActions">
         <div class="mission-section-heading">
           <div>
             <div class="eyebrow">
@@ -676,7 +688,7 @@
         MISSION CONTROL — STEP 1F: RECENT ACTIVITY
         =====================================================
       -->
-      <section class="mission-recent-section">
+      <section class="mission-recent-section" data-home-section="recentActivity">
         <div class="mission-section-heading">
           <div>
             <div class="eyebrow">
@@ -3860,6 +3872,73 @@
     </section>
   </div>
 
+  <!-- VERSION 1.1 DEVELOPMENT — HOME PERSONALIZATION — BUILD 83 -->
+  <div id="homeLayoutPreferencesOverlay" class="home-layout-overlay" hidden>
+    <section class="home-layout-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="homeLayoutPreferencesTitle">
+      <div class="home-layout-header">
+        <div>
+          <div class="eyebrow">Personalization</div>
+          <h2 id="homeLayoutPreferencesTitle" class="home-layout-title">
+            Customize Home
+          </h2>
+        </div>
+        <button id="closeHomeLayoutPreferencesButton" class="home-layout-close"
+          type="button" aria-label="Close Home preferences">×</button>
+      </div>
+
+      <p class="home-layout-description">
+        Choose which Mission Control sections are visible and how much spacing
+        the Home page uses.
+      </p>
+
+      <div class="home-layout-options">
+        <label class="home-layout-option">
+          <span><strong>Confidence Banner</strong>
+          <small>Daily readiness summary.</small></span>
+          <input id="homePreferenceConfidence" type="checkbox" checked>
+        </label>
+
+        <label class="home-layout-option">
+          <span><strong>Platform Status</strong>
+          <small>Apps Script, schedules, players, cache, and recovery.</small></span>
+          <input id="homePreferenceStatus" type="checkbox" checked>
+        </label>
+
+        <label class="home-layout-option">
+          <span><strong>Quick Actions</strong>
+          <small>Shortcuts to frequently used workspaces.</small></span>
+          <input id="homePreferenceQuickActions" type="checkbox" checked>
+        </label>
+
+        <label class="home-layout-option">
+          <span><strong>Recent Activity</strong>
+          <small>Latest system and player activity.</small></span>
+          <input id="homePreferenceRecentActivity" type="checkbox" checked>
+        </label>
+      </div>
+
+      <label class="home-layout-density">
+        <span><strong>Home spacing</strong>
+        <small>Compact mode fits more information on screen.</small></span>
+        <select id="homePreferenceDensity">
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="compact">Compact</option>
+        </select>
+      </label>
+
+      <div class="home-layout-footer">
+        <button id="resetHomeLayoutPreferencesButton" class="button" type="button">
+          Restore defaults
+        </button>
+        <button id="saveHomeLayoutPreferencesButton"
+          class="button button-primary" type="button">
+          Save layout
+        </button>
+      </div>
+    </section>
+  </div>
+
   <!-- VERSION 1.0 — COMMAND PALETTE -->
   <div id="commandPaletteOverlay" class="command-palette-overlay" hidden>
     <section
@@ -4050,6 +4129,12 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry">
+          <div class="release-note-build">Build 83</div>
+          <h3>Home Personalization</h3>
+          <p>Added section visibility controls and Comfortable or Compact Home spacing.</p>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 82</div>
           <h3>Notification History Insights</h3>
           <p>Added history filters, search, 24-hour summary metrics, and JSON export.</p>
@@ -4201,7 +4286,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=82" defer></script>
+    <script src="js/dashboard.js?build=83" defer></script>
 
 </body>
 </html>
