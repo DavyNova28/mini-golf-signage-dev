@@ -7044,3 +7044,307 @@ html[data-theme="light"] .mission-version-badge {
 .command-palette-result * {
   pointer-events: none;
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.0 — ABOUT & RELEASE NOTES
+ * BUILD 72
+ * =========================================================
+ */
+
+.application-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  padding: min(10vh, 76px) 18px 18px;
+
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(9px);
+}
+
+.application-dialog-overlay[hidden] {
+  display: none;
+}
+
+.application-dialog {
+  width: min(620px, 100%);
+  max-height: min(82vh, 760px);
+  padding: 18px;
+
+  border: 1px solid var(--border);
+  border-radius: 17px;
+
+  background: var(--surface);
+  box-shadow:
+    0 30px 78px rgba(0, 0, 0, 0.48);
+
+  overflow-y: auto;
+}
+
+.application-dialog-wide {
+  width: min(780px, 100%);
+}
+
+.application-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.application-dialog-title {
+  margin: 5px 0 0;
+  font-size: 24px;
+}
+
+.application-dialog-close {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  color: var(--muted);
+  background: var(--surface-light);
+
+  font-size: 23px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.application-dialog-close:hover {
+  color: var(--text);
+  border-color: rgba(93, 170, 255, 0.55);
+}
+
+.about-identity-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 15px;
+  align-items: center;
+
+  margin-top: 18px;
+  padding: 17px;
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(54, 201, 135, 0.12),
+      transparent 44%
+    ),
+    var(--surface-light);
+}
+
+.about-product-mark {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 58px;
+  height: 58px;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  background: var(--surface);
+  font-size: 28px;
+}
+
+.about-product-name {
+  font-size: 17px;
+  font-weight: 950;
+}
+
+.about-product-version {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.about-environment-badge {
+  display: inline-flex;
+  margin-top: 9px;
+  padding: 5px 8px;
+
+  border: 1px solid rgba(242, 170, 63, 0.48);
+  border-radius: 999px;
+
+  color: #fff0cf;
+  background: rgba(105, 67, 15, 0.42);
+
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+html[data-theme="light"] .about-environment-badge {
+  color: #7a5518;
+  background: #fff1d4;
+}
+
+.about-information-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.about-information-card {
+  padding: 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--surface-light);
+}
+
+.about-information-label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.about-information-value {
+  margin-top: 6px;
+
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.about-credits {
+  margin-top: 14px;
+  padding-top: 14px;
+
+  border-top: 1px solid var(--border);
+
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.release-notes-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+
+  margin-top: 18px;
+  padding: 15px;
+
+  border: 1px solid rgba(54, 201, 135, 0.5);
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(54, 201, 135, 0.12),
+      transparent 50%
+    ),
+    var(--surface-light);
+}
+
+.release-notes-version {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.release-notes-build {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.release-notes-status {
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  color: #caffea;
+  background: var(--regular-dark);
+
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+html[data-theme="light"] .release-notes-status {
+  color: #15543a;
+  background: #d9f7ea;
+}
+
+.release-notes-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.release-note-entry {
+  padding: 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--surface-light);
+}
+
+.release-note-entry h3 {
+  margin: 5px 0 0;
+  font-size: 13px;
+}
+
+.release-note-entry p {
+  margin: 7px 0 0;
+
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.release-note-build {
+  color: #a9d2ff;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@media (min-width: 680px) {
+  .about-information-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .application-dialog-overlay {
+    padding:
+      max(14px, env(safe-area-inset-top))
+      10px
+      10px;
+  }
+
+  .application-dialog {
+    max-height: calc(100vh - 24px);
+  }
+}
