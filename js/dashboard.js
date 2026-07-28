@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -437,6 +437,14 @@
     const notificationHistoryList = document.getElementById("notificationHistoryList");
     const notificationHistorySummary = document.getElementById("notificationHistorySummary");
     const clearNotificationHistoryButton = document.getElementById("clearNotificationHistoryButton");
+
+    const exportNotificationHistoryButton = document.getElementById("exportNotificationHistoryButton");
+    const notificationHistorySearch = document.getElementById("notificationHistorySearch");
+    const notificationHistoryFilters = document.getElementById("notificationHistoryFilters");
+    const notificationHistory24HourCount = document.getElementById("notificationHistory24HourCount");
+    const notificationHistoryAppearedCount = document.getElementById("notificationHistoryAppearedCount");
+    const notificationHistoryResolvedCount = document.getElementById("notificationHistoryResolvedCount");
+    const notificationHistorySnoozedCount = document.getElementById("notificationHistorySnoozedCount");
 
     const commandPaletteButton =
       document.getElementById("commandPaletteButton");
@@ -16324,7 +16332,7 @@
               "Version 1.1 Development",
 
             build:
-              81,
+              82,
 
             environment:
               getApplicationEnvironment().key,
@@ -16470,7 +16478,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-81-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-82-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16731,6 +16739,9 @@
     let currentNotificationFingerprints = new Set();
     let notificationCenterView = "active";
 
+    let notificationHistoryFilter = "all";
+    let notificationHistoryQuery = "";
+
     const NOTIFICATION_SNOOZE_KEY =
       "miniGolfSignageNotificationSnoozeV1";
 
@@ -16841,18 +16852,78 @@
       currentNotificationFingerprints=next;
     }
 
+    function getFilteredNotificationHistory() {
+      const query=notificationHistoryQuery.trim().toLowerCase();
+      return notificationHistory.filter(event=>{
+        const matchesFilter=notificationHistoryFilter==="all" ||
+          event.eventType===notificationHistoryFilter;
+        if(!matchesFilter) return false;
+        if(!query) return true;
+        return [event.title,event.description,event.eventType,event.severity]
+          .join(" ").toLowerCase().includes(query);
+      });
+    }
+
+    function renderNotificationHistoryInsights() {
+      const cutoff=Date.now()-24*60*60*1000;
+      const recent=notificationHistory.filter(event=>{
+        const time=new Date(event.timestamp).getTime();
+        return Number.isFinite(time) && time>=cutoff;
+      });
+      if(notificationHistory24HourCount) notificationHistory24HourCount.textContent=String(recent.length);
+      if(notificationHistoryAppearedCount) notificationHistoryAppearedCount.textContent=String(recent.filter(e=>e.eventType==="appeared").length);
+      if(notificationHistoryResolvedCount) notificationHistoryResolvedCount.textContent=String(recent.filter(e=>e.eventType==="resolved").length);
+      if(notificationHistorySnoozedCount) notificationHistorySnoozedCount.textContent=String(recent.filter(e=>e.eventType==="snoozed").length);
+    }
+
+    function exportNotificationHistory() {
+      try {
+        const payload={
+          application:"Mini Golf Signage Manager",
+          version:"1.1 Development",
+          build:82,
+          exportedAt:new Date().toISOString(),
+          totalEvents:notificationHistory.length,
+          events:notificationHistory
+        };
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement("a");
+        link.href=url;
+        link.download=`notification-history-build-82-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+        if(typeof showToast==="function") showToast("Notification history exported.","success");
+      } catch(error) {
+        console.error("Notification history export failed.",error);
+        if(typeof showToast==="function") showToast(`History export failed: ${error.message}`,"error");
+      }
+    }
+
+
     function renderNotificationHistory() {
       if(!notificationHistoryList || !notificationHistorySummary) return;
+      renderNotificationHistoryInsights();
+      const filteredHistory=getFilteredNotificationHistory();
+
       notificationHistorySummary.textContent=notificationHistory.length
-        ? `${notificationHistory.length} event(s) stored locally.`
+        ? `${filteredHistory.length} shown · ${notificationHistory.length} stored locally.`
         : "No history recorded yet.";
       if(clearNotificationHistoryButton)
         clearNotificationHistoryButton.disabled=notificationHistory.length===0;
+      if(exportNotificationHistoryButton)
+        exportNotificationHistoryButton.disabled=notificationHistory.length===0;
       if(!notificationHistory.length){
         notificationHistoryList.innerHTML='<div class="notification-center-empty">No notification history has been recorded yet.</div>';
         return;
       }
-      notificationHistoryList.innerHTML=notificationHistory.map(event=>`
+      if(!filteredHistory.length){
+        notificationHistoryList.innerHTML='<div class="notification-history-no-results">No history events match the current search or filter.</div>';
+        return;
+      }
+      notificationHistoryList.innerHTML=filteredHistory.map(event=>`
         <article class="notification-history-item">
           <div class="notification-history-icon">${escapeHtml(event.icon)}</div>
           <div>
@@ -17921,6 +17992,22 @@
         "click",()=>setNotificationCenterView("history"));
       if (clearNotificationHistoryButton) clearNotificationHistoryButton.addEventListener(
         "click",clearNotificationHistory);
+      if (exportNotificationHistoryButton) exportNotificationHistoryButton.addEventListener(
+        "click",exportNotificationHistory);
+      if (notificationHistorySearch) notificationHistorySearch.addEventListener(
+        "input",()=>{
+          notificationHistoryQuery=notificationHistorySearch.value;
+          renderNotificationHistory();
+        });
+      if (notificationHistoryFilters) notificationHistoryFilters.addEventListener(
+        "click",event=>{
+          const button=event.target.closest("[data-history-filter]");
+          if(!button) return;
+          notificationHistoryFilter=button.dataset.historyFilter || "all";
+          notificationHistoryFilters.querySelectorAll("[data-history-filter]").forEach(item=>
+            item.classList.toggle("active",item===button));
+          renderNotificationHistory();
+        });
 
       notificationCenterOverlay.addEventListener("click",event => {
         if (event.target === notificationCenterOverlay) closeNotificationCenter();
