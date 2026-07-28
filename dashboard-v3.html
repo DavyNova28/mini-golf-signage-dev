@@ -21,15 +21,32 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=75">
+    <link rel="stylesheet" href="css/dashboard.css?build=76">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="75">
+  <meta name="dashboard-build" content="76">
 </head>
 
 <body>
+  <!--
+    =========================================================
+    VERSION 1.1 DEVELOPMENT — BUILD 76
+    SCROLL PROGRESS + BACK TO TOP
+    =========================================================
+  -->
+  <div
+    id="dashboardScrollProgress"
+    class="dashboard-scroll-progress"
+    aria-hidden="true"
+  >
+    <div
+      id="dashboardScrollProgressBar"
+      class="dashboard-scroll-progress-bar"
+    ></div>
+  </div>
+
   <header>
     <div class="brand">
       <div class="brand-logo">
@@ -267,7 +284,7 @@
       <section class="mission-hero">
         <div class="mission-hero-copy">
           <div class="mission-version-badge">
-            Version 1.0 Stable
+            Version 1.1 Development
           </div>
 
           <h2
@@ -283,7 +300,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 75</span>
+            <span>Build 76</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -3625,7 +3642,7 @@
           </div>
 
           <div class="about-product-version">
-            Version 1.0 Stable · Build 74
+            Version 1.1 Development · Build 74
           </div>
 
           <div
@@ -3706,7 +3723,7 @@
       <div class="release-notes-current">
         <div>
           <div class="release-notes-version">
-            Version 1.0 Stable
+            Version 1.1 Development
           </div>
 
           <div class="release-notes-build">
@@ -3721,8 +3738,17 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry">
+          <div class="release-note-build">Build 76</div>
+          <h3>Version 1.1 Navigation Polish</h3>
+          <p>
+            Added a floating Back to Top control and a live page-scroll
+            progress indicator.
+          </p>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 75</div>
-          <h3>Version 1.0 Stable</h3>
+          <h3>Version 1.1 Development</h3>
           <p>
             Finalized production identity, automatic environment detection,
             stable release metadata, and the permanent v1.0.0 rollback point.
@@ -3805,7 +3831,19 @@
     </section>
   </div>
 
-    <script src="js/dashboard.js?build=75" defer></script>
+  <button
+    id="backToTopButton"
+    class="back-to-top-button"
+    type="button"
+    aria-label="Back to top"
+    title="Back to top"
+    hidden
+  >
+    <span class="back-to-top-icon" aria-hidden="true">↑</span>
+    <span class="back-to-top-label">Top</span>
+  </button>
+
+    <script src="js/dashboard.js?build=76" defer></script>
 
 </body>
 </html>

@@ -2,6 +2,21 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.76] — Navigation Polish
+
+### Added
+
+- Floating Back to Top button.
+- Smooth page return with reduced-motion support.
+- Automatic visibility after 420 px of scrolling.
+- Expanded Top label near the bottom of long pages.
+- Thin page-scroll progress indicator.
+- Mobile safe-area positioning.
+
+### Development cycle
+
+- Began Version 1.1 Development after the Version 1.0.0 Stable release.
+
 ## [1.0.0] — Version 1.0 Stable — Build 75
 
 ### Added
