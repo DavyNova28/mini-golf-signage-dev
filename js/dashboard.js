@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -15569,7 +15569,7 @@
       } else if (
         failureRate <= 1
       ) {
-        score -= 3;
+        score -= 2;
 
         reasons.push({
           icon:
@@ -15633,7 +15633,7 @@
         });
 
       } else if (
-        metrics.averageDuration <= 1200
+        metrics.averageDuration <= 1500
       ) {
         score -= 2;
 
@@ -15646,7 +15646,7 @@
         });
 
       } else if (
-        metrics.averageDuration <= 2000
+        metrics.averageDuration <= 2200
       ) {
         score -= 6;
 
@@ -15684,10 +15684,14 @@
       }
 
       /*
-       * A single peak is informational unless it is extreme.
+       * One-off Apps Script cold starts are displayed but do not
+       * lower the score when the average remains healthy.
+       * A peak is penalized only when it accompanies sustained
+       * slow response times.
        */
       if (
-        metrics.maxDuration > 15000
+        metrics.maxDuration > 15000 &&
+        metrics.averageDuration > 2200
       ) {
         score -= 4;
 
@@ -15696,7 +15700,18 @@
             "⏱️",
 
           text:
-            `One request peaked at ${metrics.maxDuration} ms.`
+            `A ${metrics.maxDuration} ms peak accompanied sustained slow responses.`
+        });
+
+      } else if (
+        metrics.maxDuration > 15000
+      ) {
+        reasons.push({
+          icon:
+            "ℹ️",
+
+          text:
+            `One isolated cold-start peak reached ${metrics.maxDuration} ms and was excluded from scoring.`
         });
 
       } else if (
