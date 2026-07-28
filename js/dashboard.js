@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -350,6 +350,16 @@
     const refreshNotificationCenterButton = document.getElementById("refreshNotificationCenterButton");
     const notificationCenterSummary = document.getElementById("notificationCenterSummary");
     const notificationCenterList = document.getElementById("notificationCenterList");
+
+    const markNotificationsReadButton =
+      document.getElementById(
+        "markNotificationsReadButton"
+      );
+
+    const notificationCenterLastReviewed =
+      document.getElementById(
+        "notificationCenterLastReviewed"
+      );
 
     const commandPaletteButton =
       document.getElementById("commandPaletteButton");
@@ -16237,7 +16247,7 @@
               "Version 1.1 Development",
 
             build:
-              77,
+              78,
 
             environment:
               getApplicationEnvironment().key,
@@ -16383,7 +16393,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-77-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-78-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16636,6 +16646,174 @@
     }
 
 
+    const NOTIFICATION_MEMORY_KEY =
+      "miniGolfSignageNotificationMemoryV1";
+
+    let notificationMemory =
+      {
+        reviewedAt:
+          null,
+
+        fingerprints:
+          {}
+      };
+
+
+    function loadNotificationMemory() {
+      try {
+        const savedValue =
+          localStorage.getItem(
+            NOTIFICATION_MEMORY_KEY
+          );
+
+        if (!savedValue) {
+          return;
+        }
+
+        const parsedValue =
+          JSON.parse(
+            savedValue
+          );
+
+        if (
+          parsedValue &&
+          typeof parsedValue === "object"
+        ) {
+          notificationMemory =
+            {
+              reviewedAt:
+                parsedValue.reviewedAt ||
+                null,
+
+              fingerprints:
+                parsedValue.fingerprints &&
+                typeof parsedValue.fingerprints === "object"
+                  ? parsedValue.fingerprints
+                  : {}
+            };
+        }
+      } catch (error) {
+        console.warn(
+          "Notification memory could not be loaded.",
+          error
+        );
+      }
+    }
+
+
+    function saveNotificationMemory() {
+      try {
+        localStorage.setItem(
+          NOTIFICATION_MEMORY_KEY,
+          JSON.stringify(
+            notificationMemory
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Notification memory could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function createNotificationFingerprint(
+      notification
+    ) {
+      return [
+        notification.severity,
+        notification.title,
+        notification.description,
+        notification.workspace
+      ]
+        .join("|")
+        .toLowerCase();
+    }
+
+
+    function enrichDashboardNotifications(
+      notifications
+    ) {
+      return notifications.map(
+        notification => {
+          const fingerprint =
+            createNotificationFingerprint(
+              notification
+            );
+
+          return {
+            ...notification,
+
+            fingerprint:
+              fingerprint,
+
+            unread:
+              notificationMemory.fingerprints[
+                fingerprint
+              ] !== true
+          };
+        }
+      );
+    }
+
+
+    function markAllNotificationsAsRead() {
+      const notifications =
+        enrichDashboardNotifications(
+          buildDashboardNotifications()
+        );
+
+      notifications.forEach(
+        notification => {
+          notificationMemory.fingerprints[
+            notification.fingerprint
+          ] =
+            true;
+        }
+      );
+
+      notificationMemory.reviewedAt =
+        new Date().toISOString();
+
+      saveNotificationMemory();
+      renderNotificationCenter();
+
+      if (
+        typeof showToast === "function"
+      ) {
+        showToast(
+          "Notifications marked as read.",
+          "success"
+        );
+      }
+    }
+
+
+    function formatNotificationReviewTime() {
+      if (
+        !notificationMemory.reviewedAt
+      ) {
+        return "Not reviewed yet";
+      }
+
+      const reviewedDate =
+        new Date(
+          notificationMemory.reviewedAt
+        );
+
+      if (
+        !Number.isFinite(
+          reviewedDate.getTime()
+        )
+      ) {
+        return "Not reviewed yet";
+      }
+
+      return `Last reviewed ${reviewedDate.toLocaleString()}`;
+    }
+
+
     function buildDashboardNotifications() {
       const items = [];
       const quiet = typeof isPlayerQuietHours === "function" ? isPlayerQuietHours() : false;
@@ -16710,9 +16888,34 @@
 
     function renderNotificationCenter() {
       if (!notificationCenterBadge || !notificationCenterSummary || !notificationCenterList) return;
-      const items = buildDashboardNotifications();
-      notificationCenterBadge.textContent = String(items.length);
-      notificationCenterBadge.hidden = items.length === 0;
+      const items =
+        enrichDashboardNotifications(
+          buildDashboardNotifications()
+        );
+
+      const unreadCount =
+        items.filter(
+          item =>
+            item.unread
+        ).length;
+
+      notificationCenterBadge.textContent =
+        String(
+          unreadCount
+        );
+
+      notificationCenterBadge.hidden =
+        unreadCount === 0;
+
+      if (notificationCenterLastReviewed) {
+        notificationCenterLastReviewed.textContent =
+          formatNotificationReviewTime();
+      }
+
+      if (markNotificationsReadButton) {
+        markNotificationsReadButton.disabled =
+          unreadCount === 0;
+      }
 
       if (!items.length) {
         notificationCenterSummary.textContent = "No active alerts. Core monitoring checks are clear.";
@@ -16721,19 +16924,33 @@
         return;
       }
 
-      const critical = items.filter(item => item.severity === "critical").length;
-      notificationCenterSummary.textContent = critical
-        ? `${items.length} active notification(s), including ${critical} critical item(s).`
-        : `${items.length} active notification(s) require review.`;
+      const critical =
+        items.filter(
+          item =>
+            item.severity === "critical"
+        ).length;
+
+      notificationCenterSummary.textContent =
+        unreadCount > 0
+          ? `${unreadCount} new notification(s) · ${items.length} active total${critical ? ` · ${critical} critical` : ""}.`
+          : `${items.length} active notification(s), all reviewed${critical ? ` · ${critical} critical` : ""}.`;
 
       notificationCenterList.innerHTML = items.map((item,index) => `
-        <button class="notification-item notification-item-${escapeHtml(item.severity)}"
-          type="button" data-notification-index="${index}">
+        <button
+          class="notification-item notification-item-${escapeHtml(item.severity)} ${item.unread ? "notification-item-unread" : "notification-item-read"}"
+          type="button"
+          data-notification-index="${index}"
+        >
           <span class="notification-item-icon">${escapeHtml(item.icon)}</span>
+
           <span>
             <span class="notification-item-title">${escapeHtml(item.title)}</span>
             <span class="notification-item-description">${escapeHtml(item.description)}</span>
+            <span class="notification-item-status">
+              ${item.unread ? "New" : "Reviewed"}
+            </span>
           </span>
+
           <span class="notification-item-action">Open →</span>
         </button>`).join("");
 
@@ -16741,6 +16958,17 @@
         button.addEventListener("click", () => {
           const item = items[Number(button.dataset.notificationIndex)];
           if (!item) return;
+
+          notificationMemory.fingerprints[
+            item.fingerprint
+          ] =
+            true;
+
+          notificationMemory.reviewedAt =
+            new Date().toISOString();
+
+          saveNotificationMemory();
+
           closeNotificationCenter();
           openWorkspace(item.workspace);
         });
@@ -16765,10 +16993,26 @@
     }
 
     function setupNotificationCenter() {
+      loadNotificationMemory();
+
       if (!notificationCenterButton || !notificationCenterOverlay) return;
+
       notificationCenterButton.addEventListener("click",openNotificationCenter);
       if (closeNotificationCenterButton) closeNotificationCenterButton.addEventListener("click",closeNotificationCenter);
-      if (refreshNotificationCenterButton) refreshNotificationCenterButton.addEventListener("click",renderNotificationCenter);
+      if (refreshNotificationCenterButton) {
+        refreshNotificationCenterButton.addEventListener(
+          "click",
+          renderNotificationCenter
+        );
+      }
+
+      if (markNotificationsReadButton) {
+        markNotificationsReadButton.addEventListener(
+          "click",
+          markAllNotificationsAsRead
+        );
+      }
+
       notificationCenterOverlay.addEventListener("click",event => {
         if (event.target === notificationCenterOverlay) closeNotificationCenter();
       });
