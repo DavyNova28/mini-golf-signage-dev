@@ -2,6 +2,22 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0-dev.78] — Notification Memory
+
+### Added
+
+- Persistent read/unread notification state using local browser storage.
+- Badge now counts only new or changed notifications.
+- Mark all as read control.
+- Last-reviewed timestamp.
+- New and Reviewed labels inside each notification.
+
+### Behavior
+
+- Active issues remain visible until resolved.
+- Reviewed alerts stop contributing to the badge.
+- If an alert changes, it becomes new again automatically.
+
 ## [1.1.0-dev.77] — Notification Center
 
 ### Added
