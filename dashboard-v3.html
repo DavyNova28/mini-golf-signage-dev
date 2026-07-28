@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=66">
+    <link rel="stylesheet" href="css/dashboard.css?build=67">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
   <meta name="dashboard-channel" content="stable-candidate">
-  <meta name="dashboard-build" content="66">
+  <meta name="dashboard-build" content="67">
 </head>
 
 <body>
@@ -208,7 +208,7 @@
           </p>
 
           <div class="mission-build-line">
-            <span>Build 63</span>
+            <span>Build 67</span>
             <span aria-hidden="true">•</span>
             <span>Development Environment</span>
           </div>
@@ -235,6 +235,53 @@
           </div>
         </div>
       </section>
+
+      <!--
+        =====================================================
+        MISSION CONTROL — STEP 1E: CONFIDENCE BANNER
+        =====================================================
+      -->
+      <button
+        id="missionConfidenceBanner"
+        class="mission-confidence-banner mission-confidence-waiting"
+        type="button"
+        aria-label="Open System Health"
+      >
+        <span
+          id="missionConfidenceIcon"
+          class="mission-confidence-icon"
+          aria-hidden="true"
+        >
+          ⏳
+        </span>
+
+        <span class="mission-confidence-content">
+          <span
+            id="missionConfidenceTitle"
+            class="mission-confidence-title"
+          >
+            Completing daily checks
+          </span>
+
+          <span
+            id="missionConfidenceSummary"
+            class="mission-confidence-summary"
+          >
+            Waiting for schedules, telemetry, and player status.
+          </span>
+
+          <span
+            id="missionConfidenceDetails"
+            class="mission-confidence-details"
+          >
+            This summary will update automatically.
+          </span>
+        </span>
+
+        <span class="mission-confidence-action">
+          View details →
+        </span>
+      </button>
 
       <section class="mission-status-section">
         <div class="mission-section-heading">
@@ -3373,7 +3420,7 @@
     ></div>
   </div>
 
-    <script src="js/dashboard.js?build=66" defer></script>
+    <script src="js/dashboard.js?build=67" defer></script>
 
 </body>
 </html>

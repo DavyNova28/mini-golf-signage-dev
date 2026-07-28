@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.67] — Mission Control Step 1E
+
+### Added
+
+- Daily confidence banner on Mission Control.
+- Ready for Today, Review Recommended, and Attention Required states.
+- Automatic checks for schedules, missing images, health score, player status, Apps Script telemetry, cached schedule data, and recovery readiness.
+- One-click access from the confidence banner to System Health.
+
 ## [1.0.0-build.66] — Mission Control Step 1D Corrected
 
 ### Fixed
