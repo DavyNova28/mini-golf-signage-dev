@@ -2,6 +2,15 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.0.0-build.71] — Command Palette Mouse Fix
+
+### Fixed
+
+- Command Palette choices can now be opened with a mouse click.
+- Hovering no longer rebuilds and replaces result buttons.
+- Added stable delegated click handling on the results container.
+- Preserved keyboard navigation and Enter selection.
+
 ## [1.0.0-build.70] — Command Palette
 
 ### Added
