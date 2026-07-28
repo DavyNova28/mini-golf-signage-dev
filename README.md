@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.1 Development** — Build **83**
+Version **1.1.0 Stable** — Build **84**
 
 ## Project structure
 
@@ -40,4 +40,22 @@ Do not flatten the `css` or `js` folders. The HTML uses these relative paths:
 1. Test this modular build in GitHub Pages.
 2. Confirm Schedule Manager, Image Library, System Health, Heartbeat, and Rollout Assistant.
 3. Keep the store screens on the current safe setup until the preflight passes.
-4. The final tested production commit is tagged as `v1.0.0`.
+4. The Version 1.0 rollback baseline is tagged as `v1.0.0`. The current stable release is tagged as `v1.1.0`.
+
+
+## Version 1.1 highlights
+
+- Back to Top navigation and scroll progress
+- Proactive Notification Center
+- Notification read tracking and preferences
+- Alert snoozing
+- Notification History and history insights
+- JSON history export
+- Home layout personalization
+
+## Stable release
+
+- Version: `1.1.0`
+- Build: `84`
+- Channel: `stable`
+- Git tag: `v1.1.0`

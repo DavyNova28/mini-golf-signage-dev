@@ -1,10 +1,10 @@
 {
   "name": "Mini Golf Signage Manager",
-  "version": "1.1.0-dev",
-  "label": "Version 1.1 Development",
-  "build": 83,
-  "channel": "development",
+  "version": "1.1.0",
+  "label": "Version 1.1.0 Stable",
+  "build": 84,
+  "channel": "stable",
   "expectedPlayerVersion": "v3.1-heartbeat-1",
-  "milestone": "Home Personalization",
-  "releaseTag": null
+  "milestone": "Version 1.1.0 Stable Release",
+  "releaseTag": "v1.1.0"
 }

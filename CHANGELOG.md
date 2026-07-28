@@ -2,6 +2,29 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.1.0] — Version 1.1.0 Stable — Build 84
+
+### Added in Version 1.1
+
+- Scroll progress indicator and Back to Top navigation.
+- Proactive Notification Center.
+- Notification read tracking, preferences, snoozing, and persistent history.
+- Notification History search, filters, insights, and JSON export.
+- Mission Control Home personalization with section visibility and spacing controls.
+
+### Fixed
+
+- Corrected the stale About-dialog build label that remained on Build 74.
+- Corrected the stale current-release card that remained on Build 75.
+- Synchronized Home, About, Release Notes, diagnostics, history export, README, changelog, and version metadata.
+
+### Release status
+
+- Version 1.1.0 Stable.
+- Build 84.
+- Git tag: `v1.1.0`.
+- Permanent rollback baseline for future Version 1.2 development.
+
 ## [1.1.0-dev.83] — Home Personalization
 
 ### Added
