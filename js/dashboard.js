@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -430,6 +430,13 @@
       document.getElementById(
         "cancelNotificationSnoozeButton"
       );
+
+    const notificationActiveTab = document.getElementById("notificationActiveTab");
+    const notificationHistoryTab = document.getElementById("notificationHistoryTab");
+    const notificationHistoryPanel = document.getElementById("notificationHistoryPanel");
+    const notificationHistoryList = document.getElementById("notificationHistoryList");
+    const notificationHistorySummary = document.getElementById("notificationHistorySummary");
+    const clearNotificationHistoryButton = document.getElementById("clearNotificationHistoryButton");
 
     const commandPaletteButton =
       document.getElementById("commandPaletteButton");
@@ -16317,7 +16324,7 @@
               "Version 1.1 Development",
 
             build:
-              80,
+              81,
 
             environment:
               getApplicationEnvironment().key,
@@ -16463,7 +16470,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-80-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-81-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16716,6 +16723,14 @@
     }
 
 
+    const NOTIFICATION_HISTORY_KEY =
+      "miniGolfSignageNotificationHistoryV1";
+
+    const NOTIFICATION_HISTORY_LIMIT = 100;
+    let notificationHistory = [];
+    let currentNotificationFingerprints = new Set();
+    let notificationCenterView = "active";
+
     const NOTIFICATION_SNOOZE_KEY =
       "miniGolfSignageNotificationSnoozeV1";
 
@@ -16770,6 +16785,108 @@
         fingerprints:
           {}
       };
+
+
+    function loadNotificationHistory() {
+      try {
+        const raw = localStorage.getItem(NOTIFICATION_HISTORY_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) notificationHistory = parsed.slice(0,NOTIFICATION_HISTORY_LIMIT);
+      } catch (error) {
+        console.warn("Notification history could not be loaded.",error);
+      }
+    }
+
+    function saveNotificationHistory() {
+      try {
+        localStorage.setItem(NOTIFICATION_HISTORY_KEY,
+          JSON.stringify(notificationHistory.slice(0,NOTIFICATION_HISTORY_LIMIT)));
+      } catch (error) {
+        console.warn("Notification history could not be saved.",error);
+      }
+    }
+
+    function addNotificationHistoryEvent(notification,eventType,detail) {
+      if (!notification) return;
+      notificationHistory.unshift({
+        id:`${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+        fingerprint:notification.fingerprint || createNotificationFingerprint(notification),
+        eventType,
+        icon:notification.icon || "🔔",
+        title:notification.title || "Notification",
+        description:detail || notification.description || "",
+        severity:notification.severity || "information",
+        timestamp:new Date().toISOString()
+      });
+      notificationHistory=notificationHistory.slice(0,NOTIFICATION_HISTORY_LIMIT);
+      saveNotificationHistory();
+    }
+
+    function syncNotificationHistory(notifications) {
+      const next=new Set(notifications.map(item=>item.fingerprint));
+      notifications.forEach(item=>{
+        if(!currentNotificationFingerprints.has(item.fingerprint))
+          addNotificationHistoryEvent(item,"appeared",item.description);
+      });
+      currentNotificationFingerprints.forEach(fingerprint=>{
+        if(!next.has(fingerprint)){
+          const previous=notificationHistory.find(event=>event.fingerprint===fingerprint);
+          if(previous) addNotificationHistoryEvent({
+            fingerprint,icon:previous.icon,title:previous.title,
+            description:previous.description,severity:previous.severity
+          },"resolved","The alert is no longer active.");
+        }
+      });
+      currentNotificationFingerprints=next;
+    }
+
+    function renderNotificationHistory() {
+      if(!notificationHistoryList || !notificationHistorySummary) return;
+      notificationHistorySummary.textContent=notificationHistory.length
+        ? `${notificationHistory.length} event(s) stored locally.`
+        : "No history recorded yet.";
+      if(clearNotificationHistoryButton)
+        clearNotificationHistoryButton.disabled=notificationHistory.length===0;
+      if(!notificationHistory.length){
+        notificationHistoryList.innerHTML='<div class="notification-center-empty">No notification history has been recorded yet.</div>';
+        return;
+      }
+      notificationHistoryList.innerHTML=notificationHistory.map(event=>`
+        <article class="notification-history-item">
+          <div class="notification-history-icon">${escapeHtml(event.icon)}</div>
+          <div>
+            <div class="notification-history-title">${escapeHtml(event.title)}</div>
+            <div class="notification-history-description">${escapeHtml(event.description)}</div>
+            <div class="notification-history-event">${escapeHtml(event.eventType)}</div>
+          </div>
+          <div class="notification-history-time">${escapeHtml(new Date(event.timestamp).toLocaleString())}</div>
+        </article>`).join("");
+    }
+
+    function setNotificationCenterView(viewName) {
+      notificationCenterView=viewName==="history"?"history":"active";
+      const history=notificationCenterView==="history";
+      if(notificationCenterList) notificationCenterList.hidden=history;
+      if(notificationHistoryPanel) notificationHistoryPanel.hidden=!history;
+      if(notificationActiveTab){
+        notificationActiveTab.classList.toggle("active",!history);
+        notificationActiveTab.setAttribute("aria-selected",history?"false":"true");
+      }
+      if(notificationHistoryTab){
+        notificationHistoryTab.classList.toggle("active",history);
+        notificationHistoryTab.setAttribute("aria-selected",history?"true":"false");
+      }
+      if(history) renderNotificationHistory();
+    }
+
+    function clearNotificationHistory() {
+      notificationHistory=[];
+      currentNotificationFingerprints=new Set();
+      saveNotificationHistory();
+      renderNotificationHistory();
+      if(typeof showToast==="function") showToast("Notification history cleared.","success");
+    }
 
 
     function loadNotificationSnoozes() {
@@ -16916,6 +17033,11 @@
         fingerprint
       ] =
         expiresAt;
+
+      const activeNotification=enrichDashboardNotifications(
+        buildDashboardNotifications()).find(item=>item.fingerprint===fingerprint);
+      if(activeNotification) addNotificationHistoryEvent(
+        activeNotification,"snoozed",`Snoozed until ${new Date(expiresAt).toLocaleString()}.`);
 
       saveNotificationSnoozes();
       closeNotificationSnoozeMenu();
@@ -17409,6 +17531,9 @@
       notificationMemory.reviewedAt =
         new Date().toISOString();
 
+      notifications.forEach(notification =>
+        addNotificationHistoryEvent(notification,"reviewed","Marked as reviewed."));
+
       saveNotificationMemory();
       renderNotificationCenter();
 
@@ -17552,6 +17677,8 @@
           buildDashboardNotifications()
         );
 
+      syncNotificationHistory(allItems);
+
       const snoozedItems =
         allItems.filter(
           item =>
@@ -17691,6 +17818,12 @@
                 notificationMemory.reviewedAt =
                   new Date().toISOString();
 
+                addNotificationHistoryEvent(
+                  item,
+                  "reviewed",
+                  "Opened from the Notification Center."
+                );
+
                 saveNotificationMemory();
 
                 closeNotificationCenter();
@@ -17708,6 +17841,7 @@
       closeWorkspaceNavigationMenus();
       closeCommandPalette();
       renderNotificationCenter();
+      setNotificationCenterView("active");
       notificationCenterOverlay.hidden = false;
       document.body.style.overflow = "hidden";
       setTimeout(() => closeNotificationCenterButton && closeNotificationCenterButton.focus(),0);
@@ -17732,6 +17866,7 @@
       loadNotificationPreferences();
       loadNotificationMemory();
       loadNotificationSnoozes();
+      loadNotificationHistory();
       setupNotificationSnoozeMenu();
 
       if (!notificationCenterButton || !notificationCenterOverlay) return;
@@ -17779,6 +17914,13 @@
           resetNotificationPreferences
         );
       }
+
+      if (notificationActiveTab) notificationActiveTab.addEventListener(
+        "click",()=>setNotificationCenterView("active"));
+      if (notificationHistoryTab) notificationHistoryTab.addEventListener(
+        "click",()=>setNotificationCenterView("history"));
+      if (clearNotificationHistoryButton) clearNotificationHistoryButton.addEventListener(
+        "click",clearNotificationHistory);
 
       notificationCenterOverlay.addEventListener("click",event => {
         if (event.target === notificationCenterOverlay) closeNotificationCenter();
