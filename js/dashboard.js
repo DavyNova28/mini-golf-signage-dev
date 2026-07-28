@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -44,6 +44,158 @@
      */
     const EXPECTED_PLAYER_VERSION =
       "v3.1-heartbeat-1";
+
+    const PLAYER_VERSION_MEMORY_KEY =
+      "miniGolfPlayerVersionMemoryV2";
+
+    const PLAYER_VERSION_MEMORY_MAX_AGE_MS =
+      24 * 60 * 60 * 1000;
+
+    let playerVersionMemory =
+      {};
+
+    function isScreenExpectedToday(
+      screenName,
+      date = new Date()
+    ) {
+      const day =
+        date.getDay();
+
+      if (screenName === "ArcadeSunday") {
+        return day === 0;
+      }
+
+      if (screenName === "ArcadeWeek") {
+        return day !== 0;
+      }
+
+      return true;
+    }
+
+    function loadPlayerVersionMemory() {
+      try {
+        const raw =
+          localStorage.getItem(
+            PLAYER_VERSION_MEMORY_KEY
+          );
+
+        if (!raw) {
+          return;
+        }
+
+        const parsed =
+          JSON.parse(raw);
+
+        if (
+          parsed &&
+          typeof parsed === "object"
+        ) {
+          playerVersionMemory =
+            parsed;
+        }
+      } catch (error) {
+        console.warn(
+          "Player version memory could not be loaded.",
+          error
+        );
+      }
+    }
+
+    function savePlayerVersionMemory() {
+      try {
+        localStorage.setItem(
+          PLAYER_VERSION_MEMORY_KEY,
+          JSON.stringify(
+            playerVersionMemory
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Player version memory could not be saved.",
+          error
+        );
+      }
+    }
+
+    function rememberPlayerVersion(
+      screenName,
+      playerVersion,
+      confirmedAt
+    ) {
+      const cleanVersion =
+        String(
+          playerVersion || ""
+        ).trim();
+
+      if (!cleanVersion) {
+        return;
+      }
+
+      const date =
+        confirmedAt
+          ? new Date(confirmedAt)
+          : new Date();
+
+      const safeConfirmedAt =
+        Number.isFinite(
+          date.getTime()
+        )
+          ? date.toISOString()
+          : new Date().toISOString();
+
+      playerVersionMemory[
+        screenName
+      ] =
+        {
+          playerVersion:
+            cleanVersion,
+
+          confirmedAt:
+            safeConfirmedAt
+        };
+
+      savePlayerVersionMemory();
+    }
+
+    function getRememberedPlayerVersion(
+      screenName
+    ) {
+      const remembered =
+        playerVersionMemory[
+          screenName
+        ];
+
+      if (
+        !remembered ||
+        !remembered.playerVersion ||
+        !remembered.confirmedAt
+      ) {
+        return null;
+      }
+
+      const confirmedAt =
+        new Date(
+          remembered.confirmedAt
+        );
+
+      if (
+        !Number.isFinite(
+          confirmedAt.getTime()
+        ) ||
+        Date.now() -
+          confirmedAt.getTime() >
+          PLAYER_VERSION_MEMORY_MAX_AGE_MS
+      ) {
+        delete playerVersionMemory[
+          screenName
+        ];
+
+        savePlayerVersionMemory();
+        return null;
+      }
+
+      return remembered;
+    }
 
     const ROLLOUT_PROGRESS_STORAGE_KEY =
       "miniGolfRolloutProgressV1";
@@ -2826,17 +2978,22 @@
 
     function renderTimeline(state) {
       const safeId =
-        createSafeId(state.screenName);
+        createSafeId(
+          state.screenName
+        );
 
       const timeline =
         document.getElementById(
           `timeline-${safeId}`
         );
 
-      timeline.innerHTML = "";
+      timeline.innerHTML =
+        "";
 
-      const schedule =
-        state.schedule;
+      const segments =
+        buildDailyCalendarSegments(
+          state.schedule
+        );
 
       const currentTime =
         getCurrentHHMM(
@@ -2845,62 +3002,80 @@
 
       const activeItem =
         getActiveScheduleItem(
-          schedule,
+          state.schedule,
           currentTime
         );
 
-      schedule.forEach(
-        (item, index) => {
+      segments.forEach(
+        segmentData => {
           const startMinute =
-            timeToMinutes(item.time);
-
-          const nextItem =
-            schedule[index + 1];
-
-          const explicitEndMinute =
-            item.endTime
-              ? timeToMinutes(
-                  item.endTime
-                )
-              : null;
+            timeToMinutes(
+              segmentData.start
+            );
 
           const endMinute =
-            explicitEndMinute !== null
-              ? explicitEndMinute
-              : nextItem
-                ? timeToMinutes(
-                    nextItem.time
-                  )
-                : 1440;
+            segmentData.end === "24:00"
+              ? 1440
+              : timeToMinutes(
+                  segmentData.end
+                );
 
           const left =
-            (startMinute / 1440) * 100;
+            (
+              startMinute /
+              1440
+            ) * 100;
 
           const width =
             Math.max(
               (
-                (endMinute - startMinute) /
+                (
+                  endMinute -
+                  startMinute
+                ) /
                 1440
               ) * 100,
               0.25
             );
 
           const segment =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           segment.className =
-            `timeline-segment ${state.source}`;
+            `timeline-segment ${state.source} timeline-${segmentData.type}`;
 
-          if (item.endTime) {
+          if (
+            segmentData.type ===
+            "temporary"
+          ) {
             segment.classList.add(
               "has-explicit-end"
             );
           }
 
           if (
+            segmentData.overlap
+          ) {
+            segment.classList.add(
+              "timeline-override"
+            );
+          }
+
+          const currentMinute =
+            timeToMinutes(
+              currentTime
+            );
+
+          if (
+            currentMinute >=
+              startMinute &&
+            currentMinute <
+              endMinute &&
             activeItem &&
-            activeItem.time === item.time &&
-            activeItem.image === item.image
+            activeItem.image ===
+              segmentData.image
           ) {
             segment.classList.add(
               "active"
@@ -2926,29 +3101,31 @@
             `${width}%`;
 
           segment.title =
-            `${item.time} — ${item.image}` +
-            (
-              item.endTime
-                ? `\nEnds ${item.endTime}`
-                : nextItem
-                  ? `\nUntil ${nextItem.time}`
-                  : "\nUntil midnight"
-            );
+            `${segmentData.start}–${segmentData.end} · ${segmentData.image}\n${segmentData.reason}`;
 
           const thumbnail =
-            document.createElement("img");
+            document.createElement(
+              "img"
+            );
 
           thumbnail.className =
             "timeline-thumbnail";
 
-          thumbnail.alt = "";
-          thumbnail.loading = "lazy";
+          thumbnail.alt =
+            "";
+
+          thumbnail.loading =
+            "lazy";
 
           thumbnail.src =
-            buildImageUrl(item.image);
+            buildImageUrl(
+              segmentData.image
+            );
 
           const thumbnailFallback =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           thumbnailFallback.className =
             "timeline-thumbnail-fallback";
@@ -2967,30 +3144,38 @@
             };
 
           const content =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           content.className =
             "timeline-content";
 
           const timeLabel =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           timeLabel.className =
             "timeline-time";
 
           timeLabel.textContent =
-            item.time;
+            segmentData.start;
 
           const imageLabel =
-            document.createElement("div");
+            document.createElement(
+              "div"
+            );
 
           imageLabel.className =
             "timeline-image-name";
 
           imageLabel.textContent =
-            item.endTime
-              ? `${item.image} · ends ${item.endTime}`
-              : item.image;
+            segmentData.type === "temporary"
+              ? `${segmentData.image} · override until ${segmentData.end}`
+              : segmentData.type === "fallback"
+                ? `${segmentData.image} · resumed`
+                : segmentData.image;
 
           content.appendChild(
             timeLabel
@@ -3019,7 +3204,9 @@
       );
 
       const nowMarker =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       nowMarker.id =
         `timeline-now-${safeId}`;
@@ -3065,7 +3252,9 @@
       state
     ) {
       const safeId =
-        createSafeId(state.screenName);
+        createSafeId(
+          state.screenName
+        );
 
       const timeline =
         document.getElementById(
@@ -3076,46 +3265,54 @@
         return;
       }
 
-      const segments =
-        timeline.querySelectorAll(
+      const currentMinute =
+        timeToMinutes(
+          getCurrentHHMM(
+            new Date()
+          )
+        );
+
+      timeline
+        .querySelectorAll(
           ".timeline-segment"
+        )
+        .forEach(
+          segment => {
+            const left =
+              parseFloat(
+                segment.style.left
+              ) || 0;
+
+            const width =
+              parseFloat(
+                segment.style.width
+              ) || 0;
+
+            const startMinute =
+              (
+                left /
+                100
+              ) * 1440;
+
+            const endMinute =
+              (
+                (
+                  left +
+                  width
+                ) /
+                100
+              ) * 1440;
+
+            segment.classList.toggle(
+              "active",
+              currentMinute >=
+                startMinute &&
+              currentMinute <
+                endMinute
+            );
+          }
         );
-
-      const currentTime =
-        getCurrentHHMM(
-          new Date()
-        );
-
-      const activeItem =
-        getActiveScheduleItem(
-          state.schedule,
-          currentTime
-        );
-
-      segments.forEach(
-        (segment, index) => {
-          const item =
-            state.schedule[index];
-
-          const isActive =
-            activeItem &&
-            item &&
-            item.time === activeItem.time &&
-            item.image === activeItem.image;
-
-          segment.classList.toggle(
-            "active",
-            Boolean(isActive)
-          );
-        }
-      );
     }
-
-    /*
-     * =====================================================
-     * LIVE UPDATES
-     * =====================================================
-     */
 
     function updateLiveInformation() {
       screenStates.forEach(state => {
@@ -12893,131 +13090,270 @@
     }
 
 
+    function minutesToHHMM(
+      value
+    ) {
+      const safeMinutes =
+        Math.max(
+          0,
+          Math.min(
+            1440,
+            Math.round(
+              Number(value) || 0
+            )
+          )
+        );
+
+      if (safeMinutes === 1440) {
+        return "24:00";
+      }
+
+      const hours =
+        Math.floor(
+          safeMinutes / 60
+        );
+
+      const minutes =
+        safeMinutes % 60;
+
+      return (
+        String(hours).padStart(2, "0") +
+        ":" +
+        String(minutes).padStart(2, "0")
+      );
+    }
+
+
     function buildDailyCalendarSegments(
       schedule
     ) {
-      const sorted =
-        schedule
-          .map(item => ({
-            ...item,
+      const normalized =
+        (Array.isArray(schedule)
+          ? schedule
+          : []
+        )
+          .map(
+            (item, rowIndex) => ({
+              ...item,
 
-            time:
-              String(item.time || ""),
+              time:
+                String(item.time || ""),
 
-            endTime:
-              String(
-                item.endTime || ""
+              endTime:
+                String(item.endTime || ""),
+
+              rowIndex:
+                rowIndex
+            })
+          )
+          .filter(
+            item =>
+              /^\d{2}:\d{2}$/.test(
+                item.time
+              ) &&
+              item.image
+          )
+          .sort(
+            (a, b) =>
+              a.time.localeCompare(
+                b.time
               )
-          }))
-          .sort((a, b) =>
-            a.time.localeCompare(
-              b.time
+          );
+
+      if (normalized.length === 0) {
+        return [];
+      }
+
+      const boundaries =
+        new Set(
+          [
+            0,
+            1440
+          ]
+        );
+
+      normalized.forEach(
+        item => {
+          boundaries.add(
+            timeToMinutes(
+              item.time
             )
           );
 
-      const segments = [];
-
-      sorted.forEach(
-        (item, index) => {
-          const next =
-            sorted[index + 1];
-
-          const originalRowIndex =
-            schedule.findIndex(
-              sourceItem =>
-                sourceItem.time === item.time &&
-                sourceItem.image === item.image &&
-                String(sourceItem.endTime || "") ===
-                  String(item.endTime || "")
-            );
-
-          const end =
-            item.endTime ||
-            (
-              next
-                ? next.time
-                : "24:00"
-            );
-
-          const overlap =
-            Boolean(
-              next &&
-              next.time <
-                end
-            );
-
-          segments.push({
-            image:
-              item.image,
-
-            start:
-              item.time,
-
-            end:
-              end,
-
-            type:
-              item.endTime
-                ? "temporary"
-                : "persistent",
-
-            overlap:
-              overlap,
-
-            reason:
-              item.endTime
-                ? `Temporary row active from ${item.time} until ${item.endTime}.`
-                : `Persistent row active from ${item.time} until another row replaces it.`,
-
-            rowIndex:
-              originalRowIndex
-          });
-
-          if (
-            item.endTime &&
-            next &&
-            item.endTime <
-              next.time
-          ) {
-            const fallback =
-              findPersistentFallbackAtTime(
-                sorted,
+          if (item.endTime) {
+            boundaries.add(
+              timeToMinutes(
                 item.endTime
-              );
-
-            if (fallback) {
-              segments.push({
-                image:
-                  fallback.image,
-
-                start:
-                  item.endTime,
-
-                end:
-                  next.time,
-
-                type:
-                  "fallback",
-
-                overlap:
-                  false,
-
-                reason:
-                  `No temporary row is active. The player falls back to ${fallback.image}.`,
-
-                rowIndex:
-                  schedule.findIndex(
-                    sourceItem =>
-                      sourceItem.time === fallback.time &&
-                      sourceItem.image === fallback.image
-                  )
-              });
-            }
+              )
+            );
           }
         }
       );
 
-      return segments;
+      const orderedBoundaries =
+        Array.from(
+          boundaries
+        )
+          .filter(
+            value =>
+              Number.isFinite(value) &&
+              value >= 0 &&
+              value <= 1440
+          )
+          .sort(
+            (a, b) =>
+              a - b
+          );
+
+      const rawSegments =
+        [];
+
+      for (
+        let index = 0;
+        index <
+          orderedBoundaries.length - 1;
+        index += 1
+      ) {
+        const intervalStart =
+          orderedBoundaries[index];
+
+        const intervalEnd =
+          orderedBoundaries[index + 1];
+
+        if (
+          intervalEnd <=
+          intervalStart
+        ) {
+          continue;
+        }
+
+        const midpoint =
+          intervalStart +
+          (
+            intervalEnd -
+            intervalStart
+          ) / 2;
+
+        const midpointTime =
+          minutesToHHMM(
+            Math.min(
+              1439,
+              Math.floor(midpoint)
+            )
+          );
+
+        const activeItem =
+          getActiveScheduleItem(
+            normalized,
+            midpointTime
+          );
+
+        if (!activeItem) {
+          continue;
+        }
+
+        const activeStartMinute =
+          timeToMinutes(
+            activeItem.time
+          );
+
+        const isTemporary =
+          Boolean(
+            activeItem.endTime
+          );
+
+        const isFallback =
+          !isTemporary &&
+          intervalStart !==
+            activeStartMinute;
+
+        const fallbackBehindTemporary =
+          isTemporary
+            ? findPersistentFallbackAtTime(
+                normalized,
+                activeItem.time
+              )
+            : null;
+
+        rawSegments.push({
+          image:
+            activeItem.image,
+
+          start:
+            minutesToHHMM(
+              intervalStart
+            ),
+
+          end:
+            intervalEnd === 1440
+              ? "24:00"
+              : minutesToHHMM(
+                  intervalEnd
+                ),
+
+          type:
+            isTemporary
+              ? "temporary"
+              : isFallback
+                ? "fallback"
+                : "persistent",
+
+          overlap:
+            Boolean(
+              isTemporary &&
+              fallbackBehindTemporary
+            ),
+
+          reason:
+            isTemporary
+              ? fallbackBehindTemporary
+                ? `Temporary override active. ${fallbackBehindTemporary.image} resumes after ${activeItem.endTime}.`
+                : `Temporary row active from ${activeItem.time} until ${activeItem.endTime}.`
+              : isFallback
+                ? `${activeItem.image} resumed after the temporary override ended.`
+                : `Persistent row active until a temporary override or newer persistent row takes priority.`,
+
+          rowIndex:
+            activeItem.rowIndex
+        });
+      }
+
+      const merged =
+        [];
+
+      rawSegments.forEach(
+        segment => {
+          const previous =
+            merged[
+              merged.length - 1
+            ];
+
+          if (
+            previous &&
+            previous.image ===
+              segment.image &&
+            previous.type ===
+              segment.type &&
+            previous.overlap ===
+              segment.overlap &&
+            previous.rowIndex ===
+              segment.rowIndex &&
+            previous.end ===
+              segment.start
+          ) {
+            previous.end =
+              segment.end;
+
+            return;
+          }
+
+          merged.push({
+            ...segment
+          });
+        }
+      );
+
+      return merged;
     }
 
 
@@ -13950,6 +14286,35 @@
         calculateSystemHealthScore(
           safeTelemetryForScore
         );
+
+      const warmingUp =
+        requestCount > 0 &&
+        requestCount < 5000 &&
+        scoreResult.score < 88 &&
+        safeTelemetryForScore.successRate >= 95;
+
+      if (warmingUp) {
+        scoreResult.state =
+          "warming";
+
+        scoreResult.label =
+          "Warming Up";
+
+        scoreResult.warmingUp =
+          true;
+
+        scoreResult.reasons =
+          [
+            {
+              icon:
+                "🌅",
+
+              text:
+                `Collecting stable operating telemetry: ${requestCount} request(s) recorded so far.`
+            },
+            ...(scoreResult.reasons || [])
+          ];
+      }
 
       latestHealthScoreResult =
         scoreResult;
@@ -16439,13 +16804,13 @@
               "Mini Golf Signage Manager",
 
             version:
-              "1.1.0",
+              "1.2.0-dev",
 
             label:
-              "Version 1.1.0 Stable",
+              "Version 1.2 Development",
 
             build:
-              84,
+              85,
 
             environment:
               getApplicationEnvironment().key,
@@ -16591,7 +16956,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-84-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-85-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16993,8 +17358,8 @@
       try {
         const payload={
           application:"Mini Golf Signage Manager",
-          version:"1.1.0 Stable",
-          build:84,
+          version:"1.2 Development",
+          build:85,
           exportedAt:new Date().toISOString(),
           totalEvents:notificationHistory.length,
           events:notificationHistory
@@ -17003,7 +17368,7 @@
         const url=URL.createObjectURL(blob);
         const link=document.createElement("a");
         link.href=url;
-        link.download=`notification-history-v1.1.0-build-84-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        link.download=`notification-history-v1.2-dev-build-85-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -19364,9 +19729,16 @@
         );
 
       missionHeroHealthState.textContent =
-        safeResult.label || "Healthy";
+        safeResult.warmingUp
+          ? "Warming Up · collecting telemetry"
+          : safeResult.label || "Healthy";
 
-      if (safeResult.score >= 88) {
+      if (safeResult.warmingUp) {
+        missionHeroHealth.classList.add(
+          "mission-health-warming"
+        );
+
+      } else if (safeResult.score >= 88) {
         missionHeroHealth.classList.add(
           "mission-health-healthy"
         );
@@ -19419,7 +19791,9 @@
       healthScoreNumber.innerHTML =
         safeResult.score === null
           ? `Waiting <span>/100</span>`
-          : `${safeResult.score} <span>/100</span>`;
+          : safeResult.warmingUp
+            ? `${safeResult.score} <span>/100 · Warming Up</span>`
+            : `${safeResult.score} <span>/100</span>`;
 
       healthScoreReasons.innerHTML =
         (safeResult.reasons || [])
@@ -19616,6 +19990,11 @@
     function getRolloutStateForScreen(
       screenName
     ) {
+      const expectedToday =
+        isScreenExpectedToday(
+          screenName
+        );
+
       const scheduleState =
         screenStates.get(
           screenName
@@ -19708,6 +20087,22 @@
       }
 
       if (
+        !expectedToday
+      ) {
+        state =
+          "ready";
+
+        label =
+          "Not scheduled";
+
+        notes.length =
+          0;
+
+        notes.push(
+          "This player is not expected to run today and is excluded from compliance."
+        );
+
+      } else if (
         state !== "blocked" &&
         !versionCurrent
       ) {
@@ -20159,23 +20554,69 @@
               screenName
             );
 
+          const liveVersion =
+            player &&
+            player.playerVersion
+              ? String(
+                  player.playerVersion
+                ).trim()
+              : "";
+
+          if (liveVersion) {
+            rememberPlayerVersion(
+              screenName,
+              liveVersion,
+              player.lastSeenAt ||
+                new Date().toISOString()
+            );
+          }
+
+          const remembered =
+            !liveVersion
+              ? getRememberedPlayerVersion(
+                  screenName
+                )
+              : null;
+
           return {
             screen:
               screenName,
 
             playerVersion:
-              player &&
-              player.playerVersion
-                ? String(
-                    player.playerVersion
-                  ).trim()
-                : "",
+              liveVersion ||
+              (
+                remembered
+                  ? remembered.playerVersion
+                  : ""
+              ),
 
             lastSeenAt:
               player &&
               player.lastSeenAt
                 ? player.lastSeenAt
                 : "",
+
+            versionConfirmedAt:
+              liveVersion
+                ? (
+                    player.lastSeenAt ||
+                    new Date().toISOString()
+                  )
+                : remembered
+                  ? remembered.confirmedAt
+                  : "",
+
+            versionSource:
+              liveVersion
+                ? "live"
+                : remembered
+                  ? "remembered"
+                  : "unknown",
+
+            expectedToday:
+              isScreenExpectedToday(
+                screenName
+              ),
 
             status:
               player &&
@@ -20203,15 +20644,27 @@
           players
         );
 
-      const currentCount =
+      const expectedPlayers =
         normalizedPlayers.filter(
+          player =>
+            player.expectedToday
+        );
+
+      const excludedPlayers =
+        normalizedPlayers.filter(
+          player =>
+            !player.expectedToday
+        );
+
+      const currentCount =
+        expectedPlayers.filter(
           player =>
             player.playerVersion ===
             EXPECTED_PLAYER_VERSION
         ).length;
 
       const outdatedCount =
-        normalizedPlayers.filter(
+        expectedPlayers.filter(
           player =>
             player.playerVersion &&
             player.playerVersion !==
@@ -20219,7 +20672,7 @@
         ).length;
 
       const unknownCount =
-        normalizedPlayers.length -
+        expectedPlayers.length -
         currentCount -
         outdatedCount;
 
@@ -20227,7 +20680,12 @@
         `Expected version: <strong>${escapeHtml(EXPECTED_PLAYER_VERSION)}</strong>` +
         ` · ${currentCount} current` +
         ` · ${outdatedCount} outdated` +
-        ` · ${unknownCount} unknown`;
+        ` · ${unknownCount} unknown` +
+        (
+          excludedPlayers.length
+            ? ` · ${excludedPlayers.length} not scheduled today`
+            : ""
+        );
 
       playerVersionList.innerHTML =
         normalizedPlayers
@@ -20239,7 +20697,14 @@
               let label =
                 "Unknown";
 
-              if (
+              if (!player.expectedToday) {
+                status =
+                  "not-scheduled";
+
+                label =
+                  "Not scheduled today";
+
+              } else if (
                 player.playerVersion ===
                 EXPECTED_PLAYER_VERSION
               ) {
@@ -20259,6 +20724,16 @@
                   "Outdated";
               }
 
+              const confirmedText =
+                player.versionConfirmedAt
+                  ? `Version confirmed ${new Date(player.versionConfirmedAt).toLocaleString()}`
+                  : "Version has not been confirmed";
+
+              const sourceText =
+                player.versionSource === "remembered"
+                  ? " · using last known valid version"
+                  : "";
+
               return `
                 <div class="player-version-row ${status}">
                   <div class="player-version-top">
@@ -20272,11 +20747,11 @@
                   </div>
 
                   <div class="player-version-detail">
-                    Reported:
-                    ${escapeHtml(player.playerVersion || "No version received yet")}
-                    ${player.lastSeenAt
-                      ? ` · Last seen ${escapeHtml(new Date(player.lastSeenAt).toLocaleString())}`
-                      : " · Player has not checked in"}
+                    ${
+                      !player.expectedToday
+                        ? `Excluded from today's compliance check.${player.playerVersion ? ` Last known: ${escapeHtml(player.playerVersion)}.` : ""}`
+                        : `Reported: ${escapeHtml(player.playerVersion || "No version received yet")} · ${escapeHtml(confirmedText)}${escapeHtml(sourceText)}`
+                    }
                   </div>
                 </div>
               `;
@@ -20500,8 +20975,16 @@
           )
         );
 
-      const playersWithWrongVersion =
+      const expectedScreenNames =
         SCREEN_NAMES.filter(
+          screenName =>
+            isScreenExpectedToday(
+              screenName
+            )
+        );
+
+      const playersWithWrongVersion =
+        expectedScreenNames.filter(
           screenName => {
             const player =
               heartbeatMap.get(
@@ -20518,7 +21001,7 @@
         );
 
       const playersWithUnknownVersion =
-        SCREEN_NAMES.filter(
+        expectedScreenNames.filter(
           screenName => {
             const player =
               heartbeatMap.get(
@@ -20555,7 +21038,7 @@
             ? `Outdated player version on: ${playersWithWrongVersion.join(", ")}.`
             : playersWithUnknownVersion.length > 0
               ? `No player version has been received yet from: ${playersWithUnknownVersion.join(", ")}. Open the new heartbeat-enabled index.html on each screen once.`
-              : `Every player reports ${EXPECTED_PLAYER_VERSION}.`
+              : `Every player expected today reports ${EXPECTED_PLAYER_VERSION}.`
       });
 
       const quietHours =
@@ -20564,7 +21047,7 @@
           : false;
 
       const unavailablePlayers =
-        SCREEN_NAMES.filter(
+        expectedScreenNames.filter(
           screenName => {
             if (quietHours) {
               return false;
@@ -21018,6 +21501,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    loadPlayerVersionMemory();
     setupHomeLayoutPreferences();
     setupNotificationCenter();
     setupDashboardScrollNavigation();
