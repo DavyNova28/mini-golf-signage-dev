@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -277,6 +277,21 @@
       document.getElementById(
         "themeButtonText"
       );
+
+    const commandPaletteButton =
+      document.getElementById("commandPaletteButton");
+
+    const commandPaletteOverlay =
+      document.getElementById("commandPaletteOverlay");
+
+    const closeCommandPaletteButton =
+      document.getElementById("closeCommandPaletteButton");
+
+    const commandPaletteSearch =
+      document.getElementById("commandPaletteSearch");
+
+    const commandPaletteResults =
+      document.getElementById("commandPaletteResults");
 
     const homeTab =
       document.getElementById(
@@ -15753,6 +15768,124 @@
     }
 
 
+    const COMMAND_PALETTE_ITEMS = [
+      ["🏠","Home","Open Mission Control.","General","home"],
+      ["📅","Schedule Manager","Edit and publish screen schedules.","Operations","manager"],
+      ["📆","Daily Schedule","Review today’s calendar.","Operations","dailyCalendar"],
+      ["🎄","Holiday Calendar","Review holiday dates and rules.","Operations","calendar"],
+      ["🗓️","Holiday Overrides","Manage special holiday overrides.","Operations","holiday"],
+      ["🖼️","Image Library","Browse GitHub signage assets.","Content","images"],
+      ["❤️","System Health","Open diagnostics and telemetry.","Monitoring","systemHealth"],
+      ["📜","Audit Log","Review system changes.","Monitoring","auditLog"],
+      ["🧪","V3.1 Audit","Run compatibility checks.","Monitoring","audit"],
+      ["🛠️","Control Center","Open administration tools.","Administration","control"],
+      ["💾","Backup History","Review and restore backups.","Administration","backup"]
+    ].map(item => ({
+      icon:item[0], title:item[1], description:item[2],
+      group:item[3], workspace:item[4]
+    }));
+
+    let commandPaletteFilteredItems = [];
+    let commandPaletteActiveIndex = 0;
+
+    function openCommandPalette() {
+      if (!commandPaletteOverlay || !commandPaletteSearch) return;
+      closeWorkspaceNavigationMenus();
+      commandPaletteOverlay.hidden = false;
+      document.body.style.overflow = "hidden";
+      commandPaletteSearch.value = "";
+      commandPaletteActiveIndex = 0;
+      renderCommandPaletteResults();
+      setTimeout(() => commandPaletteSearch.focus(), 0);
+    }
+
+    function closeCommandPalette() {
+      if (!commandPaletteOverlay) return;
+      commandPaletteOverlay.hidden = true;
+      document.body.style.overflow = "";
+      if (commandPaletteButton) commandPaletteButton.focus();
+    }
+
+    function renderCommandPaletteResults() {
+      if (!commandPaletteResults || !commandPaletteSearch) return;
+      const query = commandPaletteSearch.value.trim().toLowerCase();
+      commandPaletteFilteredItems = COMMAND_PALETTE_ITEMS.filter(item =>
+        [item.title,item.description,item.group].join(" ").toLowerCase().includes(query)
+      );
+      if (commandPaletteActiveIndex >= commandPaletteFilteredItems.length) commandPaletteActiveIndex = 0;
+
+      if (!commandPaletteFilteredItems.length) {
+        commandPaletteResults.innerHTML = '<div class="command-palette-empty">No matching workspace found.</div>';
+        return;
+      }
+
+      commandPaletteResults.innerHTML = commandPaletteFilteredItems.map((item,index) => `
+        <button class="command-palette-result ${index===commandPaletteActiveIndex?"active":""}"
+          type="button" role="option" aria-selected="${index===commandPaletteActiveIndex}"
+          data-command-index="${index}">
+          <span class="command-palette-result-icon">${escapeHtml(item.icon)}</span>
+          <span>
+            <span class="command-palette-result-title">${escapeHtml(item.title)}</span>
+            <span class="command-palette-result-description">${escapeHtml(item.description)}</span>
+          </span>
+          <span class="command-palette-result-group">${escapeHtml(item.group)}</span>
+        </button>`).join("");
+
+      commandPaletteResults.querySelectorAll("[data-command-index]").forEach(button => {
+        button.addEventListener("mouseenter", () => {
+          commandPaletteActiveIndex = Number(button.dataset.commandIndex);
+          renderCommandPaletteResults();
+        });
+        button.addEventListener("click", () => activateCommandPaletteItem(Number(button.dataset.commandIndex)));
+      });
+      const active = commandPaletteResults.querySelector(".active");
+      if (active) active.scrollIntoView({block:"nearest"});
+    }
+
+    function activateCommandPaletteItem(index) {
+      const item = commandPaletteFilteredItems[index];
+      if (!item) return;
+      closeCommandPalette();
+      openWorkspace(item.workspace);
+    }
+
+    function setupCommandPalette() {
+      if (!commandPaletteButton || !commandPaletteOverlay || !commandPaletteSearch) return;
+      commandPaletteButton.addEventListener("click", openCommandPalette);
+      closeCommandPaletteButton.addEventListener("click", closeCommandPalette);
+      commandPaletteOverlay.addEventListener("click", event => {
+        if (event.target === commandPaletteOverlay) closeCommandPalette();
+      });
+      commandPaletteSearch.addEventListener("input", () => {
+        commandPaletteActiveIndex = 0;
+        renderCommandPaletteResults();
+      });
+      commandPaletteSearch.addEventListener("keydown", event => {
+        if (event.key === "ArrowDown" && commandPaletteFilteredItems.length) {
+          event.preventDefault();
+          commandPaletteActiveIndex = (commandPaletteActiveIndex + 1) % commandPaletteFilteredItems.length;
+          renderCommandPaletteResults();
+        } else if (event.key === "ArrowUp" && commandPaletteFilteredItems.length) {
+          event.preventDefault();
+          commandPaletteActiveIndex = (commandPaletteActiveIndex - 1 + commandPaletteFilteredItems.length) % commandPaletteFilteredItems.length;
+          renderCommandPaletteResults();
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          activateCommandPaletteItem(commandPaletteActiveIndex);
+        }
+      });
+      document.addEventListener("keydown", event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          commandPaletteOverlay.hidden ? openCommandPalette() : closeCommandPalette();
+        } else if (event.key === "Escape" && !commandPaletteOverlay.hidden) {
+          event.preventDefault();
+          closeCommandPalette();
+        }
+      });
+    }
+
+
     function closeWorkspaceNavigationMenus(
       exceptMenuId
     ) {
@@ -18453,6 +18586,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    setupCommandPalette();
     setupWorkspaceNavigationMenus();
     setupMissionRecentActivity();
     setupMissionConfidenceBanner();
