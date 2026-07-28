@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -16439,13 +16439,13 @@
               "Mini Golf Signage Manager",
 
             version:
-              "1.0.0",
+              "1.1.0",
 
             label:
-              "Version 1.1 Development",
+              "Version 1.1.0 Stable",
 
             build:
-              83,
+              84,
 
             environment:
               getApplicationEnvironment().key,
@@ -16591,7 +16591,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-83-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-84-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -16993,8 +16993,8 @@
       try {
         const payload={
           application:"Mini Golf Signage Manager",
-          version:"1.1 Development",
-          build:82,
+          version:"1.1.0 Stable",
+          build:84,
           exportedAt:new Date().toISOString(),
           totalEvents:notificationHistory.length,
           events:notificationHistory
@@ -17003,7 +17003,7 @@
         const url=URL.createObjectURL(blob);
         const link=document.createElement("a");
         link.href=url;
-        link.download=`notification-history-build-82-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        link.download=`notification-history-v1.1.0-build-84-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
