@@ -2,6 +2,20 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.89.1] — Professional Polish · Phase 1.1
+
+### Fixed
+
+- Mission Control Home now loads System Health telemetry and player heartbeat data automatically after opening or hard refresh.
+- Home statistics no longer require visiting the System Health workspace before they become accurate.
+- Background heartbeat refresh continues while Home and other workspaces are open.
+- Background loading no longer changes the hidden System Health refresh buttons to a visible loading state.
+
+### Improved
+
+- Readiness, rollout, Operations Intelligence, Platform Status, and Home summaries recalculate as soon as startup telemetry arrives.
+- Last-known heartbeat memory remains available if a background request temporarily fails.
+
 ## [1.2.0-dev.89] — Professional Polish · Phase 1
 
 ### Added

@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.2 Development** — Build **87**
+Version **1.2 Development** — Build **89**
 
 ## Project structure
 
@@ -90,3 +90,7 @@ Build 89 Phase 1 upgrades Mission Control Home with a richer hero summary, anima
 - Sleeping and Not scheduled operational states
 - Neutral rollout card borders with one deployment-stage accent
 - Live readiness remains a separate badge
+
+## Build 89 — Phase 1.1 Startup Data Patch
+
+Mission Control Home now initializes its operational data automatically. On page load, the dashboard retrieves System Health telemetry and player heartbeats in the background, then refreshes readiness, rollout, Platform Status, and Operations Intelligence without requiring a visit to the System Health workspace.
