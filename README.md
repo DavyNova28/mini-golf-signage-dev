@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.2 Development** — Build **85**
+Version **1.2 Development** — Build **86**
 
 ## Project structure
 
@@ -70,3 +70,11 @@ Build 85 begins the Monitoring Accuracy milestone:
 - Health warm-up presentation
 - Correct persistent/temporary timeline rendering
 - Daily Schedule Light Mode polish
+
+
+## Build 86 — State Reliability
+
+- Manual rollout stage remains separate from live readiness
+- Online → Stale → Offline heartbeat grace states
+- Last-known current image and version persistence
+- Player field confirmation timestamps

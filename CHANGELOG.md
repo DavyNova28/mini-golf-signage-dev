@@ -2,6 +2,24 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.86] — State Reliability
+
+### Fixed
+
+- Controlled Rollout Assistant now separates manual Deployment Stage from Live Readiness.
+- A screen marked Deployed remains visibly deployed when a temporary live check recommends Review.
+- Heartbeat cards no longer jump directly from Online to Offline after a short missed check-in.
+- Last-known current image and player version are preserved through incomplete heartbeat responses.
+- A failed heartbeat refresh now displays last-known player state instead of clearing the player grid.
+- Carried forward the production day rules: ArcadeSunday on Sunday, ArcadeWeek Monday–Thursday, and Arcade Friday–Saturday.
+
+### Added
+
+- Online, Stale, Offline, and Sleeping heartbeat grace states.
+- Two-minute Online window and ten-minute Offline threshold.
+- Image and version confirmation timestamps.
+- Clear last-known labels for remembered values.
+
 ## [1.2.0-dev.85] — Monitoring Accuracy
 
 ### Fixed
