@@ -2,9 +2,9 @@
   "name": "Mini Golf Signage Manager",
   "version": "1.2.0-dev",
   "label": "Version 1.2 Development",
-  "build": 86,
+  "build": 87,
   "channel": "development",
   "expectedPlayerVersion": "v3.1-heartbeat-1",
-  "milestone": "State Reliability",
+  "milestone": "Operational Awareness",
   "releaseTag": null
 }

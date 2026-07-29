@@ -1,6 +1,6 @@
 # Mini Golf Signage Manager
 
-Version **1.2 Development** — Build **86**
+Version **1.2 Development** — Build **87**
 
 ## Project structure
 
@@ -78,3 +78,11 @@ Build 85 begins the Monitoring Accuracy milestone:
 - Online → Stale → Offline heartbeat grace states
 - Last-known current image and version persistence
 - Player field confirmation timestamps
+
+
+## Build 87 — Operational Awareness
+
+- Quiet Hours no longer produce false rollout Review states
+- Sleeping and Not scheduled operational states
+- Neutral rollout card borders with one deployment-stage accent
+- Live readiness remains a separate badge

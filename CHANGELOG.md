@@ -2,6 +2,23 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.87] — Operational Awareness
+
+### Fixed
+
+- Controlled Rollout Assistant no longer requests Review during intentional Quiet Hours.
+- Players between 22:00 and 10:00 now show Sleeping instead of a false version warning.
+- Screens not scheduled for the current weekday show Not scheduled.
+- Rollout cards no longer combine deployment and readiness border colors.
+- Deployment stage is represented by one left-side accent; live readiness remains a badge.
+- Deployed screens in Sleeping or Not scheduled states are described as expected, not as warnings.
+
+### Added
+
+- Sleeping and Not scheduled counts in the rollout summary.
+- Player heartbeat status inside each rollout card.
+- Immediate nighttime heartbeat testing instructions through the player console.
+
 ## [1.2.0-dev.86] — State Reliability
 
 ### Fixed
