@@ -16448,6 +16448,27 @@
       backButton.hidden = !visible;
     }
 
+    function replaceBuild89DrawerContent(content, markup) {
+      if (!content) return;
+      content.classList.remove("is-content-ready");
+      content.classList.add("is-content-changing");
+      content.innerHTML = markup;
+      requestAnimationFrame(function() {
+        content.classList.remove("is-content-changing");
+        content.classList.add("is-content-ready");
+      });
+    }
+
+    function getBuild89DrawerFocusableElements() {
+      const drawer = document.getElementById("playerDetailsDrawer");
+      if (!drawer || drawer.getAttribute("aria-hidden") === "true") return [];
+      return Array.from(
+        drawer.querySelectorAll(
+          'button:not([disabled]):not([hidden]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(element => element.offsetParent !== null);
+    }
+
     function scheduleBuild89CoreCheckRefresh() {
       window.clearTimeout(build89CoreCheckRefreshTimer);
       build89CoreCheckRefreshTimer = window.setTimeout(function() {
@@ -16492,7 +16513,7 @@
       build89DrawerReturnToList = true;
       setBuild89DrawerBackButton(true);
 
-      content.innerHTML = `
+      replaceBuild89DrawerContent(content, `
         <div class="player-details-status">
           <div class="player-details-status-main">
             <span class="player-details-status-dot ${escapeHtml(player.status)}" aria-hidden="true"></span>
@@ -16550,7 +16571,7 @@
               : `<div class="player-details-empty">New heartbeat and image changes will appear here while this dashboard remains open.</div>`
           }
         </div>
-      `;
+      `);
 
       build89Phase2LastFocusedElement = document.activeElement;
       backdrop.hidden = false;
@@ -16584,7 +16605,7 @@
       build89DrawerReturnToList = false;
       setBuild89DrawerBackButton(false);
 
-      content.innerHTML = `
+      replaceBuild89DrawerContent(content, `
         <div class="player-details-status">
           <div>
             <strong>${percentage}% compliant</strong>
@@ -16611,7 +16632,7 @@
             `;
           }).join("")}
         </div>
-      `;
+      `);
 
       build89Phase2LastFocusedElement = document.activeElement;
       backdrop.hidden = false;
@@ -16700,7 +16721,28 @@
       if (backdrop) backdrop.addEventListener("click", closeBuild89PlayerDrawer);
 
       document.addEventListener("keydown", function(event) {
-        if (event.key === "Escape") closeBuild89PlayerDrawer();
+        const drawer = document.getElementById("playerDetailsDrawer");
+        const isOpen = drawer && drawer.getAttribute("aria-hidden") === "false";
+        if (!isOpen) return;
+
+        if (event.key === "Escape") {
+          closeBuild89PlayerDrawer();
+          return;
+        }
+
+        if (event.key !== "Tab") return;
+        const focusable = getBuild89DrawerFocusableElements();
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       });
     }
 
