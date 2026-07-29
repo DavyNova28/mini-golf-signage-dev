@@ -16447,6 +16447,88 @@
     }
 
 
+    const build89AnimatedValues = new WeakMap();
+
+    function animateDashboardNumber(element, target, options = {}) {
+      if (!element || !Number.isFinite(Number(target))) return;
+
+      const numericTarget = Number(target);
+      const suffix = options.suffix || "";
+      const prefix = options.prefix || "";
+      const duration = Number.isFinite(options.duration) ? options.duration : 650;
+      const decimals = Number.isFinite(options.decimals) ? options.decimals : 0;
+      const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const previous = build89AnimatedValues.has(element)
+        ? build89AnimatedValues.get(element)
+        : 0;
+
+      build89AnimatedValues.set(element, numericTarget);
+
+      if (reducedMotion || previous === numericTarget || duration <= 0) {
+        element.textContent = `${prefix}${numericTarget.toFixed(decimals)}${suffix}`;
+        return;
+      }
+
+      const startedAt = performance.now();
+      const difference = numericTarget - previous;
+      element.classList.add("counter-animating");
+
+      function frame(now) {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = previous + difference * eased;
+        element.textContent = `${prefix}${value.toFixed(decimals)}${suffix}`;
+
+        if (progress < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          element.classList.remove("counter-animating");
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    function getBuild89Greeting(hour = new Date().getHours()) {
+      if (typeof isPlayerQuietHours === "function" && isPlayerQuietHours()) {
+        return {
+          icon: "🌙",
+          title: "Quiet Hours",
+          greeting: "Quiet Hours are active. Players will resume polling automatically at 10:00."
+        };
+      }
+
+      if (hour < 12) {
+        return { icon: "☀️", title: "Good morning", greeting: "Good morning. Here is today’s signage operations summary." };
+      }
+
+      if (hour < 18) {
+        return { icon: "🌤️", title: "Good afternoon", greeting: "Good afternoon. Here is the latest signage operations summary." };
+      }
+
+      return { icon: "🌆", title: "Good evening", greeting: "Good evening. Here is the latest signage operations summary." };
+    }
+
+    function renderBuild89HeroSummary() {
+      const greetingElement = document.getElementById("missionHeroGreeting");
+      const playersElement = document.getElementById("missionHeroPlayers");
+      const schedulesElement = document.getElementById("missionHeroSchedules");
+      const imagesElement = document.getElementById("missionHeroImages");
+      const deploymentElement = document.getElementById("missionHeroDeployment");
+      const greeting = getBuild89Greeting();
+
+      if (greetingElement) greetingElement.textContent = `${greeting.icon} ${greeting.greeting}`;
+
+      const loadedSchedules = SCREEN_NAMES.filter(name => screenStates.has(name)).length;
+      const imageCount = Array.isArray(imageLibraryIndex) ? imageLibraryIndex.length : 0;
+      const deployedCount = SCREEN_NAMES.filter(name => getRolloutStage(name) === "deployed").length;
+
+      animateDashboardNumber(playersElement, SCREEN_NAMES.length);
+      animateDashboardNumber(schedulesElement, loadedSchedules);
+      animateDashboardNumber(imagesElement, imageCount);
+      animateDashboardNumber(deploymentElement, deployedCount, { suffix: `/${SCREEN_NAMES.length}` });
+    }
+
     function renderOperationsIntelligence() {
       const panel = document.getElementById("operationsIntelligence");
       if (!panel) return;
@@ -16487,26 +16569,37 @@
       ).length;
       const deploymentPercent = Math.round((deployedCount / SCREEN_NAMES.length) * 100);
 
+      const greeting = getBuild89Greeting();
       let state = "healthy";
       let badge = "Healthy";
-      let summary = "All scheduled screens are healthy.";
+      let icon = "✅";
+      let title = greeting.title;
+      let summary = "Everything is operating normally. All scheduled players are healthy.";
 
       if (quietHours) {
         state = "sleeping";
         badge = "Quiet hours";
-        summary = "Players are inside Quiet Hours. Last-known image and version data remain available.";
+        icon = "🌙";
+        title = "Quiet Hours";
+        summary = "Players are sleeping. Monitoring resumes automatically at 10:00, while last-known data remains available.";
       } else if (attentionPlayers.some(player => player.status === "offline")) {
         state = "critical";
         badge = "Attention";
+        icon = "🔴";
+        title = "Attention required";
         const names = attentionPlayers.filter(player => player.status === "offline").map(player => player.screen);
         summary = `${names.length} scheduled player${names.length === 1 ? "" : "s"} offline: ${names.join(", ")}.`;
       } else if (attentionPlayers.length) {
         state = "warning";
         badge = "Review";
+        icon = "🟠";
+        title = "Review recommended";
         summary = `${attentionPlayers.length} scheduled player${attentionPlayers.length === 1 ? "" : "s"} ${attentionPlayers.length === 1 ? "is" : "are"} stale.`;
       } else if (expectedPlayers.length && onlineExpected.length < expectedPlayers.length) {
         state = "warning";
         badge = "Warming up";
+        icon = "⏳";
+        title = "Players warming up";
         summary = "Scheduled players are still completing their first check-in.";
       }
 
@@ -16514,6 +16607,8 @@
       document.getElementById("operationsIntelligenceBadge").className =
         `operations-intelligence-badge ${state}`;
       document.getElementById("operationsIntelligenceBadge").textContent = badge;
+      document.getElementById("operationsIntelligenceIcon").textContent = icon;
+      document.getElementById("operationsIntelligenceTitle").textContent = title;
       document.getElementById("operationsIntelligenceSummary").textContent = summary;
 
       document.getElementById("operationsScheduledPlayers").textContent = quietHours
@@ -16523,8 +16618,12 @@
         ? `${expectedToday.length} expected today · polling paused`
         : `${onlineExpected.length} online now · ${attentionPlayers.length} need attention`;
 
-      document.getElementById("operationsVersionCompliance").textContent =
-        versionEligible.length ? `${versionPercent}%` : "—";
+      const versionComplianceElement = document.getElementById("operationsVersionCompliance");
+      if (versionEligible.length) {
+        animateDashboardNumber(versionComplianceElement, versionPercent, { suffix: "%" });
+      } else {
+        versionComplianceElement.textContent = "—";
+      }
       document.getElementById("operationsVersionComplianceDetail").textContent =
         `${currentVersionPlayers.length} of ${versionEligible.length} report ${EXPECTED_PLAYER_VERSION}`;
 
@@ -16534,7 +16633,11 @@
         ? `Latest check-in at ${new Date(newestHeartbeat).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"})}`
         : "No check-in measured yet";
 
-      document.getElementById("operationsDeploymentProgress").textContent = `${deploymentPercent}%`;
+      animateDashboardNumber(
+        document.getElementById("operationsDeploymentProgress"),
+        deploymentPercent,
+        { suffix: "%" }
+      );
       document.getElementById("operationsDeploymentProgressDetail").textContent =
         `${deployedCount} of ${SCREEN_NAMES.length} screens marked Deployed`;
       document.getElementById("operationsDeploymentBar").style.width = `${deploymentPercent}%`;
@@ -16556,6 +16659,7 @@
       }
       driftBox.hidden = driftParts.length === 0;
       driftBox.textContent = driftParts.join(" · ");
+      renderBuild89HeroSummary();
     }
 
 
@@ -20269,6 +20373,7 @@
 
         missionHeroHealthScore.textContent =
           "—";
+        build89AnimatedValues.delete(missionHeroHealthScore);
 
         missionHeroHealthState.textContent =
           "Waiting for telemetry";
@@ -20276,10 +20381,11 @@
         return;
       }
 
-      missionHeroHealthScore.textContent =
-        String(
-          safeResult.score
-        );
+      animateDashboardNumber(
+        missionHeroHealthScore,
+        safeResult.score,
+        { duration: 800 }
+      );
 
       missionHeroHealthState.textContent =
         safeResult.warmingUp
