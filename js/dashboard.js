@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -51,34 +51,472 @@
     const PLAYER_VERSION_MEMORY_MAX_AGE_MS =
       24 * 60 * 60 * 1000;
 
+    const PLAYER_HEARTBEAT_MEMORY_KEY =
+      "miniGolfPlayerHeartbeatMemoryV1";
+
+    const PLAYER_HEARTBEAT_MEMORY_MAX_AGE_MS =
+      24 * 60 * 60 * 1000;
+
+    const PLAYER_HEARTBEAT_STALE_AFTER_SECONDS =
+      2 * 60;
+
+    const PLAYER_HEARTBEAT_OFFLINE_AFTER_SECONDS =
+      10 * 60;
+
     let playerVersionMemory =
       {};
 
-   function isScreenExpectedToday(
-  screenName,
-  date = new Date()
-) {
-  const day =
-    date.getDay();
+    let playerHeartbeatMemory =
+      {};
 
-  // Sunday
-  if (screenName === "ArcadeSunday") {
-    return day === 0;
-  }
+    function isScreenExpectedToday(
+      screenName,
+      date = new Date()
+    ) {
+      const day =
+        date.getDay();
 
-  // Monday through Thursday
-  if (screenName === "ArcadeWeek") {
-    return day >= 1 && day <= 4;
-  }
+      if (screenName === "ArcadeSunday") {
+        return day === 0;
+      }
 
-  // Friday and Saturday
-  if (screenName === "Arcade") {
-    return day === 5 || day === 6;
-  }
+      if (screenName === "ArcadeWeek") {
+        return day >= 1 && day <= 4;
+      }
 
-  // All other screens are expected every day
-  return true;
-}
+      if (screenName === "Arcade") {
+        return day === 5 || day === 6;
+      }
+
+      return true;
+    }
+
+    function loadPlayerHeartbeatMemory() {
+      try {
+        const raw =
+          localStorage.getItem(
+            PLAYER_HEARTBEAT_MEMORY_KEY
+          );
+
+        if (!raw) {
+          return;
+        }
+
+        const parsed =
+          JSON.parse(
+            raw
+          );
+
+        if (
+          parsed &&
+          typeof parsed === "object"
+        ) {
+          playerHeartbeatMemory =
+            parsed;
+        }
+      } catch (error) {
+        console.warn(
+          "Player heartbeat memory could not be loaded.",
+          error
+        );
+      }
+    }
+
+
+    function savePlayerHeartbeatMemory() {
+      try {
+        localStorage.setItem(
+          PLAYER_HEARTBEAT_MEMORY_KEY,
+          JSON.stringify(
+            playerHeartbeatMemory
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Player heartbeat memory could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function rememberPlayerHeartbeatFields(
+      player
+    ) {
+      if (
+        !player ||
+        !player.screen
+      ) {
+        return;
+      }
+
+      const existing =
+        playerHeartbeatMemory[
+          player.screen
+        ] || {};
+
+      const lastSeenDate =
+        player.lastSeenAt
+          ? new Date(
+              player.lastSeenAt
+            )
+          : new Date();
+
+      const confirmedAt =
+        Number.isFinite(
+          lastSeenDate.getTime()
+        )
+          ? lastSeenDate.toISOString()
+          : new Date().toISOString();
+
+      const next =
+        {
+          ...existing,
+
+          lastSeenAt:
+            player.lastSeenAt ||
+            existing.lastSeenAt ||
+            "",
+
+          confirmedAt:
+            confirmedAt
+        };
+
+      const cleanImage =
+        String(
+          player.currentImage || ""
+        ).trim();
+
+      const cleanVersion =
+        String(
+          player.playerVersion || ""
+        ).trim();
+
+      if (cleanImage) {
+        next.currentImage =
+          cleanImage;
+
+        next.imageConfirmedAt =
+          confirmedAt;
+      }
+
+      if (cleanVersion) {
+        next.playerVersion =
+          cleanVersion;
+
+        next.versionConfirmedAt =
+          confirmedAt;
+      }
+
+      playerHeartbeatMemory[
+        player.screen
+      ] =
+        next;
+
+      savePlayerHeartbeatMemory();
+    }
+
+
+    function getRememberedHeartbeatFields(
+      screenName
+    ) {
+      const remembered =
+        playerHeartbeatMemory[
+          screenName
+        ];
+
+      if (
+        !remembered ||
+        !remembered.confirmedAt
+      ) {
+        return null;
+      }
+
+      const confirmedAt =
+        new Date(
+          remembered.confirmedAt
+        );
+
+      if (
+        !Number.isFinite(
+          confirmedAt.getTime()
+        ) ||
+        Date.now() -
+          confirmedAt.getTime() >
+          PLAYER_HEARTBEAT_MEMORY_MAX_AGE_MS
+      ) {
+        delete playerHeartbeatMemory[
+          screenName
+        ];
+
+        savePlayerHeartbeatMemory();
+        return null;
+      }
+
+      return remembered;
+    }
+
+
+    function calculateHeartbeatAgeSeconds(
+      player,
+      remembered
+    ) {
+      const suppliedAge =
+        Number(
+          player &&
+          player.ageSeconds
+        );
+
+      if (
+        Number.isFinite(
+          suppliedAge
+        ) &&
+        suppliedAge >= 0
+      ) {
+        return suppliedAge;
+      }
+
+      const lastSeenValue =
+        (
+          player &&
+          player.lastSeenAt
+        ) ||
+        (
+          remembered &&
+          remembered.lastSeenAt
+        );
+
+      if (!lastSeenValue) {
+        return null;
+      }
+
+      const lastSeen =
+        new Date(
+          lastSeenValue
+        );
+
+      if (
+        !Number.isFinite(
+          lastSeen.getTime()
+        )
+      ) {
+        return null;
+      }
+
+      return Math.max(
+        0,
+        Math.floor(
+          (
+            Date.now() -
+            lastSeen.getTime()
+          ) /
+          1000
+        )
+      );
+    }
+
+
+    function classifyPlayerHeartbeatStatus(
+      ageSeconds,
+      quietHours
+    ) {
+      if (
+        quietHours &&
+        (
+          ageSeconds === null ||
+          ageSeconds >
+            PLAYER_HEARTBEAT_STALE_AFTER_SECONDS
+        )
+      ) {
+        return "sleeping";
+      }
+
+      if (
+        ageSeconds === null
+      ) {
+        return "offline";
+      }
+
+      if (
+        ageSeconds <=
+        PLAYER_HEARTBEAT_STALE_AFTER_SECONDS
+      ) {
+        return "online";
+      }
+
+      if (
+        ageSeconds <=
+        PLAYER_HEARTBEAT_OFFLINE_AFTER_SECONDS
+      ) {
+        return "stale";
+      }
+
+      return "offline";
+    }
+
+
+    function normalizeHeartbeatPlayers(
+      players
+    ) {
+      const safePlayers =
+        Array.isArray(players)
+          ? players
+          : [];
+
+      const playerMap =
+        new Map(
+          safePlayers.map(
+            player => [
+              player.screen,
+              player
+            ]
+          )
+        );
+
+      const quietHours =
+        isPlayerQuietHours();
+
+      return SCREEN_NAMES.map(
+        screenName => {
+          const livePlayer =
+            playerMap.get(
+              screenName
+            ) || null;
+
+          if (livePlayer) {
+            rememberPlayerHeartbeatFields(
+              livePlayer
+            );
+          }
+
+          const remembered =
+            getRememberedHeartbeatFields(
+              screenName
+            );
+
+          const ageSeconds =
+            calculateHeartbeatAgeSeconds(
+              livePlayer,
+              remembered
+            );
+
+          const currentImage =
+            String(
+              (
+                livePlayer &&
+                livePlayer.currentImage
+              ) ||
+              (
+                remembered &&
+                remembered.currentImage
+              ) ||
+              ""
+            ).trim();
+
+          const playerVersion =
+            String(
+              (
+                livePlayer &&
+                livePlayer.playerVersion
+              ) ||
+              (
+                remembered &&
+                remembered.playerVersion
+              ) ||
+              ""
+            ).trim();
+
+          const imageConfirmedAt =
+            (
+              livePlayer &&
+              livePlayer.currentImage &&
+              livePlayer.lastSeenAt
+            ) ||
+            (
+              remembered &&
+              remembered.imageConfirmedAt
+            ) ||
+            "";
+
+          const versionConfirmedAt =
+            (
+              livePlayer &&
+              livePlayer.playerVersion &&
+              livePlayer.lastSeenAt
+            ) ||
+            (
+              remembered &&
+              remembered.versionConfirmedAt
+            ) ||
+            "";
+
+          return {
+            screen:
+              screenName,
+
+            status:
+              classifyPlayerHeartbeatStatus(
+                ageSeconds,
+                quietHours
+              ),
+
+            reportedStatus:
+              livePlayer &&
+              livePlayer.status
+                ? livePlayer.status
+                : "",
+
+            lastSeenAt:
+              (
+                livePlayer &&
+                livePlayer.lastSeenAt
+              ) ||
+              (
+                remembered &&
+                remembered.lastSeenAt
+              ) ||
+              "",
+
+            ageSeconds:
+              ageSeconds,
+
+            currentImage:
+              currentImage,
+
+            playerVersion:
+              playerVersion,
+
+            imageConfirmedAt:
+              imageConfirmedAt,
+
+            versionConfirmedAt:
+              versionConfirmedAt,
+
+            imageSource:
+              livePlayer &&
+              livePlayer.currentImage
+                ? "live"
+                : currentImage
+                  ? "remembered"
+                  : "unknown",
+
+            versionSource:
+              livePlayer &&
+              livePlayer.playerVersion
+                ? "live"
+                : playerVersion
+                  ? "remembered"
+                  : "unknown",
+
+            expectedToday:
+              isScreenExpectedToday(
+                screenName
+              )
+          };
+        }
+      );
+    }
+
 
     function loadPlayerVersionMemory() {
       try {
@@ -15737,12 +16175,17 @@
         );
 
       } catch (error) {
-        playerHeartbeatSummary.textContent =
-          error.message ||
-          "Could not load player heartbeat data.";
+        console.warn(
+          "Live heartbeat request failed; using last-known player state.",
+          error
+        );
 
-        playerHeartbeatGrid.innerHTML =
-          "";
+        renderPlayerHeartbeats(
+          []
+        );
+
+        playerHeartbeatMeta.textContent =
+          "Live heartbeat data could not be refreshed. Last-known player state is being shown.";
 
       } finally {
         refreshPlayerHeartbeatsButton.disabled =
@@ -15840,65 +16283,16 @@
     }
 
 
-    function renderPlayerHeartbeats(players) {
-      latestPlayerHeartbeats =
-        Array.isArray(players)
-          ? players
-          : [];
-
-      const playerMap =
-        new Map(
-          players.map(
-            item => [
-              item.screen,
-              item
-            ]
-          )
-        );
-
-      const quietHours =
-        isPlayerQuietHours();
-
+    function renderPlayerHeartbeats(
+      players
+    ) {
       const normalized =
-        SCREEN_NAMES.map(
-          screenName => {
-            const source =
-              playerMap.get(
-                screenName
-              ) || {
-                screen:
-                  screenName,
-
-                status:
-                  "offline",
-
-                lastSeenAt:
-                  "",
-
-                ageSeconds:
-                  null,
-
-                currentImage:
-                  "",
-
-                playerVersion:
-                  ""
-              };
-
-            if (
-              quietHours &&
-              source.status !== "online"
-            ) {
-              return {
-                ...source,
-                status:
-                  "sleeping"
-              };
-            }
-
-            return source;
-          }
+        normalizeHeartbeatPlayers(
+          players
         );
+
+      latestPlayerHeartbeats =
+        normalized;
 
       try {
         renderPlayerVersionCompliance(
@@ -15930,10 +16324,10 @@
         ).length;
 
       const offlineCount =
-        normalized.length -
-        onlineCount -
-        staleCount -
-        sleepingCount;
+        normalized.filter(
+          item =>
+            item.status === "offline"
+        ).length;
 
       playerHeartbeatSummary.textContent =
         `${onlineCount} online · ` +
@@ -15942,75 +16336,112 @@
         `${offlineCount} offline`;
 
       playerHeartbeatMeta.textContent =
-        quietHours
-          ? "Quiet hours are active. Inactive players are shown as Sleeping instead of Offline."
-          : "Active hours are in effect. Players should check in at least once every 90 seconds.";
+        isPlayerQuietHours()
+          ? "Quiet hours are active. Missing check-ins are shown as Sleeping. Last-known image and version values remain available."
+          : "Online: confirmed within 2 minutes · Stale: 2–10 minutes · Offline: more than 10 minutes.";
 
       playerHeartbeatGrid.innerHTML =
-        normalized.map(
-          item => {
-            const allowedStatuses = [
-              "online",
-              "stale",
-              "sleeping"
-            ];
+        normalized
+          .map(
+            item => {
+              const lastSeen =
+                item.lastSeenAt
+                  ? new Date(
+                      item.lastSeenAt
+                    ).toLocaleString()
+                  : "Never seen";
 
-            const status =
-              allowedStatuses.includes(
-                item.status
-              )
-                ? item.status
-                : "offline";
+              const ageText =
+                formatHeartbeatAge(
+                  item.ageSeconds
+                );
 
-            const lastSeen =
-              item.lastSeenAt
-                ? new Date(
-                    item.lastSeenAt
-                  ).toLocaleString()
-                : "Never seen";
+              const imageConfirmed =
+                item.imageConfirmedAt
+                  ? new Date(
+                      item.imageConfirmedAt
+                    ).toLocaleString()
+                  : "";
 
-            const ageText =
-              formatHeartbeatAge(
-                item.ageSeconds
-              );
+              const versionConfirmed =
+                item.versionConfirmedAt
+                  ? new Date(
+                      item.versionConfirmedAt
+                    ).toLocaleString()
+                  : "";
 
-            return `
-              <article class="player-heartbeat-card ${status}">
-                <div class="player-heartbeat-header">
-                  <div class="player-heartbeat-name">
-                    ${escapeHtml(item.screen)}
+              const imageSourceText =
+                item.imageSource === "remembered"
+                  ? " · last known"
+                  : "";
+
+              const versionSourceText =
+                item.versionSource === "remembered"
+                  ? " · last known"
+                  : "";
+
+              return `
+                <article class="player-heartbeat-card ${escapeHtml(item.status)}">
+                  <div class="player-heartbeat-header">
+                    <div class="player-heartbeat-name">
+                      ${escapeHtml(item.screen)}
+                    </div>
+
+                    <div class="player-heartbeat-status ${escapeHtml(item.status)}">
+                      ${escapeHtml(item.status)}
+                    </div>
                   </div>
 
-                  <div class="player-heartbeat-status ${status}">
-                    ${escapeHtml(status)}
-                  </div>
-                </div>
+                  <div class="player-heartbeat-details">
+                    <div>
+                      Last heartbeat:
+                      ${escapeHtml(lastSeen)}
+                    </div>
 
-                <div class="player-heartbeat-details">
-                  <div>
-                    Last seen:
-                    ${escapeHtml(lastSeen)}
-                  </div>
+                    <div>
+                      Heartbeat age:
+                      ${escapeHtml(ageText)}
+                    </div>
 
-                  <div>
-                    Age:
-                    ${escapeHtml(ageText)}
-                  </div>
+                    <div>
+                      Current image:
+                      ${escapeHtml(item.currentImage || "Unknown")}
+                      ${escapeHtml(imageSourceText)}
+                    </div>
 
-                  <div>
-                    Current image:
-                    ${escapeHtml(item.currentImage || "Unknown")}
-                  </div>
+                    ${
+                      imageConfirmed
+                        ? `
+                          <div class="player-heartbeat-confirmation">
+                            Image confirmed:
+                            ${escapeHtml(imageConfirmed)}
+                          </div>
+                        `
+                        : ""
+                    }
 
-                  <div>
-                    Player version:
-                    ${escapeHtml(item.playerVersion || "Unknown")}
+                    <div>
+                      Player version:
+                      ${escapeHtml(item.playerVersion || "Unknown")}
+                      ${escapeHtml(versionSourceText)}
+                    </div>
+
+                    ${
+                      versionConfirmed
+                        ? `
+                          <div class="player-heartbeat-confirmation">
+                            Version confirmed:
+                            ${escapeHtml(versionConfirmed)}
+                          </div>
+                        `
+                        : ""
+                    }
                   </div>
-                </div>
-              </article>
-            `;
-          }
-        ).join("");
+                </article>
+              `;
+            }
+          )
+          .join("");
     }
 
 
@@ -16818,7 +17249,7 @@
               "Version 1.2 Development",
 
             build:
-              85,
+              86,
 
             environment:
               getApplicationEnvironment().key,
@@ -16964,7 +17395,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-85-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-86-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -17367,7 +17798,7 @@
         const payload={
           application:"Mini Golf Signage Manager",
           version:"1.2 Development",
-          build:85,
+          build:86,
           exportedAt:new Date().toISOString(),
           totalEvents:notificationHistory.length,
           events:notificationHistory
@@ -17376,7 +17807,7 @@
         const url=URL.createObjectURL(blob);
         const link=document.createElement("a");
         link.href=url;
-        link.download=`notification-history-v1.2-dev-build-85-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        link.download=`notification-history-v1.2-dev-build-86-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -19923,7 +20354,7 @@
       renderRolloutAssistant();
 
       showRolloutMessage(
-        `${screenName} is now marked ${stage === "not-started" ? "Not started" : stage}.`,
+        `${screenName} deployment stage is now ${stage === "not-started" ? "Not started" : stage}. Live readiness is tracked separately.`,
         "success"
       );
     }
@@ -20010,6 +20441,13 @@
 
       const heartbeat =
         latestPlayerHeartbeats.find(
+          player =>
+            player.screen ===
+            screenName
+        ) ||
+        normalizeHeartbeatPlayers(
+          []
+        ).find(
           player =>
             player.screen ===
             screenName
@@ -20141,6 +20579,17 @@
         label:
           label,
 
+        readinessState:
+          state,
+
+        readinessLabel:
+          label,
+
+        deploymentStage:
+          getRolloutStage(
+            screenName
+          ),
+
         notes:
           notes,
 
@@ -20208,10 +20657,10 @@
         ).length;
 
       rolloutAssistantSummary.textContent =
-        `${readyCount} ready · ` +
+        `Live readiness: ${readyCount} ready · ` +
         `${reviewCount} review · ` +
         `${blockedCount} blocked · ` +
-        `${testingCount} testing · ` +
+        `Deployment: ${testingCount} testing · ` +
         `${deployedCount} deployed`;
 
       rolloutAssistantList.innerHTML =
@@ -20241,15 +20690,29 @@
                   : "Not reported";
 
               return `
-                <article class="rollout-card ${item.state}">
+                <article class="rollout-card ${item.state} rollout-stage-card-${getRolloutStage(item.screenName)}">
                   <div class="rollout-card-header">
                     <div class="rollout-screen-name">
                       ${escapeHtml(item.screenName)}
                     </div>
 
-                    <div class="rollout-state ${item.state}">
-                      ${escapeHtml(item.label)}
+                    <div class="rollout-stage rollout-stage-${getRolloutStage(item.screenName)}">
+                      ${
+                        getRolloutStage(item.screenName) === "not-started"
+                          ? "Not started"
+                          : getRolloutStage(item.screenName) === "testing"
+                            ? "Testing"
+                            : "Deployed"
+                      }
                     </div>
+                  </div>
+
+                  <div class="rollout-live-readiness">
+                    <span>Live readiness</span>
+
+                    <span class="rollout-state ${item.state}">
+                      ${escapeHtml(item.label)}
+                    </span>
                   </div>
 
                   <div class="rollout-url">
@@ -20271,12 +20734,14 @@
                   </div>
 
                   <div class="rollout-progress-summary">
-                    Deployment stage:
-                    <span class="rollout-stage rollout-stage-${getRolloutStage(item.screenName)}">
-                      ${getRolloutStage(item.screenName) === "not-started"
-                        ? "Not started"
-                        : escapeHtml(getRolloutStage(item.screenName))}
-                    </span>
+                    ${
+                      getRolloutStage(item.screenName) === "deployed" &&
+                      item.state !== "ready"
+                        ? `Deployment remains confirmed. Live checks currently recommend ${escapeHtml(item.label.toLowerCase())}.`
+                        : getRolloutStage(item.screenName) === "deployed"
+                          ? "Deployment is confirmed and live checks are ready."
+                          : "Choose the manual deployment stage below."
+                    }
                   </div>
 
                   <div class="rollout-actions">
@@ -21509,6 +21974,7 @@
     setupSystemHealth();
     initializeDraftRecovery();
     initializeScheduleTemplates();
+    loadPlayerHeartbeatMemory();
     loadPlayerVersionMemory();
     setupHomeLayoutPreferences();
     setupNotificationCenter();
