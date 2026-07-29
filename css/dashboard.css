@@ -8216,3 +8216,72 @@ html[data-theme="light"] .player-heartbeat-status.stale {
 html[data-theme="light"] .rollout-live-readiness {
   background: #f6f8fb;
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.2 DEVELOPMENT — BUILD 87
+ * OPERATIONAL AWARENESS
+ * =========================================================
+ */
+
+/*
+ * The card itself no longer changes border color according to
+ * Live Readiness. The left deployment accent is the only card
+ * outline indicator, preventing overlapping green/brown states.
+ */
+.rollout-card,
+.rollout-card.ready,
+.rollout-card.review,
+.rollout-card.blocked,
+.rollout-card.sleeping,
+.rollout-card.not-scheduled {
+  border-color: var(--border);
+}
+
+.rollout-stage-card-deployed,
+.rollout-stage-card-testing,
+.rollout-stage-card-not-started {
+  border-left-width: 4px;
+  box-shadow: none;
+}
+
+.rollout-stage-card-deployed {
+  border-left-color: rgba(54, 201, 135, 0.86);
+}
+
+.rollout-stage-card-testing {
+  border-left-color: rgba(93, 170, 255, 0.82);
+}
+
+.rollout-stage-card-not-started {
+  border-left-color: rgba(135, 148, 171, 0.68);
+}
+
+.rollout-state.sleeping {
+  color: #dfe8f5;
+  background: rgba(75, 94, 122, 0.76);
+}
+
+.rollout-state.not-scheduled {
+  color: #d9e1ec;
+  background: rgba(88, 101, 121, 0.64);
+}
+
+html[data-theme="light"] .rollout-state.sleeping {
+  color: #30445f;
+  background: #e2eaf4;
+}
+
+html[data-theme="light"] .rollout-state.not-scheduled {
+  color: #465568;
+  background: #e8edf3;
+}
+
+.rollout-live-readiness .rollout-state {
+  flex: 0 0 auto;
+}
+
+.rollout-progress-summary {
+  line-height: 1.45;
+}
