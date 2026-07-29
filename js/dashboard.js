@@ -16294,6 +16294,8 @@
       latestPlayerHeartbeats =
         normalized;
 
+      renderOperationsIntelligence();
+
       try {
         renderPlayerVersionCompliance(
           normalized
@@ -16442,6 +16444,118 @@
             }
           )
           .join("");
+    }
+
+
+    function renderOperationsIntelligence() {
+      const panel = document.getElementById("operationsIntelligence");
+      if (!panel) return;
+
+      const players = Array.isArray(latestPlayerHeartbeats)
+        ? latestPlayerHeartbeats
+        : [];
+      const quietHours = isPlayerQuietHours();
+      const expectedToday = SCREEN_NAMES.filter(name => isScreenExpectedToday(name));
+      const expectedNow = quietHours ? [] : expectedToday;
+      const expectedPlayers = players.filter(player => expectedNow.includes(player.screen));
+      const onlineExpected = expectedPlayers.filter(player => player.status === "online");
+      const attentionPlayers = expectedPlayers.filter(player =>
+        player.status === "stale" || player.status === "offline"
+      );
+
+      const versionEligibleNames = quietHours ? expectedToday : expectedNow;
+      const versionEligible = players.filter(player => versionEligibleNames.includes(player.screen));
+      const currentVersionPlayers = versionEligible.filter(player =>
+        player.playerVersion === EXPECTED_PLAYER_VERSION
+      );
+      const versionPercent = versionEligible.length
+        ? Math.round((currentVersionPlayers.length / versionEligible.length) * 100)
+        : 0;
+
+      const validHeartbeatTimes = players
+        .map(player => player.lastSeenAt ? new Date(player.lastSeenAt).getTime() : NaN)
+        .filter(Number.isFinite);
+      const newestHeartbeat = validHeartbeatTimes.length
+        ? Math.max(...validHeartbeatTimes)
+        : null;
+      const newestAgeSeconds = newestHeartbeat
+        ? Math.max(0, Math.floor((Date.now() - newestHeartbeat) / 1000))
+        : null;
+
+      const deployedCount = SCREEN_NAMES.filter(name =>
+        getRolloutStage(name) === "deployed"
+      ).length;
+      const deploymentPercent = Math.round((deployedCount / SCREEN_NAMES.length) * 100);
+
+      let state = "healthy";
+      let badge = "Healthy";
+      let summary = "All scheduled screens are healthy.";
+
+      if (quietHours) {
+        state = "sleeping";
+        badge = "Quiet hours";
+        summary = "Players are inside Quiet Hours. Last-known image and version data remain available.";
+      } else if (attentionPlayers.some(player => player.status === "offline")) {
+        state = "critical";
+        badge = "Attention";
+        const names = attentionPlayers.filter(player => player.status === "offline").map(player => player.screen);
+        summary = `${names.length} scheduled player${names.length === 1 ? "" : "s"} offline: ${names.join(", ")}.`;
+      } else if (attentionPlayers.length) {
+        state = "warning";
+        badge = "Review";
+        summary = `${attentionPlayers.length} scheduled player${attentionPlayers.length === 1 ? "" : "s"} ${attentionPlayers.length === 1 ? "is" : "are"} stale.`;
+      } else if (expectedPlayers.length && onlineExpected.length < expectedPlayers.length) {
+        state = "warning";
+        badge = "Warming up";
+        summary = "Scheduled players are still completing their first check-in.";
+      }
+
+      panel.className = `operations-intelligence operations-intelligence-${state}`;
+      document.getElementById("operationsIntelligenceBadge").className =
+        `operations-intelligence-badge ${state}`;
+      document.getElementById("operationsIntelligenceBadge").textContent = badge;
+      document.getElementById("operationsIntelligenceSummary").textContent = summary;
+
+      document.getElementById("operationsScheduledPlayers").textContent = quietHours
+        ? `${expectedToday.length} sleeping`
+        : `${onlineExpected.length} / ${expectedNow.length}`;
+      document.getElementById("operationsScheduledPlayersDetail").textContent = quietHours
+        ? `${expectedToday.length} expected today · polling paused`
+        : `${onlineExpected.length} online now · ${attentionPlayers.length} need attention`;
+
+      document.getElementById("operationsVersionCompliance").textContent =
+        versionEligible.length ? `${versionPercent}%` : "—";
+      document.getElementById("operationsVersionComplianceDetail").textContent =
+        `${currentVersionPlayers.length} of ${versionEligible.length} report ${EXPECTED_PLAYER_VERSION}`;
+
+      document.getElementById("operationsLatestHeartbeat").textContent =
+        newestAgeSeconds === null ? "—" : formatHeartbeatAge(newestAgeSeconds);
+      document.getElementById("operationsLatestHeartbeatDetail").textContent = newestHeartbeat
+        ? `Latest check-in at ${new Date(newestHeartbeat).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"})}`
+        : "No check-in measured yet";
+
+      document.getElementById("operationsDeploymentProgress").textContent = `${deploymentPercent}%`;
+      document.getElementById("operationsDeploymentProgressDetail").textContent =
+        `${deployedCount} of ${SCREEN_NAMES.length} screens marked Deployed`;
+      document.getElementById("operationsDeploymentBar").style.width = `${deploymentPercent}%`;
+
+      const drift = versionEligible.filter(player =>
+        player.playerVersion && player.playerVersion !== EXPECTED_PLAYER_VERSION
+      );
+      const missing = versionEligibleNames.filter(name => {
+        const player = players.find(item => item.screen === name);
+        return !player || !player.playerVersion;
+      });
+      const driftBox = document.getElementById("operationsVersionDrift");
+      const driftParts = [];
+      if (drift.length) {
+        driftParts.push(`Version drift: ${drift.map(player => `${player.screen} (${player.playerVersion})`).join(", ")}`);
+      }
+      if (!quietHours && missing.length) {
+        driftParts.push(`Awaiting version: ${missing.join(", ")}`);
+      }
+      driftBox.hidden = driftParts.length === 0;
+      driftBox.textContent = driftParts.join(" · ");
     }
 
 
@@ -22061,6 +22175,7 @@
       function() {
         updateLiveInformation();
         updateOperationsPanel();
+        renderOperationsIntelligence();
 
         if (
           getSavedThemePreference() ===
