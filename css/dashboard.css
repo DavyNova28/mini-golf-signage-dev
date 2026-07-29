@@ -8285,3 +8285,129 @@ html[data-theme="light"] .rollout-state.not-scheduled {
 .rollout-progress-summary {
   line-height: 1.45;
 }
+
+/* =========================================================
+   BUILD 88 — OPERATIONS INTELLIGENCE
+   ========================================================= */
+.operations-intelligence {
+  margin: 0 0 22px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--blue);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.operations-intelligence-healthy { border-left-color: var(--regular); }
+.operations-intelligence-warning { border-left-color: var(--warning); }
+.operations-intelligence-critical { border-left-color: var(--error); }
+.operations-intelligence-sleeping { border-left-color: var(--blue); }
+.operations-intelligence-waiting { border-left-color: var(--muted); }
+
+.operations-intelligence-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.operations-intelligence-title {
+  margin: 4px 0 0;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.operations-intelligence-summary {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.operations-intelligence-badge {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.operations-intelligence-badge.healthy { background: var(--regular-dark); color: var(--regular); }
+.operations-intelligence-badge.warning { background: var(--holiday-dark); color: var(--warning); }
+.operations-intelligence-badge.critical { background: var(--error-dark); color: var(--error); }
+.operations-intelligence-badge.sleeping { background: rgba(95, 168, 255, 0.15); color: var(--blue); }
+.operations-intelligence-badge.waiting { color: var(--muted); }
+
+.operations-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.operations-intelligence-metric {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-light);
+}
+
+.operations-intelligence-metric-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.operations-intelligence-metric strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.operations-intelligence-metric small {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.operations-deployment-track {
+  height: 9px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--timeline-background);
+}
+
+.operations-deployment-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--regular);
+  transition: width 500ms ease;
+}
+
+.operations-version-drift {
+  margin-top: 13px;
+  padding: 11px 13px;
+  border: 1px solid rgba(242, 207, 83, .35);
+  border-radius: 10px;
+  background: var(--holiday-dark);
+  color: var(--warning);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 1050px) {
+  .operations-intelligence-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .operations-intelligence { padding: 17px; }
+  .operations-intelligence-header { flex-direction: column; }
+  .operations-intelligence-grid { grid-template-columns: 1fr; }
+}
