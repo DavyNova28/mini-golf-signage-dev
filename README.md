@@ -109,3 +109,8 @@ No Apps Script or player `index.html` changes are required for this phase.
 - Added categorized, color-coded Recent Activity entries.
 - Enhanced live heartbeat pulse feedback.
 - Improved notification and mission-control refresh synchronization.
+
+
+## Build 89 — Phase 4
+
+Phase 4 is the final polish and stabilization pass before Version 1.2 Stable. It refines drawer navigation, keyboard accessibility, responsive spacing, Recent Activity presentation, Dark Mode consistency, and cache/build metadata. No Apps Script or player changes are required.

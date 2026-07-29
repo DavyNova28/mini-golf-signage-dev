@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "89.3.1",
-  "phase": "3",
-  "label": "Build 89 Phase 3 \u2014 Live Operations",
+  "build": "89.4",
+  "phase": "4",
+  "label": "Build 89 Phase 4 \u2014 Release Polish",
   "releasedAt": "2026-07-29",
-  "name": "Build 89 Phase 3.1"
+  "name": "Build 89 Phase 4"
 }

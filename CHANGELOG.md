@@ -1,3 +1,12 @@
+## Build 89 Phase 4
+
+- Polished the Player Details and Version Compliance drawer for release readiness.
+- Added a sticky drawer header, smoother in-drawer transitions, and consistent Back navigation.
+- Added keyboard focus containment, visible focus states, and improved mobile spacing.
+- Calmed Recent Activity hover motion while preserving category clarity.
+- Corrected build metadata and synchronized CSS/JavaScript cache identifiers.
+- Preserved all heartbeat, schedule, Quiet Hours, health scoring, and Apps Script behavior.
+
 ## Build 89 Phase 3.1
 
 - Restored the Back to players control in the interactive drawer.
