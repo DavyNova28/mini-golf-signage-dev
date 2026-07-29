@@ -3072,6 +3072,7 @@
       updateOfflineModeBanner();
       updateScreenCard(state);
       updateDashboardSummary();
+      scheduleBuild89CoreCheckRefresh();
 
       if (
         imageLibraryWorkspace.classList.contains(
@@ -16319,6 +16320,8 @@
 
     const build89Phase2PlayerEvents = new Map();
     let build89Phase2LastFocusedElement = null;
+    let build89CoreCheckRefreshTimer = null;
+    let build89DrawerReturnToList = false;
 
     function addBuild89PlayerEvent(screen, label, timestamp) {
       if (!screen) return;
@@ -16386,6 +16389,24 @@
       };
     }
 
+    function setBuild89DrawerBackButton(visible) {
+      const backButton = document.getElementById("backToPlayerListButton");
+      if (!backButton) return;
+      backButton.hidden = !visible;
+    }
+
+    function scheduleBuild89CoreCheckRefresh() {
+      window.clearTimeout(build89CoreCheckRefreshTimer);
+      build89CoreCheckRefreshTimer = window.setTimeout(function() {
+        if (screenStates.size < SCREEN_NAMES.length) return;
+
+        runAutomaticHealthChecks();
+        runGoLiveReadinessCheck();
+        renderMissionConfidenceBanner();
+        renderMissionControlStatuses();
+      }, 180);
+    }
+
     function openBuild89PlayerDrawer(screen) {
       const drawer = document.getElementById("playerDetailsDrawer");
       const backdrop = document.getElementById("playerDetailsBackdrop");
@@ -16414,6 +16435,8 @@
 
       title.textContent = player.screen;
       eyebrow.textContent = expectedToday ? "Scheduled player" : "Not scheduled today";
+      build89DrawerReturnToList = true;
+      setBuild89DrawerBackButton(true);
 
       content.innerHTML = `
         <div class="player-details-status">
@@ -16504,6 +16527,8 @@
 
       title.textContent = "Version Compliance";
       eyebrow.textContent = "Interactive player overview";
+      build89DrawerReturnToList = false;
+      setBuild89DrawerBackButton(false);
 
       content.innerHTML = `
         <div class="player-details-status">
@@ -16556,6 +16581,8 @@
       backdrop.classList.remove("is-visible");
       drawer.setAttribute("aria-hidden", "true");
       document.body.classList.remove("player-details-open");
+      build89DrawerReturnToList = false;
+      setBuild89DrawerBackButton(false);
 
       window.setTimeout(function() {
         backdrop.hidden = true;
@@ -16572,6 +16599,7 @@
     function setupBuild89Phase2Interactions() {
       const grid = document.getElementById("playerHeartbeatGrid");
       const closeButton = document.getElementById("closePlayerDetailsButton");
+      const backButton = document.getElementById("backToPlayerListButton");
       const backdrop = document.getElementById("playerDetailsBackdrop");
       const drawerContent = document.getElementById("playerDetailsContent");
       const versionCard = document.getElementById("operationsVersionComplianceCard");
@@ -16605,6 +16633,12 @@
             event.preventDefault();
             openBuild89VersionDrawer();
           }
+        });
+      }
+
+      if (backButton) {
+        backButton.addEventListener("click", function() {
+          openBuild89VersionDrawer();
         });
       }
 
