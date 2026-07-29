@@ -21814,6 +21814,26 @@
             );
           }
 
+          const heartbeatMemoryRecord =
+            !liveVersion && playerHeartbeatMemory
+              ? playerHeartbeatMemory[screenName]
+              : null;
+
+          const heartbeatMemoryVersion =
+            heartbeatMemoryRecord && heartbeatMemoryRecord.playerVersion
+              ? String(heartbeatMemoryRecord.playerVersion).trim()
+              : "";
+
+          if (heartbeatMemoryVersion) {
+            rememberPlayerVersion(
+              screenName,
+              heartbeatMemoryVersion,
+              heartbeatMemoryRecord.lastSeenAt ||
+                heartbeatMemoryRecord.confirmedAt ||
+                new Date().toISOString()
+            );
+          }
+
           const remembered =
             !liveVersion
               ? getRememberedPlayerVersion(
