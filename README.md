@@ -94,3 +94,9 @@ Build 89 Phase 1 upgrades Mission Control Home with a richer hero summary, anima
 ## Build 89 — Phase 1.1 Startup Data Patch
 
 Mission Control Home now initializes its operational data automatically. On page load, the dashboard retrieves System Health telemetry and player heartbeats in the background, then refreshes readiness, rollout, Platform Status, and Operations Intelligence without requiring a visit to the System Health workspace.
+
+## Build 89 — Phase 2
+
+Build 89 Phase 2 adds an interactive player experience. Open **System Health → Player Heartbeat** and select any player card to inspect its current image, heartbeat age, version, confirmation times, scheduling expectation, and recent session events. The **Version Compliance** metric on Home is now clickable and opens a per-player compliance overview.
+
+No Apps Script or player `index.html` changes are required for this phase.

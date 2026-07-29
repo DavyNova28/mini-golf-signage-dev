@@ -1,5 +1,22 @@
 # Changelog
 
+## Build 89 — Phase 2 Interactive Dashboard
+
+### Added
+
+- Slide-out Player Details drawer from Player Heartbeat cards.
+- Clickable Version Compliance summary with a per-player overview.
+- Session event history for heartbeat, image, and player-state changes.
+- Soft live pulse when a newer heartbeat is received.
+- Keyboard support for player cards, version compliance, drawer closing, and Escape.
+- Responsive mobile drawer and reduced-motion accessibility support.
+
+### Improved
+
+- Player Heartbeat cards now clearly indicate that detailed information is available.
+- Version compliance can be investigated without navigating away from the Home workspace.
+
+
 All notable changes to Mini Golf Signage Manager are recorded here.
 
 ## [1.2.0-dev.89.1] — Professional Polish · Phase 1.1

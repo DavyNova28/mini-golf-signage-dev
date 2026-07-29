@@ -21,7 +21,7 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=89">
+    <link rel="stylesheet" href="css/dashboard.css?build=89.2">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
@@ -399,10 +399,17 @@
             <strong id="operationsScheduledPlayers">—</strong>
             <small id="operationsScheduledPlayersDetail">Evaluating today’s schedule</small>
           </article>
-          <article class="operations-intelligence-metric">
+          <article
+            id="operationsVersionComplianceCard"
+            class="operations-intelligence-metric operations-intelligence-metric-interactive"
+            role="button"
+            tabindex="0"
+            aria-label="Open player version compliance details"
+          >
             <span class="operations-intelligence-metric-label">Version compliance</span>
             <strong id="operationsVersionCompliance">—</strong>
             <small id="operationsVersionComplianceDetail">Waiting for versions</small>
+            <span class="operations-intelligence-metric-hint">View players →</span>
           </article>
           <article class="operations-intelligence-metric">
             <span class="operations-intelligence-metric-label">Latest heartbeat</span>
@@ -4393,7 +4400,38 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=89.1" defer></script>
+    <script src="js/dashboard.js?build=89.2" defer></script>
+
+
+  <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
+
+  <aside
+    id="playerDetailsDrawer"
+    class="player-details-drawer"
+    aria-hidden="true"
+    aria-labelledby="playerDetailsTitle"
+  >
+    <div class="player-details-drawer-header">
+      <div>
+        <div id="playerDetailsEyebrow" class="eyebrow">Player details</div>
+        <h2 id="playerDetailsTitle">Player</h2>
+      </div>
+      <button
+        id="closePlayerDetailsButton"
+        class="player-details-close"
+        type="button"
+        aria-label="Close player details"
+      >
+        ×
+      </button>
+    </div>
+
+    <div id="playerDetailsContent" class="player-details-content">
+      <div class="player-details-empty">
+        Select a player to view its current image, heartbeat, version, and operational status.
+      </div>
+    </div>
+  </aside>
 
 </body>
 </html>
