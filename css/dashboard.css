@@ -8411,3 +8411,148 @@ html[data-theme="light"] .rollout-state.not-scheduled {
   .operations-intelligence-header { flex-direction: column; }
   .operations-intelligence-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   BUILD 89 — PHASE 1: PREMIUM DASHBOARD
+   ========================================================= */
+.mission-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.mission-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -120px -160px auto;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(95, 168, 255, .10), transparent 68%);
+  pointer-events: none;
+}
+
+.mission-hero-copy,
+.mission-hero-health {
+  position: relative;
+  z-index: 1;
+}
+
+.mission-hero-greeting {
+  max-width: 760px;
+  margin: 16px 0 0;
+  color: var(--text);
+  font-size: clamp(15px, 2vw, 19px);
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.mission-hero-description {
+  margin-top: 8px;
+}
+
+.mission-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 10px;
+  max-width: 760px;
+  margin-top: 22px;
+}
+
+.mission-hero-metric {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.mission-hero-metric-value,
+.mission-hero-metric-label {
+  display: block;
+}
+
+.mission-hero-metric-value {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.mission-hero-metric-label {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+html[data-theme="light"] .mission-hero-metric {
+  background: rgba(255, 255, 255, .58);
+}
+
+.operations-intelligence-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 5px;
+}
+
+.operations-intelligence-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-light);
+  font-size: 23px;
+}
+
+.operations-intelligence-title {
+  margin-top: 0;
+}
+
+.operations-intelligence-healthy .operations-intelligence-icon {
+  border-color: rgba(54, 201, 135, .45);
+  background: var(--regular-dark);
+}
+
+.operations-intelligence-warning .operations-intelligence-icon {
+  border-color: rgba(242, 170, 63, .45);
+  background: var(--holiday-dark);
+}
+
+.operations-intelligence-critical .operations-intelligence-icon {
+  border-color: rgba(255, 104, 104, .45);
+  background: var(--error-dark);
+}
+
+.operations-intelligence-sleeping .operations-intelligence-icon {
+  border-color: rgba(95, 168, 255, .40);
+  background: rgba(95, 168, 255, .12);
+}
+
+.operations-intelligence-metric strong,
+.mission-health-score > span,
+.mission-hero-metric-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-animating {
+  will-change: contents;
+}
+
+@media (max-width: 700px) {
+  .mission-hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operations-deployment-bar,
+  .operations-intelligence,
+  .mission-hero-health {
+    transition: none;
+  }
+}
