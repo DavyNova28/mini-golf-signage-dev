@@ -2,6 +2,22 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.88] — Operations Intelligence
+
+### Added
+
+- One-glance Store Status panel on Mission Control Home.
+- Quiet Hours-aware scheduled-player summary.
+- Live player-version compliance percentage and version-drift details.
+- Latest network heartbeat age.
+- Automatic deployment progress based on rollout stages.
+- Responsive Operations Intelligence cards for desktop, tablet, and mobile.
+
+### Improved
+
+- Build identity and cache-busting metadata updated to Build 88.
+- Operational states now summarize Healthy, Review, Attention, Warming Up, and Quiet Hours without duplicating rollout warnings.
+
 ## [1.2.0-dev.87] — Operational Awareness
 
 ### Fixed

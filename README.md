@@ -80,7 +80,7 @@ Build 85 begins the Monitoring Accuracy milestone:
 - Player field confirmation timestamps
 
 
-## Build 87 — Operational Awareness
+## Build 88 — Operations Intelligence
 
 - Quiet Hours no longer produce false rollout Review states
 - Sleeping and Not scheduled operational states
