@@ -16316,13 +16316,365 @@
     }
 
 
+
+    const build89Phase2PlayerEvents = new Map();
+    let build89Phase2LastFocusedElement = null;
+
+    function addBuild89PlayerEvent(screen, label, timestamp) {
+      if (!screen) return;
+
+      const events = build89Phase2PlayerEvents.get(screen) || [];
+      const eventTime = timestamp ? new Date(timestamp) : new Date();
+
+      events.unshift({
+        label: label,
+        at: Number.isNaN(eventTime.getTime()) ? new Date() : eventTime
+      });
+
+      build89Phase2PlayerEvents.set(screen, events.slice(0, 8));
+    }
+
+    function getBuild89PlayerByScreen(screen) {
+      return (latestPlayerHeartbeats || []).find(
+        item => item.screen === screen
+      ) || null;
+    }
+
+    function getBuild89StatusLabel(status) {
+      const labels = {
+        online: "Online",
+        stale: "Stale",
+        offline: "Offline",
+        sleeping: "Sleeping"
+      };
+
+      return labels[status] || "Unknown";
+    }
+
+    function getBuild89VersionState(player) {
+      if (!player) {
+        return {
+          label: "Unknown",
+          detail: "No heartbeat information has been received."
+        };
+      }
+
+      if (!isScreenExpectedToday(player.screen)) {
+        return {
+          label: "Not scheduled",
+          detail: "Excluded from today's version compliance check."
+        };
+      }
+
+      if (player.playerVersion === EXPECTED_PLAYER_VERSION) {
+        return {
+          label: "Current",
+          detail: `Matches ${EXPECTED_PLAYER_VERSION}.`
+        };
+      }
+
+      if (player.playerVersion) {
+        return {
+          label: "Outdated",
+          detail: `Expected ${EXPECTED_PLAYER_VERSION}.`
+        };
+      }
+
+      return {
+        label: "Unknown",
+        detail: `Waiting for ${EXPECTED_PLAYER_VERSION}.`
+      };
+    }
+
+    function openBuild89PlayerDrawer(screen) {
+      const drawer = document.getElementById("playerDetailsDrawer");
+      const backdrop = document.getElementById("playerDetailsBackdrop");
+      const title = document.getElementById("playerDetailsTitle");
+      const eyebrow = document.getElementById("playerDetailsEyebrow");
+      const content = document.getElementById("playerDetailsContent");
+
+      if (!drawer || !backdrop || !content) return;
+
+      const player = getBuild89PlayerByScreen(screen);
+      if (!player) return;
+
+      const versionState = getBuild89VersionState(player);
+      const expectedToday = isScreenExpectedToday(player.screen);
+      const lastSeenText = player.lastSeenAt
+        ? new Date(player.lastSeenAt).toLocaleString()
+        : "Never seen";
+      const ageText = formatHeartbeatAge(player.ageSeconds);
+      const imageConfirmedText = player.imageConfirmedAt
+        ? new Date(player.imageConfirmedAt).toLocaleString()
+        : "Not confirmed";
+      const versionConfirmedText = player.versionConfirmedAt
+        ? new Date(player.versionConfirmedAt).toLocaleString()
+        : "Not confirmed";
+      const events = build89Phase2PlayerEvents.get(player.screen) || [];
+
+      title.textContent = player.screen;
+      eyebrow.textContent = expectedToday ? "Scheduled player" : "Not scheduled today";
+
+      content.innerHTML = `
+        <div class="player-details-status">
+          <div class="player-details-status-main">
+            <span class="player-details-status-dot ${escapeHtml(player.status)}" aria-hidden="true"></span>
+            <div>
+              <strong>${escapeHtml(getBuild89StatusLabel(player.status))}</strong>
+              <div><small>${escapeHtml(ageText)}</small></div>
+            </div>
+          </div>
+          <span class="player-details-badge">${escapeHtml(versionState.label)}</span>
+        </div>
+
+        <div class="player-details-grid">
+          <div class="player-details-field full">
+            <span class="player-details-field-label">Current image</span>
+            <span class="player-details-field-value">${escapeHtml(player.currentImage || "Unknown")}</span>
+          </div>
+
+          <div class="player-details-field">
+            <span class="player-details-field-label">Last heartbeat</span>
+            <span class="player-details-field-value">${escapeHtml(lastSeenText)}</span>
+          </div>
+
+          <div class="player-details-field">
+            <span class="player-details-field-label">Expected today</span>
+            <span class="player-details-field-value">${expectedToday ? "Yes" : "No"}</span>
+          </div>
+
+          <div class="player-details-field full">
+            <span class="player-details-field-label">Player version</span>
+            <span class="player-details-field-value">${escapeHtml(player.playerVersion || "Unknown")}</span>
+            <small>${escapeHtml(versionState.detail)}</small>
+          </div>
+
+          <div class="player-details-field">
+            <span class="player-details-field-label">Image confirmed</span>
+            <span class="player-details-field-value">${escapeHtml(imageConfirmedText)}</span>
+          </div>
+
+          <div class="player-details-field">
+            <span class="player-details-field-label">Version confirmed</span>
+            <span class="player-details-field-value">${escapeHtml(versionConfirmedText)}</span>
+          </div>
+        </div>
+
+        <h3 class="player-details-section-title">Recent session events</h3>
+        <div class="player-details-event-list">
+          ${
+            events.length
+              ? events.map(event => `
+                  <div class="player-details-event">
+                    <span>${escapeHtml(event.label)}</span>
+                    <small>${escapeHtml(formatMissionActivityTime(event.at))}</small>
+                  </div>
+                `).join("")
+              : `<div class="player-details-empty">New heartbeat and image changes will appear here while this dashboard remains open.</div>`
+          }
+        </div>
+      `;
+
+      build89Phase2LastFocusedElement = document.activeElement;
+      backdrop.hidden = false;
+      requestAnimationFrame(function() {
+        backdrop.classList.add("is-visible");
+        drawer.classList.add("is-open");
+      });
+      drawer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("player-details-open");
+
+      const closeButton = document.getElementById("closePlayerDetailsButton");
+      if (closeButton) closeButton.focus();
+    }
+
+    function openBuild89VersionDrawer() {
+      const drawer = document.getElementById("playerDetailsDrawer");
+      const backdrop = document.getElementById("playerDetailsBackdrop");
+      const title = document.getElementById("playerDetailsTitle");
+      const eyebrow = document.getElementById("playerDetailsEyebrow");
+      const content = document.getElementById("playerDetailsContent");
+
+      if (!drawer || !backdrop || !content) return;
+
+      const players = normalizePlayerVersionRecords(latestPlayerHeartbeats || []);
+      const expected = players.filter(player => player.expectedToday);
+      const current = expected.filter(player => player.playerVersion === EXPECTED_PLAYER_VERSION).length;
+      const percentage = expected.length ? Math.round((current / expected.length) * 100) : 100;
+
+      title.textContent = "Version Compliance";
+      eyebrow.textContent = "Interactive player overview";
+
+      content.innerHTML = `
+        <div class="player-details-status">
+          <div>
+            <strong>${percentage}% compliant</strong>
+            <div><small>${current} of ${expected.length} scheduled players are current.</small></div>
+          </div>
+          <span class="player-details-badge">${escapeHtml(EXPECTED_PLAYER_VERSION)}</span>
+        </div>
+
+        <div class="player-version-drawer-list">
+          ${players.map(player => {
+            const state = getBuild89VersionState(player);
+            return `
+              <button
+                class="player-version-drawer-row"
+                type="button"
+                data-player-screen="${escapeHtml(player.screen)}"
+              >
+                <span>
+                  <strong>${escapeHtml(player.screen)}</strong><br>
+                  <small>${escapeHtml(state.label)}</small>
+                </span>
+                <strong>${escapeHtml(player.playerVersion || "Unknown")}</strong>
+              </button>
+            `;
+          }).join("")}
+        </div>
+      `;
+
+      build89Phase2LastFocusedElement = document.activeElement;
+      backdrop.hidden = false;
+      requestAnimationFrame(function() {
+        backdrop.classList.add("is-visible");
+        drawer.classList.add("is-open");
+      });
+      drawer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("player-details-open");
+      const closeButton = document.getElementById("closePlayerDetailsButton");
+      if (closeButton) closeButton.focus();
+    }
+
+    function closeBuild89PlayerDrawer() {
+      const drawer = document.getElementById("playerDetailsDrawer");
+      const backdrop = document.getElementById("playerDetailsBackdrop");
+
+      if (!drawer || !backdrop) return;
+
+      drawer.classList.remove("is-open");
+      backdrop.classList.remove("is-visible");
+      drawer.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("player-details-open");
+
+      window.setTimeout(function() {
+        backdrop.hidden = true;
+      }, 230);
+
+      if (
+        build89Phase2LastFocusedElement &&
+        typeof build89Phase2LastFocusedElement.focus === "function"
+      ) {
+        build89Phase2LastFocusedElement.focus();
+      }
+    }
+
+    function setupBuild89Phase2Interactions() {
+      const grid = document.getElementById("playerHeartbeatGrid");
+      const closeButton = document.getElementById("closePlayerDetailsButton");
+      const backdrop = document.getElementById("playerDetailsBackdrop");
+      const drawerContent = document.getElementById("playerDetailsContent");
+      const versionCard = document.getElementById("operationsVersionComplianceCard");
+
+      if (grid) {
+        grid.addEventListener("click", function(event) {
+          const card = event.target.closest("[data-player-screen]");
+          if (card) openBuild89PlayerDrawer(card.dataset.playerScreen);
+        });
+
+        grid.addEventListener("keydown", function(event) {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          const card = event.target.closest("[data-player-screen]");
+          if (!card) return;
+          event.preventDefault();
+          openBuild89PlayerDrawer(card.dataset.playerScreen);
+        });
+      }
+
+      if (drawerContent) {
+        drawerContent.addEventListener("click", function(event) {
+          const row = event.target.closest("[data-player-screen]");
+          if (row) openBuild89PlayerDrawer(row.dataset.playerScreen);
+        });
+      }
+
+      if (versionCard) {
+        versionCard.addEventListener("click", openBuild89VersionDrawer);
+        versionCard.addEventListener("keydown", function(event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openBuild89VersionDrawer();
+          }
+        });
+      }
+
+      if (closeButton) closeButton.addEventListener("click", closeBuild89PlayerDrawer);
+      if (backdrop) backdrop.addEventListener("click", closeBuild89PlayerDrawer);
+
+      document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") closeBuild89PlayerDrawer();
+      });
+    }
+
+
     function renderPlayerHeartbeats(
       players
     ) {
+      const previousPlayers =
+        new Map(
+          (latestPlayerHeartbeats || []).map(
+            item => [item.screen, item]
+          )
+        );
+
       const normalized =
         normalizeHeartbeatPlayers(
           players
         );
+
+      const changedHeartbeatScreens =
+        new Set();
+
+      normalized.forEach(function(item) {
+        const previous = previousPlayers.get(item.screen);
+        const previousSeen = previous && previous.lastSeenAt
+          ? new Date(previous.lastSeenAt).getTime()
+          : 0;
+        const currentSeen = item.lastSeenAt
+          ? new Date(item.lastSeenAt).getTime()
+          : 0;
+
+        if (currentSeen && currentSeen > previousSeen) {
+          changedHeartbeatScreens.add(item.screen);
+          addBuild89PlayerEvent(item.screen, "Heartbeat received", item.lastSeenAt);
+        }
+
+        if (
+          previous &&
+          item.currentImage &&
+          previous.currentImage &&
+          item.currentImage !== previous.currentImage
+        ) {
+          addBuild89PlayerEvent(
+            item.screen,
+            `Image changed to ${item.currentImage}`,
+            item.imageConfirmedAt || item.lastSeenAt
+          );
+        }
+
+        if (
+          previous &&
+          item.status &&
+          previous.status &&
+          item.status !== previous.status
+        ) {
+          addBuild89PlayerEvent(
+            item.screen,
+            `Status changed to ${getBuild89StatusLabel(item.status)}`,
+            item.lastSeenAt
+          );
+        }
+      });
 
       latestPlayerHeartbeats =
         normalized;
@@ -16416,7 +16768,13 @@
                   : "";
 
               return `
-                <article class="player-heartbeat-card ${escapeHtml(item.status)}">
+                <article
+                  class="player-heartbeat-card ${escapeHtml(item.status)} ${changedHeartbeatScreens.has(item.screen) ? "heartbeat-just-arrived" : ""}"
+                  data-player-screen="${escapeHtml(item.screen)}"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Open details for ${escapeHtml(item.screen)}"
+                >
                   <div class="player-heartbeat-header">
                     <div class="player-heartbeat-name">
                       ${escapeHtml(item.screen)}
@@ -22300,6 +22658,7 @@
     setupMissionRecentActivity();
     setupMissionConfidenceBanner();
     setupMissionQuickActions();
+    setupBuild89Phase2Interactions();
 
     function initializeOperationalData() {
       const healthRequest =
