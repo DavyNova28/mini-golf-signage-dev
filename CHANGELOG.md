@@ -1,23 +1,5 @@
 # Changelog
 
-## Build 89 — Phase 2.1 Drawer & Startup Polish
-
-### Fixed
-
-- Core Signage Check now recalculates automatically after all screen schedules finish loading.
-- Home no longer requires opening System Health before the Ready for Today result becomes accurate.
-- Version Compliance drawer now uses the correct dark surfaces, borders, and readable text in Dark Mode.
-
-### Added
-
-- Back to players button inside Player Details for faster screen-to-screen review.
-- Player Details can return directly to the Version Compliance list without closing the drawer.
-
-### Improved
-
-- Drawer theme styling now uses the dashboard's existing surface variables in both Light and Dark Mode.
-- Core checks are debounced so schedule refreshes trigger one stable recalculation instead of repeated updates.
-
 ## Build 89 — Phase 2 Interactive Dashboard
 
 ### Added
@@ -445,3 +427,12 @@ All notable changes to Mini Golf Signage Manager are recorded here.
 ### Architecture
 
 - Split the dashboard into separate HTML, CSS, and JavaScript files.
+
+
+## Build 89 — Phase 3
+
+- Added reactive Home health/readiness rendering after telemetry, schedules, and heartbeats update.
+- Added automatic background System Health refresh every 60 seconds.
+- Added categorized, color-coded Recent Activity entries.
+- Enhanced live heartbeat pulse feedback.
+- Improved notification and mission-control refresh synchronization.

@@ -1,11 +1,7 @@
 {
-  "name": "Mini Golf Signage Manager",
-  "version": "1.2.0-dev",
-  "label": "Version 1.2 Development",
+  "version": "1.2 Development",
   "build": 89,
-  "channel": "development",
-  "expectedPlayerVersion": "v3.1-heartbeat-1",
-  "milestone": "Professional Polish \u2014 Phase 2.1 Drawer & Startup Polish",
-  "releaseTag": null,
-  "buildDisplay": "89.2.1"
+  "phase": "3",
+  "label": "Build 89 Phase 3 — Live Operations",
+  "releasedAt": "2026-07-29"
 }

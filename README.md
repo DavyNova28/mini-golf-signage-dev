@@ -102,10 +102,10 @@ Build 89 Phase 2 adds an interactive player experience. Open **System Health →
 No Apps Script or player `index.html` changes are required for this phase.
 
 
-## Build 89 — Phase 2.1
+## Build 89 — Phase 3
 
-Phase 2.1 is a polish patch for the interactive player dashboard:
-
-- Core Signage Check initializes automatically once all screen schedules are loaded.
-- Dark Mode styling is corrected for Version Compliance and Player Details.
-- A **Back to players** button lets you review another screen without closing the drawer.
+- Added reactive Home health/readiness rendering after telemetry, schedules, and heartbeats update.
+- Added automatic background System Health refresh every 60 seconds.
+- Added categorized, color-coded Recent Activity entries.
+- Enhanced live heartbeat pulse feedback.
+- Improved notification and mission-control refresh synchronization.
