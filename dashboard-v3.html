@@ -21,7 +21,7 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=89.2">
+    <link rel="stylesheet" href="css/dashboard.css?build=89">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
@@ -4400,7 +4400,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=89.2" defer></script>
+    <script src="js/dashboard.js?build=89.2.1" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
@@ -4412,7 +4412,15 @@
     aria-labelledby="playerDetailsTitle"
   >
     <div class="player-details-drawer-header">
-      <div>
+      <div class="player-details-heading">
+        <button
+          id="backToPlayerListButton"
+          class="player-details-back"
+          type="button"
+          hidden
+        >
+          <span aria-hidden="true">←</span> Back to players
+        </button>
         <div id="playerDetailsEyebrow" class="eyebrow">Player details</div>
         <h2 id="playerDetailsTitle">Player</h2>
       </div>

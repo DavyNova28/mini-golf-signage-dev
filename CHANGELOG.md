@@ -1,5 +1,23 @@
 # Changelog
 
+## Build 89 — Phase 2.1 Drawer & Startup Polish
+
+### Fixed
+
+- Core Signage Check now recalculates automatically after all screen schedules finish loading.
+- Home no longer requires opening System Health before the Ready for Today result becomes accurate.
+- Version Compliance drawer now uses the correct dark surfaces, borders, and readable text in Dark Mode.
+
+### Added
+
+- Back to players button inside Player Details for faster screen-to-screen review.
+- Player Details can return directly to the Version Compliance list without closing the drawer.
+
+### Improved
+
+- Drawer theme styling now uses the dashboard's existing surface variables in both Light and Dark Mode.
+- Core checks are debounced so schedule refreshes trigger one stable recalculation instead of repeated updates.
+
 ## Build 89 — Phase 2 Interactive Dashboard
 
 ### Added

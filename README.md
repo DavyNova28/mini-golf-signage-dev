@@ -100,3 +100,12 @@ Mission Control Home now initializes its operational data automatically. On page
 Build 89 Phase 2 adds an interactive player experience. Open **System Health → Player Heartbeat** and select any player card to inspect its current image, heartbeat age, version, confirmation times, scheduling expectation, and recent session events. The **Version Compliance** metric on Home is now clickable and opens a per-player compliance overview.
 
 No Apps Script or player `index.html` changes are required for this phase.
+
+
+## Build 89 — Phase 2.1
+
+Phase 2.1 is a polish patch for the interactive player dashboard:
+
+- Core Signage Check initializes automatically once all screen schedules are loaded.
+- Dark Mode styling is corrected for Version Compliance and Player Details.
+- A **Back to players** button lets you review another screen without closing the drawer.
