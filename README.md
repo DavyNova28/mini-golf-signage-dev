@@ -80,6 +80,10 @@ Build 85 begins the Monitoring Accuracy milestone:
 - Player field confirmation timestamps
 
 
+## Build 89 — Professional Polish · Phase 1
+
+Build 89 Phase 1 upgrades Mission Control Home with a richer hero summary, animated operational counters, a time-aware greeting, and a more conversational Store Status panel. Existing monitoring, rollout, scheduling, and recovery behavior remains unchanged.
+
 ## Build 88 — Operations Intelligence
 
 - Quiet Hours no longer produce false rollout Review states

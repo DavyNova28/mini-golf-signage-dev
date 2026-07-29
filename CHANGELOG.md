@@ -2,6 +2,22 @@
 
 All notable changes to Mini Golf Signage Manager are recorded here.
 
+## [1.2.0-dev.89] — Professional Polish · Phase 1
+
+### Added
+
+- Premium Home hero with live Players, Schedules, Images, and Deployment counters.
+- Time-aware operational greeting for morning, afternoon, evening, and Quiet Hours.
+- Conversational Store Status heading with state-specific icon and message.
+- Animated System Health, Version Compliance, Deployment Progress, and hero counters.
+- Reduced-motion support for accessibility.
+
+### Improved
+
+- Home information hierarchy now surfaces the most important operational facts immediately.
+- Hero spacing and visual depth refined without changing existing navigation or workflows.
+- Build identity and cache-busting metadata updated to Build 89.
+
 ## [1.2.0-dev.88] — Operations Intelligence
 
 ### Added

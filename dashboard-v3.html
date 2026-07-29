@@ -21,7 +21,7 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=88">
+    <link rel="stylesheet" href="css/dashboard.css?build=89">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.0.0">
@@ -321,13 +321,36 @@
             Mini Golf Signage Manager
           </h2>
 
+          <p id="missionHeroGreeting" class="mission-hero-greeting">
+            Preparing your operations summary…
+          </p>
+
           <p class="mission-hero-description">
             Your central workspace for schedules, content, player monitoring,
             diagnostics, and controlled deployments.
           </p>
 
+          <div class="mission-hero-metrics" aria-label="At-a-glance system summary">
+            <div class="mission-hero-metric">
+              <span class="mission-hero-metric-value" id="missionHeroPlayers">—</span>
+              <span class="mission-hero-metric-label">Players</span>
+            </div>
+            <div class="mission-hero-metric">
+              <span class="mission-hero-metric-value" id="missionHeroSchedules">—</span>
+              <span class="mission-hero-metric-label">Schedules</span>
+            </div>
+            <div class="mission-hero-metric">
+              <span class="mission-hero-metric-value" id="missionHeroImages">—</span>
+              <span class="mission-hero-metric-label">Images</span>
+            </div>
+            <div class="mission-hero-metric">
+              <span class="mission-hero-metric-value" id="missionHeroDeployment">—</span>
+              <span class="mission-hero-metric-label">Deployed</span>
+            </div>
+          </div>
+
           <div class="mission-build-line">
-            <span>Build 88</span>
+            <span>Build 89</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -359,8 +382,13 @@
         <div class="operations-intelligence-header">
           <div>
             <div class="eyebrow">Operations intelligence</div>
-            <h3 id="operationsIntelligenceTitle" class="operations-intelligence-title">Store status</h3>
-            <p id="operationsIntelligenceSummary" class="operations-intelligence-summary">Waiting for player heartbeat data.</p>
+            <div class="operations-intelligence-heading-row">
+              <span id="operationsIntelligenceIcon" class="operations-intelligence-icon" aria-hidden="true">⏳</span>
+              <div>
+                <h3 id="operationsIntelligenceTitle" class="operations-intelligence-title">Preparing store status</h3>
+                <p id="operationsIntelligenceSummary" class="operations-intelligence-summary">Waiting for player heartbeat data.</p>
+              </div>
+            </div>
           </div>
           <div id="operationsIntelligenceBadge" class="operations-intelligence-badge waiting">Checking</div>
         </div>
@@ -4365,7 +4393,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=88" defer></script>
+    <script src="js/dashboard.js?build=89" defer></script>
 
 </body>
 </html>
