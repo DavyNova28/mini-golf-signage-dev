@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -17249,7 +17249,7 @@
               "Version 1.2 Development",
 
             build:
-              86,
+              87,
 
             environment:
               getApplicationEnvironment().key,
@@ -17395,7 +17395,7 @@
           objectUrl;
 
         link.download =
-          `mini-golf-signage-diagnostics-build-86-${dateStamp}.json`;
+          `mini-golf-signage-diagnostics-build-87-${dateStamp}.json`;
 
         document.body.appendChild(
           link
@@ -17798,7 +17798,7 @@
         const payload={
           application:"Mini Golf Signage Manager",
           version:"1.2 Development",
-          build:86,
+          build:87,
           exportedAt:new Date().toISOString(),
           totalEvents:notificationHistory.length,
           events:notificationHistory
@@ -17807,7 +17807,7 @@
         const url=URL.createObjectURL(blob);
         const link=document.createElement("a");
         link.href=url;
-        link.download=`notification-history-v1.2-dev-build-86-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        link.download=`notification-history-v1.2-dev-build-87-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -20434,6 +20434,15 @@
           screenName
         );
 
+      const quietHours =
+        typeof isPlayerQuietHours === "function"
+          ? isPlayerQuietHours()
+          : false;
+
+      const expectedNow =
+        expectedToday &&
+        !quietHours;
+
       const scheduleState =
         screenStates.get(
           screenName
@@ -20493,77 +20502,90 @@
       const notes =
         [];
 
-      if (!hasSchedule) {
+      /*
+       * Operational expectation takes priority over live checks.
+       * A player that is intentionally sleeping must not be sent
+       * to Review simply because it is no longer checking in.
+       */
+      if (!expectedToday) {
         state =
-          "blocked";
-
-        label =
-          "Blocked";
-
-        notes.push(
-          "Schedule data is missing."
-        );
-      }
-
-      if (activeImageMissing) {
-        state =
-          "blocked";
-
-        label =
-          "Blocked";
-
-        notes.push(
-          "The active image is missing."
-        );
-      }
-
-      if (
-        state !== "blocked" &&
-        !hasFallback
-      ) {
-        state =
-          "review";
-
-        label =
-          "Review";
-
-        notes.push(
-          "No blank-End-Time fallback row."
-        );
-      }
-
-      if (
-        !expectedToday
-      ) {
-        state =
-          "ready";
+          "not-scheduled";
 
         label =
           "Not scheduled";
 
-        notes.length =
-          0;
-
         notes.push(
-          "This player is not expected to run today and is excluded from compliance."
+          "This screen is not expected to operate today."
         );
 
-      } else if (
-        state !== "blocked" &&
-        !versionCurrent
-      ) {
+      } else if (quietHours) {
         state =
-          "review";
+          "sleeping";
 
         label =
-          "Review";
+          "Sleeping";
 
         notes.push(
-          heartbeat &&
-          heartbeat.playerVersion
-            ? `Reports ${heartbeat.playerVersion}.`
-            : "Approved player version has not checked in yet."
+          "Quiet Hours are active. The player is not expected to check in between 22:00 and 10:00."
         );
+
+      } else {
+        if (!hasSchedule) {
+          state =
+            "blocked";
+
+          label =
+            "Blocked";
+
+          notes.push(
+            "Schedule data is missing."
+          );
+        }
+
+        if (activeImageMissing) {
+          state =
+            "blocked";
+
+          label =
+            "Blocked";
+
+          notes.push(
+            "The active image is missing."
+          );
+        }
+
+        if (
+          state !== "blocked" &&
+          !hasFallback
+        ) {
+          state =
+            "review";
+
+          label =
+            "Review";
+
+          notes.push(
+            "No blank-End-Time fallback row."
+          );
+        }
+
+        if (
+          state !== "blocked" &&
+          !versionCurrent
+        ) {
+          state =
+            "review";
+
+          label =
+            "Review";
+
+          notes.push(
+            heartbeat &&
+            heartbeat.playerVersion
+              ? `Reports ${heartbeat.playerVersion}.`
+              : "Approved player version has not checked in during operating hours."
+          );
+        }
       }
 
       if (notes.length === 0) {
@@ -20589,6 +20611,15 @@
           getRolloutStage(
             screenName
           ),
+
+        expectedToday:
+          expectedToday,
+
+        expectedNow:
+          expectedNow,
+
+        quietHours:
+          quietHours,
 
         notes:
           notes,
@@ -20640,6 +20671,18 @@
             item.state === "blocked"
         ).length;
 
+      const sleepingCount =
+        states.filter(
+          item =>
+            item.state === "sleeping"
+        ).length;
+
+      const notScheduledCount =
+        states.filter(
+          item =>
+            item.state === "not-scheduled"
+        ).length;
+
       const testingCount =
         SCREEN_NAMES.filter(
           screenName =>
@@ -20660,6 +20703,8 @@
         `Live readiness: ${readyCount} ready · ` +
         `${reviewCount} review · ` +
         `${blockedCount} blocked · ` +
+        `${sleepingCount} sleeping · ` +
+        `${notScheduledCount} not scheduled · ` +
         `Deployment: ${testingCount} testing · ` +
         `${deployedCount} deployed`;
 
@@ -20690,7 +20735,7 @@
                   : "Not reported";
 
               return `
-                <article class="rollout-card ${item.state} rollout-stage-card-${getRolloutStage(item.screenName)}">
+                <article class="rollout-card rollout-stage-card-${getRolloutStage(item.screenName)}">
                   <div class="rollout-card-header">
                     <div class="rollout-screen-name">
                       ${escapeHtml(item.screenName)}
@@ -20721,6 +20766,15 @@
 
                   <div class="rollout-details">
                     <div>
+                      Player status:
+                      ${escapeHtml(
+                        heartbeat && heartbeat.status
+                          ? heartbeat.status
+                          : "unknown"
+                      )}
+                    </div>
+
+                    <div>
                       Version: ${escapeHtml(version)}
                     </div>
 
@@ -20736,11 +20790,17 @@
                   <div class="rollout-progress-summary">
                     ${
                       getRolloutStage(item.screenName) === "deployed" &&
-                      item.state !== "ready"
-                        ? `Deployment remains confirmed. Live checks currently recommend ${escapeHtml(item.label.toLowerCase())}.`
-                        : getRolloutStage(item.screenName) === "deployed"
-                          ? "Deployment is confirmed and live checks are ready."
-                          : "Choose the manual deployment stage below."
+                      (
+                        item.state === "sleeping" ||
+                        item.state === "not-scheduled"
+                      )
+                        ? `Deployment remains confirmed. ${escapeHtml(item.label)} is an expected operational state.`
+                        : getRolloutStage(item.screenName) === "deployed" &&
+                          item.state !== "ready"
+                          ? `Deployment remains confirmed. Live checks currently recommend ${escapeHtml(item.label.toLowerCase())}.`
+                          : getRolloutStage(item.screenName) === "deployed"
+                            ? "Deployment is confirmed and live checks are ready."
+                            : "Choose the manual deployment stage below."
                     }
                   </div>
 
