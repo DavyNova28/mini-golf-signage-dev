@@ -111,10 +111,6 @@ No Apps Script or player `index.html` changes are required for this phase.
 - Improved notification and mission-control refresh synchronization.
 
 
-## Build 89 — Phase 4.1
-
-Phase 4.1 is a targeted release-candidate patch for the Controlled Rollout Assistant. Automatic telemetry redraws are temporarily deferred while a rollout button is being clicked, preventing missed clicks without changing rollout, heartbeat, schedule, or health logic.
-
 ## Build 89 — Phase 4
 
 Phase 4 is the final polish and stabilization pass before Version 1.2 Stable. It refines drawer navigation, keyboard accessibility, responsive spacing, Recent Activity presentation, Dark Mode consistency, and cache/build metadata. No Apps Script or player changes are required.
