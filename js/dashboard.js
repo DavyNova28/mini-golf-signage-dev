@@ -14797,6 +14797,7 @@
       renderHealthScore(
         scoreResult
       );
+      scheduleBuild89Phase3ReactiveRender();
       healthLastUpdated.textContent =
         requestCount === 0
           ? "Telemetry is ready and waiting for live requests."
@@ -16322,6 +16323,58 @@
     let build89Phase2LastFocusedElement = null;
     let build89CoreCheckRefreshTimer = null;
     let build89DrawerReturnToList = false;
+    let build89Phase3HealthRefreshTimer = null;
+    let build89Phase3ReactiveRenderTimer = null;
+    const BUILD89_PHASE3_HEALTH_REFRESH_MS = 60 * 1000;
+
+    function scheduleBuild89Phase3ReactiveRender(options = {}) {
+      window.clearTimeout(build89Phase3ReactiveRenderTimer);
+
+      build89Phase3ReactiveRenderTimer = window.setTimeout(function() {
+        if (latestHealthScoreResult) {
+          renderHealthScore(latestHealthScoreResult);
+        }
+
+        runGoLiveReadinessCheck();
+        renderRolloutAssistant();
+        renderOperationsIntelligence();
+        renderMissionControlStatuses();
+        renderMissionRecentActivity();
+        renderNotificationCenter();
+      }, options.immediate === true ? 0 : 120);
+    }
+
+    function startBuild89Phase3HealthRefresh() {
+      if (build89Phase3HealthRefreshTimer) {
+        window.clearInterval(build89Phase3HealthRefreshTimer);
+      }
+
+      build89Phase3HealthRefreshTimer = window.setInterval(function() {
+        loadSystemHealth({ background: true })
+          .then(function() {
+            scheduleBuild89Phase3ReactiveRender();
+          })
+          .catch(function(error) {
+            console.warn(
+              "Background health refresh failed; keeping the last-known score.",
+              error
+            );
+          });
+      }, BUILD89_PHASE3_HEALTH_REFRESH_MS);
+    }
+
+    function getBuild89ActivityType(item) {
+      if (item.type) return item.type;
+
+      const title = String(item.title || "").toLowerCase();
+      if (title.includes("health") || title.includes("recovery")) return "health";
+      if (title.includes("offline") || title.includes("stale")) return "warning";
+      if (title.includes("checked in") || title.includes("heartbeat")) return "heartbeat";
+      if (title.includes("schedule")) return "schedule";
+      if (title.includes("image")) return "content";
+      if (title.includes("deployment") || title.includes("build")) return "deployment";
+      return "info";
+    }
 
     function addBuild89PlayerEvent(screen, label, timestamp) {
       if (!screen) return;
@@ -16404,6 +16457,7 @@
         runGoLiveReadinessCheck();
         renderMissionConfidenceBanner();
         renderMissionControlStatuses();
+        scheduleBuild89Phase3ReactiveRender();
       }, 180);
     }
 
@@ -17085,6 +17139,7 @@
       driftBox.hidden = driftParts.length === 0;
       driftBox.textContent = driftParts.join(" · ");
       renderBuild89HeroSummary();
+      scheduleBuild89Phase3ReactiveRender();
     }
 
 
@@ -20119,6 +20174,7 @@
         )
       ) {
         activity.push({
+          type: "health",
           icon:
             "❤️",
 
@@ -20150,6 +20206,8 @@
                 : null;
 
             activity.push({
+              type:
+                player.status === "online" ? "heartbeat" : "warning",
               icon:
                 player.status === "online"
                   ? "📺"
@@ -20176,6 +20234,8 @@
           }
 
           activity.push({
+            type:
+              state.offlineSnapshot === true ? "recovery" : "schedule",
             icon:
               state.offlineSnapshot === true
                 ? "💾"
@@ -20206,6 +20266,7 @@
         imageLibraryIndex.length > 0
       ) {
         activity.push({
+          type: "content",
           icon:
             "🖼️",
 
@@ -20225,6 +20286,7 @@
         dashboardOfflineSnapshot.savedAt
       ) {
         activity.push({
+          type: "recovery",
           icon:
             "🛡️",
 
@@ -20293,7 +20355,7 @@
         activity
           .map(
             item => `
-              <article class="mission-recent-item">
+              <article class="mission-recent-item mission-recent-${escapeHtml(getBuild89ActivityType(item))}">
                 <div
                   class="mission-recent-icon"
                   aria-hidden="true"
@@ -20302,6 +20364,9 @@
                 </div>
 
                 <div class="mission-recent-copy">
+                  <div class="mission-recent-category">
+                    ${escapeHtml(getBuild89ActivityType(item))}
+                  </div>
                   <div class="mission-recent-title">
                     ${escapeHtml(item.title)}
                   </div>
@@ -22724,6 +22789,7 @@
         renderOperationsIntelligence();
         renderMissionControlStatuses();
         updateOperationsPanel();
+        scheduleBuild89Phase3ReactiveRender({ immediate: true });
       });
     }
 
@@ -22732,6 +22798,7 @@
     updateOperationsPanel();
     initializeOperationalData();
     startPlayerHeartbeatAutoRefresh();
+    startBuild89Phase3HealthRefresh();
 
     setInterval(
       refreshDashboard,
