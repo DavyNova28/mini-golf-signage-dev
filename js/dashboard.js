@@ -4627,10 +4627,8 @@
         runGoLiveReadinessCheck();
         renderRolloutAssistant();
         startAutomaticHealthChecks();
-        startPlayerHeartbeatAutoRefresh();
       } else {
         stopAutomaticHealthChecks();
-        stopPlayerHeartbeatAutoRefresh();
       }
     }
 
@@ -10518,7 +10516,7 @@
           error.message ||
           "The GitHub image scan failed.";
 
-        throw error;
+        return [];
 
       } finally {
         scanImageHealthButton.disabled =
@@ -14598,19 +14596,24 @@
         EXPECTED_PLAYER_VERSION;
     }
 
-    function loadSystemHealth() {
-      refreshSystemHealthButton.disabled = true;
-      refreshSystemHealthButton.textContent = "Loading…";
-      healthLastUpdated.textContent = "Reading Apps Script telemetry…";
-      healthErrorBox.className = "health-error-box";
-      healthErrorBox.textContent = "";
+    function loadSystemHealth(options = {}) {
+      const background = options.background === true;
 
-      const callbackName = `systemHealthCallback_${Date.now()}`;
-      const script = document.createElement("script");
-      const separator = SCHEDULE_FEED_URL.includes("?") ? "&" : "?";
+      if (!background) {
+        refreshSystemHealthButton.disabled = true;
+        refreshSystemHealthButton.textContent = "Loading…";
+        healthLastUpdated.textContent = "Reading Apps Script telemetry…";
+        healthErrorBox.className = "health-error-box";
+        healthErrorBox.textContent = "";
+      }
 
-      window[callbackName] = function(payload) {
-        try {
+      return new Promise(function(resolve, reject) {
+        const callbackName = `systemHealthCallback_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const script = document.createElement("script");
+        const separator = SCHEDULE_FEED_URL.includes("?") ? "&" : "?";
+
+        window[callbackName] = function(payload) {
+          try {
           if (!payload || payload.success !== true || !payload.telemetry) {
             if (
               payload &&
@@ -14644,35 +14647,48 @@
                 : "System Health returned no telemetry."
             );
           }
-          renderSystemHealth(payload.telemetry);
-        } catch (error) {
-          showSystemHealthError(error.message || "System Health could not be loaded.");
-        } finally {
-          cleanupSystemHealthRequest(callbackName, script);
-        }
-      };
+            renderSystemHealth(payload.telemetry);
+            runGoLiveReadinessCheck();
+            renderRolloutAssistant();
+            renderOperationsIntelligence();
+            resolve(payload.telemetry);
+          } catch (error) {
+            showSystemHealthError(error.message || "System Health could not be loaded.");
+            resolve(null);
+          } finally {
+            cleanupSystemHealthRequest(callbackName, script, background);
+          }
+        };
 
-      script.onerror = function() {
-        showSystemHealthError("Could not connect to the Apps Script health endpoint.");
-        cleanupSystemHealthRequest(callbackName, script);
-      };
+        script.onerror = function() {
+          const error = new Error("Could not connect to the Apps Script health endpoint.");
+          showSystemHealthError(error.message);
+          cleanupSystemHealthRequest(callbackName, script, background);
+          resolve(null);
+        };
 
-      script.src = `${SCHEDULE_FEED_URL}${separator}action=healthManager&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
-      document.head.appendChild(script);
+        script.src = `${SCHEDULE_FEED_URL}${separator}action=healthManager&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+        document.head.appendChild(script);
 
-      setTimeout(function() {
-        if (typeof window[callbackName] === "function") {
-          showSystemHealthError("The Apps Script health request timed out.");
-          cleanupSystemHealthRequest(callbackName, script);
-        }
-      }, 20000);
+        setTimeout(function() {
+          if (typeof window[callbackName] === "function") {
+            const error = new Error("The Apps Script health request timed out.");
+            showSystemHealthError(error.message);
+            cleanupSystemHealthRequest(callbackName, script, background);
+            resolve(null);
+          }
+        }, 20000);
+      });
     }
 
-    function cleanupSystemHealthRequest(callbackName, script) {
+    function cleanupSystemHealthRequest(callbackName, script, background = false) {
       if (script && script.remove) script.remove();
       try { delete window[callbackName]; } catch (error) { window[callbackName] = undefined; }
-      refreshSystemHealthButton.disabled = false;
-      refreshSystemHealthButton.textContent = "Refresh health";
+
+      if (!background) {
+        refreshSystemHealthButton.disabled = false;
+        refreshSystemHealthButton.textContent = "Refresh health";
+      }
     }
 
     function renderSystemHealth(telemetry) {
@@ -16142,15 +16158,19 @@
      * PLAYER HEARTBEAT
      */
 
-    async function loadPlayerHeartbeats() {
-      refreshPlayerHeartbeatsButton.disabled =
-        true;
+    async function loadPlayerHeartbeats(options = {}) {
+      const background = options.background === true;
 
-      refreshPlayerHeartbeatsButton.textContent =
-        "Loading…";
+      if (!background) {
+        refreshPlayerHeartbeatsButton.disabled =
+          true;
 
-      playerHeartbeatSummary.textContent =
-        "Reading player heartbeat data…";
+        refreshPlayerHeartbeatsButton.textContent =
+          "Loading…";
+
+        playerHeartbeatSummary.textContent =
+          "Reading player heartbeat data…";
+      }
 
       try {
         const payload =
@@ -16174,6 +16194,12 @@
           payload.players
         );
 
+        runGoLiveReadinessCheck();
+        renderRolloutAssistant();
+        renderOperationsIntelligence();
+
+        return payload.players;
+
       } catch (error) {
         console.warn(
           "Live heartbeat request failed; using last-known player state.",
@@ -16187,12 +16213,16 @@
         playerHeartbeatMeta.textContent =
           "Live heartbeat data could not be refreshed. Last-known player state is being shown.";
 
-      } finally {
-        refreshPlayerHeartbeatsButton.disabled =
-          false;
+        return [];
 
-        refreshPlayerHeartbeatsButton.textContent =
-          "Refresh players";
+      } finally {
+        if (!background) {
+          refreshPlayerHeartbeatsButton.disabled =
+            false;
+
+          refreshPlayerHeartbeatsButton.textContent =
+            "Refresh players";
+        }
       }
     }
 
@@ -16203,13 +16233,16 @@
       playerHeartbeatRefreshTimer =
         setInterval(
           function() {
-            if (
+            const systemHealthVisible =
               systemHealthWorkspace.classList.contains(
                 "active"
-              )
-            ) {
-              loadPlayerHeartbeats();
-            }
+              );
+
+            loadPlayerHeartbeats({
+              background: !systemHealthVisible
+            }).catch(function() {
+              // The last-known heartbeat memory remains visible when a refresh fails.
+            });
           },
           30 * 1000
         );
@@ -22268,9 +22301,44 @@
     setupMissionConfidenceBanner();
     setupMissionQuickActions();
 
+    function initializeOperationalData() {
+      const healthRequest =
+        loadSystemHealth({
+          background: true
+        }).catch(function(error) {
+          console.warn(
+            "Background System Health initialization failed.",
+            error
+          );
+        });
+
+      const heartbeatRequest =
+        loadPlayerHeartbeats({
+          background: true
+        }).catch(function(error) {
+          console.warn(
+            "Background heartbeat initialization failed.",
+            error
+          );
+        });
+
+      Promise.allSettled([
+        healthRequest,
+        heartbeatRequest
+      ]).then(function() {
+        runGoLiveReadinessCheck();
+        renderRolloutAssistant();
+        renderOperationsIntelligence();
+        renderMissionControlStatuses();
+        updateOperationsPanel();
+      });
+    }
+
     openWorkspace("home");
     refreshDashboard();
     updateOperationsPanel();
+    initializeOperationalData();
+    startPlayerHeartbeatAutoRefresh();
 
     setInterval(
       refreshDashboard,
