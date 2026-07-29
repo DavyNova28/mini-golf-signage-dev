@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "89.4",
-  "phase": "4",
-  "label": "Build 89 Phase 4 \u2014 Release Polish",
+  "build": "89.4.1",
+  "phase": "4.1",
+  "label": "Build 89 Phase 4.1 — Rollout Interaction Fix",
   "releasedAt": "2026-07-29",
-  "name": "Build 89 Phase 4"
+  "name": "Build 89 Phase 4.1"
 }

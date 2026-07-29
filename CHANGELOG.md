@@ -1,3 +1,9 @@
+## Build 89 Phase 4.1
+
+- Prevented automatic telemetry refreshes from replacing Rollout Assistant buttons during an active mouse or pointer interaction.
+- Queued any interrupted Rollout Assistant redraw and applied it immediately after the click completes.
+- Preserved rollout stages, readiness logic, heartbeat behavior, Health Score calculations, and all Phase 4 interface refinements.
+
 ## Build 89 Phase 4
 
 - Polished the Player Details and Version Compliance drawer for release readiness.
