@@ -8136,3 +8136,83 @@ html[data-theme="light"] .daily-calendar-now-label {
   color: #ffffff;
   background: #24364d;
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.2 DEVELOPMENT — BUILD 86
+ * STATE RELIABILITY
+ * =========================================================
+ */
+
+.player-heartbeat-card.stale {
+  border-color: rgba(242, 170, 63, 0.6);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(242, 170, 63, 0.09),
+      transparent 58%
+    ),
+    var(--surface-light);
+}
+
+.player-heartbeat-status.stale {
+  color: #ffe2a6;
+  border-color: rgba(242, 170, 63, 0.5);
+  background: rgba(105, 67, 15, 0.48);
+}
+
+.player-heartbeat-confirmation {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.rollout-live-readiness {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-top: 10px;
+  padding: 9px 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  color: var(--muted);
+  background: var(--surface);
+
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.rollout-stage-card-deployed {
+  box-shadow:
+    inset 3px 0 0 rgba(54, 201, 135, 0.72);
+}
+
+.rollout-stage-card-testing {
+  box-shadow:
+    inset 3px 0 0 rgba(93, 170, 255, 0.68);
+}
+
+.rollout-stage-card-not-started {
+  box-shadow:
+    inset 3px 0 0 rgba(135, 148, 171, 0.46);
+}
+
+html[data-theme="light"] .player-heartbeat-card.stale {
+  border-color: #c58a25;
+  background: #fff7e8;
+}
+
+html[data-theme="light"] .player-heartbeat-status.stale {
+  color: #704a0d;
+  border-color: #d6a34c;
+  background: #ffe8b8;
+}
+
+html[data-theme="light"] .rollout-live-readiness {
+  background: #f6f8fb;
+}
