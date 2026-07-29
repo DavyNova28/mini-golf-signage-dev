@@ -1,3 +1,9 @@
+## Build 89 Phase 3.1
+
+- Restored the Back to players control in the interactive drawer.
+- Added heartbeat-memory fallback for player versions, including non-scheduled players such as ArcadeSunday.
+- Kept Health Score telemetry-driven; a stable 94/100 reflects current measured telemetry rather than a refresh failure.
+
 # Changelog
 
 ## Build 89 — Phase 2 Interactive Dashboard
