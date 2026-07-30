@@ -1870,6 +1870,37 @@
         "rolloutAssistantList"
       );
 
+
+    const rolloutBulkSelectedCount =
+      document.getElementById(
+        "rolloutBulkSelectedCount"
+      );
+
+    const rolloutBulkSelectAllButton =
+      document.getElementById(
+        "rolloutBulkSelectAllButton"
+      );
+
+    const rolloutBulkClearSelectionButton =
+      document.getElementById(
+        "rolloutBulkClearSelectionButton"
+      );
+
+    const rolloutBulkStageSelect =
+      document.getElementById(
+        "rolloutBulkStageSelect"
+      );
+
+    const rolloutBulkApplyButton =
+      document.getElementById(
+        "rolloutBulkApplyButton"
+      );
+
+    const rolloutBulkHelp =
+      document.getElementById(
+        "rolloutBulkHelp"
+      );
+
     const rolloutActivityList =
       document.getElementById(
         "rolloutActivityList"
@@ -1884,6 +1915,10 @@
       document.getElementById(
         "clearRolloutActivityButton"
       );
+
+
+    const selectedRolloutScreens =
+      new Set();
 
     let rolloutAssistantMarkup =
       "";
@@ -14664,6 +14699,67 @@
         }
       );
 
+
+      if (
+        rolloutBulkSelectAllButton
+      ) {
+        rolloutBulkSelectAllButton.addEventListener(
+          "click",
+          function() {
+            const allSelected =
+              SCREEN_NAMES.every(
+                screenName =>
+                  selectedRolloutScreens.has(
+                    screenName
+                  )
+              );
+
+            selectedRolloutScreens.clear();
+
+            if (!allSelected) {
+              SCREEN_NAMES.forEach(
+                screenName =>
+                  selectedRolloutScreens.add(
+                    screenName
+                  )
+              );
+            }
+
+            syncRolloutBulkSelectionUi();
+          }
+        );
+      }
+
+      if (
+        rolloutBulkClearSelectionButton
+      ) {
+        rolloutBulkClearSelectionButton.addEventListener(
+          "click",
+          function() {
+            selectedRolloutScreens.clear();
+            syncRolloutBulkSelectionUi();
+          }
+        );
+      }
+
+      if (
+        rolloutBulkApplyButton
+      ) {
+        rolloutBulkApplyButton.addEventListener(
+          "click",
+          applyBulkRolloutStage
+        );
+      }
+
+      if (
+        rolloutBulkStageSelect
+      ) {
+        rolloutBulkStageSelect.addEventListener(
+          "change",
+          updateRolloutBulkHelp
+        );
+      }
+
       if (
         clearRolloutActivityButton
       ) {
@@ -21315,7 +21411,7 @@
 
                   <div class="rollout-activity-time">
                     ${escapeHtml(formatRolloutActivityTime(entry.changedAt))}
-                    ${entry.source === "reset" ? " · Rollout reset" : ""}
+                    ${entry.source === "reset" ? " · Rollout reset" : entry.source === "bulk" ? " · Bulk action" : ""}
                   </div>
                 </div>
               </li>
@@ -21333,6 +21429,237 @@
         rolloutActivityList.innerHTML =
           nextMarkup;
       }
+    }
+
+
+
+    function updateRolloutBulkHelp() {
+      if (
+        !rolloutBulkHelp ||
+        !rolloutBulkStageSelect
+      ) {
+        return;
+      }
+
+      rolloutBulkHelp.textContent =
+        rolloutBulkStageSelect.value === "deployed"
+          ? "Marking screens Deployed still requires each selected screen to pass its live readiness checks."
+          : "The selected stage will be applied only to screens whose stage actually changes.";
+    }
+
+
+    function syncRolloutBulkSelectionUi() {
+      const selectedCount =
+        selectedRolloutScreens.size;
+
+      if (
+        rolloutBulkSelectedCount
+      ) {
+        rolloutBulkSelectedCount.textContent =
+          `${selectedCount} selected`;
+      }
+
+      if (
+        rolloutBulkApplyButton
+      ) {
+        rolloutBulkApplyButton.disabled =
+          selectedCount === 0;
+      }
+
+      if (
+        rolloutBulkClearSelectionButton
+      ) {
+        rolloutBulkClearSelectionButton.disabled =
+          selectedCount === 0;
+      }
+
+      if (
+        rolloutBulkSelectAllButton
+      ) {
+        const allSelected =
+          SCREEN_NAMES.length > 0 &&
+          SCREEN_NAMES.every(
+            screenName =>
+              selectedRolloutScreens.has(
+                screenName
+              )
+          );
+
+        rolloutBulkSelectAllButton.textContent =
+          allSelected
+            ? "Deselect all"
+            : "Select all";
+      }
+
+      if (
+        rolloutAssistantList
+      ) {
+        rolloutAssistantList
+          .querySelectorAll(
+            "[data-rollout-select]"
+          )
+          .forEach(
+            checkbox => {
+              const screenName =
+                checkbox.getAttribute(
+                  "data-rollout-select"
+                );
+
+              checkbox.checked =
+                selectedRolloutScreens.has(
+                  screenName
+                );
+
+              const card =
+                checkbox.closest(
+                  ".rollout-card"
+                );
+
+              if (card) {
+                card.classList.toggle(
+                  "rollout-card-selected",
+                  checkbox.checked
+                );
+              }
+            }
+          );
+      }
+
+      updateRolloutBulkHelp();
+    }
+
+
+    function applyBulkRolloutStage() {
+      if (
+        !rolloutBulkStageSelect ||
+        selectedRolloutScreens.size === 0
+      ) {
+        return;
+      }
+
+      const stage =
+        rolloutBulkStageSelect.value;
+
+      if (
+        ![
+          "not-started",
+          "testing",
+          "deployed"
+        ].includes(stage)
+      ) {
+        showRolloutMessage(
+          "Choose a valid deployment stage.",
+          "error"
+        );
+
+        return;
+      }
+
+      const screenNames =
+        Array.from(
+          selectedRolloutScreens
+        );
+
+      const changingScreens =
+        screenNames.filter(
+          screenName =>
+            getRolloutStage(
+              screenName
+            ) !== stage
+        );
+
+      if (
+        changingScreens.length === 0
+      ) {
+        showRolloutMessage(
+          `All ${screenNames.length} selected screen${screenNames.length === 1 ? "" : "s"} are already marked ${getRolloutStageLabel(stage)}.`,
+          "success"
+        );
+
+        return;
+      }
+
+      const blockedScreens =
+        stage === "deployed"
+          ? changingScreens.filter(
+              screenName =>
+                getRolloutStateForScreen(
+                  screenName
+                ).state !== "ready"
+            )
+          : [];
+
+      const eligibleScreens =
+        changingScreens.filter(
+          screenName =>
+            !blockedScreens.includes(
+              screenName
+            )
+        );
+
+      if (
+        eligibleScreens.length === 0
+      ) {
+        showRolloutMessage(
+          `None of the selected screens can be marked Deployed yet. ${blockedScreens.join(", ")} must pass live readiness first.`,
+          "error"
+        );
+
+        return;
+      }
+
+      const confirmationDetails =
+        blockedScreens.length > 0
+          ? ` ${blockedScreens.length} screen${blockedScreens.length === 1 ? "" : "s"} will be skipped because live readiness is not Ready.`
+          : "";
+
+      if (
+        !window.confirm(
+          `Mark ${eligibleScreens.length} selected screen${eligibleScreens.length === 1 ? "" : "s"} as ${getRolloutStageLabel(stage)}?${confirmationDetails}`
+        )
+      ) {
+        return;
+      }
+
+      eligibleScreens.forEach(
+        screenName => {
+          const previousStage =
+            getRolloutStage(
+              screenName
+            );
+
+          rolloutProgress[
+            screenName
+          ] =
+            stage;
+
+          recordRolloutActivity(
+            screenName,
+            previousStage,
+            stage,
+            "bulk"
+          );
+        }
+      );
+
+      persistRolloutProgress();
+      renderRolloutAssistant();
+      syncRolloutBulkSelectionUi();
+
+      const successMessage =
+        `${eligibleScreens.length} screen${eligibleScreens.length === 1 ? "" : "s"} marked ${getRolloutStageLabel(stage)}.`;
+
+      const skippedMessage =
+        blockedScreens.length > 0
+          ? ` ${blockedScreens.length} skipped: ${blockedScreens.join(", ")}.`
+          : "";
+
+      showRolloutMessage(
+        successMessage + skippedMessage,
+        blockedScreens.length > 0
+          ? "error"
+          : "success"
+      );
     }
 
 
@@ -21888,11 +22215,21 @@
                   : "Not reported";
 
               return `
-                <article class="rollout-card rollout-stage-card-${getRolloutStage(item.screenName)}">
+                <article class="rollout-card rollout-stage-card-${getRolloutStage(item.screenName)} ${selectedRolloutScreens.has(item.screenName) ? "rollout-card-selected" : ""}">
                   <div class="rollout-card-header">
-                    <div class="rollout-screen-name">
-                      ${escapeHtml(item.screenName)}
-                    </div>
+                    <label class="rollout-card-selector">
+                      <input
+                        type="checkbox"
+                        data-rollout-select="${escapeHtml(item.screenName)}"
+                        ${selectedRolloutScreens.has(item.screenName) ? "checked" : ""}
+                      >
+
+                      <span class="rollout-card-selector-box" aria-hidden="true"></span>
+
+                      <span class="rollout-screen-name">
+                        ${escapeHtml(item.screenName)}
+                      </span>
+                    </label>
 
                     <div class="rollout-stage rollout-stage-${getRolloutStage(item.screenName)}">
                       ${
@@ -22244,6 +22581,55 @@
           );
         }
       }
+
+
+
+      rolloutAssistantList.addEventListener(
+        "change",
+        function(event) {
+          const checkbox =
+            event.target.closest(
+              "[data-rollout-select]"
+            );
+
+          if (
+            !checkbox ||
+            !rolloutAssistantList.contains(
+              checkbox
+            )
+          ) {
+            return;
+          }
+
+          const screenName =
+            checkbox.getAttribute(
+              "data-rollout-select"
+            );
+
+          if (
+            !SCREEN_NAMES.includes(
+              screenName
+            )
+          ) {
+            return;
+          }
+
+          if (
+            checkbox.checked
+          ) {
+            selectedRolloutScreens.add(
+              screenName
+            );
+
+          } else {
+            selectedRolloutScreens.delete(
+              screenName
+            );
+          }
+
+          syncRolloutBulkSelectionUi();
+        }
+      );
 
 
       rolloutAssistantList.addEventListener(
@@ -23446,6 +23832,7 @@
     setupDailyScheduleCalendar();
     setupSystemHealth();
     setupRolloutAssistantInteractions();
+    syncRolloutBulkSelectionUi();
     renderRolloutActivity();
     initializeDraftRecovery();
     initializeScheduleTemplates();
