@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=90.4">
+    <link rel="stylesheet" href="css/dashboard.css?build=100">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
-  <meta name="dashboard-version" content="1.2-development">
-  <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="90.4">
+  <meta name="dashboard-version" content="1.2.0">
+  <meta name="dashboard-channel" content="stable">
+  <meta name="dashboard-build" content="100">
 </head>
 
 <body>
@@ -310,8 +310,8 @@
     >
       <section class="mission-hero">
         <div class="mission-hero-copy">
-          <div class="mission-version-badge">
-            Version 1.2 Development
+          <div id="applicationVersionBadge" class="mission-version-badge">
+            Version 1.2 Stable
           </div>
 
           <h2
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span>Build 89</span>
+            <span id="applicationBuildLabel">Build 100</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -4222,8 +4222,8 @@
             Mini Golf Signage Manager
           </div>
 
-          <div class="about-product-version">
-            Version 1.2 Development · Build 84
+          <div id="aboutApplicationVersion" class="about-product-version">
+            Version 1.2 Stable · Build 100
           </div>
 
           <div
@@ -4303,12 +4303,12 @@
 
       <div class="release-notes-current">
         <div>
-          <div class="release-notes-version">
-            Version 1.2 Development
+          <div id="releaseNotesCurrentVersion" class="release-notes-version">
+            Version 1.2 Stable
           </div>
 
-          <div class="release-notes-build">
-            Build 84 · Stable Release
+          <div id="releaseNotesCurrentBuild" class="release-notes-build">
+            Build 100 · Stable Release
           </div>
         </div>
 
@@ -4318,6 +4318,16 @@
       </div>
 
       <div class="release-notes-list">
+        <article class="release-note-entry">
+          <div class="release-note-build">Build 100</div>
+          <h3>Version 1.2 Stable</h3>
+          <p>
+            Finalized the Version 1.2 release identity, synchronized Home,
+            About, Release Notes, diagnostics, and metadata through one
+            version.json source, and prepared the v1.2.0 production release.
+          </p>
+        </article>
+
         <article class="release-note-entry">
           <div class="release-note-build">Build 87</div>
           <h3>Operational Awareness</h3>
@@ -4515,7 +4525,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=90.4" defer></script>
+    <script src="js/dashboard.js?build=100" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
