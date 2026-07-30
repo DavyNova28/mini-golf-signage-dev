@@ -1864,6 +1864,9 @@
         "rolloutAssistantList"
       );
 
+    let rolloutAssistantMarkup =
+      "";
+
     const rolloutAssistantMessage =
       document.getElementById(
         "rolloutAssistantMessage"
@@ -21469,7 +21472,7 @@
         `Deployment: ${testingCount} testing · ` +
         `${deployedCount} deployed`;
 
-      rolloutAssistantList.innerHTML =
+      const nextRolloutAssistantMarkup =
         states
           .map(
             item => {
@@ -21616,6 +21619,17 @@
             }
           )
           .join("");
+
+      if (
+        nextRolloutAssistantMarkup !==
+        rolloutAssistantMarkup
+      ) {
+        rolloutAssistantMarkup =
+          nextRolloutAssistantMarkup;
+
+        rolloutAssistantList.innerHTML =
+          nextRolloutAssistantMarkup;
+      }
 
     }
 
