@@ -655,6 +655,12 @@
     const ROLLOUT_PROGRESS_STORAGE_KEY =
       "miniGolfRolloutProgressV1";
 
+    const ROLLOUT_ACTIVITY_STORAGE_KEY =
+      "miniGolfRolloutActivityV1";
+
+    const ROLLOUT_ACTIVITY_MAX_ENTRIES =
+      100;
+
     const DASHBOARD_OFFLINE_STORAGE_KEY =
       "miniGolfDashboardOfflineSnapshotV1";
 
@@ -1864,7 +1870,25 @@
         "rolloutAssistantList"
       );
 
+    const rolloutActivityList =
+      document.getElementById(
+        "rolloutActivityList"
+      );
+
+    const rolloutActivityEmpty =
+      document.getElementById(
+        "rolloutActivityEmpty"
+      );
+
+    const clearRolloutActivityButton =
+      document.getElementById(
+        "clearRolloutActivityButton"
+      );
+
     let rolloutAssistantMarkup =
+      "";
+
+    let rolloutActivityMarkup =
       "";
 
     let rolloutMessageTimer =
@@ -2497,6 +2521,9 @@
 
     let rolloutProgress =
       readRolloutProgress();
+
+    let rolloutActivity =
+      readRolloutActivity();
 
     let calendarCursor =
       new Date();
@@ -14595,10 +14622,39 @@
             return;
           }
 
+          const previousStages =
+            SCREEN_NAMES.map(
+              screenName => ({
+                screenName:
+                  screenName,
+
+                stage:
+                  getRolloutStage(
+                    screenName
+                  )
+              })
+            );
+
           rolloutProgress =
             {};
 
           persistRolloutProgress();
+
+          previousStages.forEach(
+            item => {
+              if (
+                item.stage !== "not-started"
+              ) {
+                recordRolloutActivity(
+                  item.screenName,
+                  item.stage,
+                  "not-started",
+                  "reset"
+                );
+              }
+            }
+          );
+
           renderRolloutAssistant();
 
           showRolloutMessage(
@@ -14607,6 +14663,49 @@
           );
         }
       );
+
+      if (
+        clearRolloutActivityButton
+      ) {
+        clearRolloutActivityButton.addEventListener(
+          "click",
+          function() {
+            if (
+              rolloutActivity.length === 0
+            ) {
+              showRolloutMessage(
+                "The rollout activity log is already empty.",
+                "success"
+              );
+
+              return;
+            }
+
+            if (
+              !window.confirm(
+                "Clear the rollout deployment history on this browser?"
+              )
+            ) {
+              return;
+            }
+
+            rolloutActivity =
+              [];
+
+            persistRolloutActivity();
+            rolloutActivityMarkup =
+              "";
+
+            renderRolloutActivity();
+            renderRolloutAssistant();
+
+            showRolloutMessage(
+              "Rollout deployment history was cleared.",
+              "success"
+            );
+          }
+        );
+      }
 
       expectedPlayerVersionLabel.textContent =
         EXPECTED_PLAYER_VERSION;
@@ -21030,6 +21129,213 @@
      * =====================================================
      */
 
+    function readRolloutActivity() {
+      try {
+        const raw =
+          localStorage.getItem(
+            ROLLOUT_ACTIVITY_STORAGE_KEY
+          );
+
+        if (!raw) {
+          return [];
+        }
+
+        const parsed =
+          JSON.parse(raw);
+
+        return Array.isArray(parsed)
+          ? parsed
+              .filter(
+                entry =>
+                  entry &&
+                  typeof entry === "object" &&
+                  typeof entry.screenName === "string" &&
+                  typeof entry.toStage === "string" &&
+                  typeof entry.changedAt === "string"
+              )
+              .slice(
+                0,
+                ROLLOUT_ACTIVITY_MAX_ENTRIES
+              )
+          : [];
+
+      } catch (error) {
+        return [];
+      }
+    }
+
+
+    function persistRolloutActivity() {
+      try {
+        localStorage.setItem(
+          ROLLOUT_ACTIVITY_STORAGE_KEY,
+          JSON.stringify(
+            rolloutActivity
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Could not save rollout activity.",
+          error
+        );
+      }
+    }
+
+
+    function getRolloutStageLabel(stage) {
+      if (stage === "testing") {
+        return "Testing";
+      }
+
+      if (stage === "deployed") {
+        return "Deployed";
+      }
+
+      return "Not started";
+    }
+
+
+    function recordRolloutActivity(
+      screenName,
+      fromStage,
+      toStage,
+      source = "manual"
+    ) {
+      if (
+        !screenName ||
+        fromStage === toStage
+      ) {
+        return;
+      }
+
+      rolloutActivity.unshift({
+        id:
+          `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+
+        screenName:
+          screenName,
+
+        fromStage:
+          fromStage,
+
+        toStage:
+          toStage,
+
+        source:
+          source,
+
+        changedAt:
+          new Date().toISOString()
+      });
+
+      rolloutActivity =
+        rolloutActivity.slice(
+          0,
+          ROLLOUT_ACTIVITY_MAX_ENTRIES
+        );
+
+      persistRolloutActivity();
+      renderRolloutActivity();
+    }
+
+
+    function formatRolloutActivityTime(
+      changedAt
+    ) {
+      const date =
+        new Date(changedAt);
+
+      if (
+        !Number.isFinite(
+          date.getTime()
+        )
+      ) {
+        return "Unknown time";
+      }
+
+      return date.toLocaleString(
+        undefined,
+        {
+          dateStyle:
+            "medium",
+
+          timeStyle:
+            "short"
+        }
+      );
+    }
+
+
+    function getRolloutHistoryForScreen(
+      screenName,
+      limit = 3
+    ) {
+      return rolloutActivity
+        .filter(
+          entry =>
+            entry.screenName ===
+            screenName
+        )
+        .slice(
+          0,
+          limit
+        );
+    }
+
+
+    function renderRolloutActivity() {
+      if (
+        !rolloutActivityList ||
+        !rolloutActivityEmpty
+      ) {
+        return;
+      }
+
+      rolloutActivityEmpty.hidden =
+        rolloutActivity.length > 0;
+
+      const nextMarkup =
+        rolloutActivity
+          .map(
+            entry => `
+              <li class="rollout-activity-item">
+                <div class="rollout-activity-icon" aria-hidden="true">
+                  ${entry.toStage === "deployed" ? "✓" : entry.toStage === "testing" ? "◐" : "↺"}
+                </div>
+
+                <div class="rollout-activity-body">
+                  <div class="rollout-activity-title">
+                    <strong>${escapeHtml(entry.screenName)}</strong>
+                    <span>${escapeHtml(getRolloutStageLabel(entry.fromStage))}</span>
+                    <span aria-hidden="true">→</span>
+                    <span class="rollout-activity-stage rollout-activity-stage-${escapeHtml(entry.toStage)}">
+                      ${escapeHtml(getRolloutStageLabel(entry.toStage))}
+                    </span>
+                  </div>
+
+                  <div class="rollout-activity-time">
+                    ${escapeHtml(formatRolloutActivityTime(entry.changedAt))}
+                    ${entry.source === "reset" ? " · Rollout reset" : ""}
+                  </div>
+                </div>
+              </li>
+            `
+          )
+          .join("");
+
+      if (
+        nextMarkup !==
+        rolloutActivityMarkup
+      ) {
+        rolloutActivityMarkup =
+          nextMarkup;
+
+        rolloutActivityList.innerHTML =
+          nextMarkup;
+      }
+    }
+
+
     function readRolloutProgress() {
       try {
         const raw =
@@ -21095,6 +21401,22 @@
       screenName,
       stage
     ) {
+      const previousStage =
+        getRolloutStage(
+          screenName
+        );
+
+      if (
+        previousStage === stage
+      ) {
+        showRolloutMessage(
+          `${screenName} is already marked ${getRolloutStageLabel(stage)}.`,
+          "success"
+        );
+
+        return;
+      }
+
       const state =
         getRolloutStateForScreen(
           screenName
@@ -21118,6 +21440,13 @@
         stage;
 
       persistRolloutProgress();
+
+      recordRolloutActivity(
+        screenName,
+        previousStage,
+        stage
+      );
+
       renderRolloutAssistant();
 
       showRolloutMessage(
@@ -21618,6 +21947,54 @@
                       ${escapeHtml(item.notes.join(" · "))}
                     </div>
                   </div>
+
+                  ${
+                    (() => {
+                      const history =
+                        getRolloutHistoryForScreen(
+                          item.screenName,
+                          3
+                        );
+
+                      if (
+                        history.length === 0
+                      ) {
+                        return `
+                          <div class="rollout-card-history rollout-card-history-empty">
+                            No deployment-stage changes recorded yet.
+                          </div>
+                        `;
+                      }
+
+                      return `
+                        <details class="rollout-card-history">
+                          <summary>
+                            Recent deployment history
+                          </summary>
+
+                          <ol>
+                            ${history
+                              .map(
+                                entry => `
+                                  <li>
+                                    <span>
+                                      ${escapeHtml(getRolloutStageLabel(entry.fromStage))}
+                                      →
+                                      <strong>${escapeHtml(getRolloutStageLabel(entry.toStage))}</strong>
+                                    </span>
+
+                                    <time datetime="${escapeHtml(entry.changedAt)}">
+                                      ${escapeHtml(formatRolloutActivityTime(entry.changedAt))}
+                                    </time>
+                                  </li>
+                                `
+                              )
+                              .join("")}
+                          </ol>
+                        </details>
+                      `;
+                    })()
+                  }
 
                   <div class="rollout-progress-summary">
                     ${
@@ -23069,6 +23446,7 @@
     setupDailyScheduleCalendar();
     setupSystemHealth();
     setupRolloutAssistantInteractions();
+    renderRolloutActivity();
     initializeDraftRecovery();
     initializeScheduleTemplates();
     loadPlayerHeartbeatMemory();
