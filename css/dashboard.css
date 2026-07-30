@@ -9168,3 +9168,186 @@ html[data-theme="light"] .rollout-heartbeat-sleeping { background: #f1f5f9; }
     text-align: left;
   }
 }
+
+
+/* =========================================================
+   BUILD 90.2 — DEPLOYMENT HISTORY AND ACTIVITY LOG
+   ========================================================= */
+
+.rollout-card-history {
+  margin-top: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  background: rgba(11, 18, 32, 0.28);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.rollout-card-history summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  color: var(--text);
+  font-weight: 700;
+  list-style-position: inside;
+  user-select: none;
+}
+
+.rollout-card-history[open] summary {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.rollout-card-history ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px 12px 28px;
+}
+
+.rollout-card-history li {
+  padding-left: 2px;
+}
+
+.rollout-card-history li span,
+.rollout-card-history li time {
+  display: block;
+}
+
+.rollout-card-history li time {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.rollout-card-history-empty {
+  padding: 10px 12px;
+}
+
+.rollout-activity-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  background: rgba(8, 14, 26, 0.38);
+}
+
+.rollout-activity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rollout-activity-header h4 {
+  margin: 5px 0 0;
+  font-size: 1.02rem;
+}
+
+.rollout-activity-header .manager-description {
+  margin: 7px 0 0;
+}
+
+.rollout-activity-empty {
+  margin: 16px 0 0;
+  padding: 14px;
+  border: 1px dashed rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rollout-activity-list {
+  display: grid;
+  gap: 9px;
+  max-height: 420px;
+  margin: 16px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.rollout-activity-list:empty {
+  display: none;
+}
+
+.rollout-activity-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.rollout-activity-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(63, 214, 183, 0.12);
+  color: #4de0bd;
+  font-weight: 800;
+}
+
+.rollout-activity-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.rollout-activity-title > span:not(.rollout-activity-stage) {
+  color: var(--muted);
+}
+
+.rollout-activity-stage {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.rollout-activity-stage-not-started {
+  background: rgba(148, 163, 184, 0.13);
+  color: #b8c3d4;
+}
+
+.rollout-activity-stage-testing {
+  background: rgba(242, 170, 63, 0.15);
+  color: #f5bd63;
+}
+
+.rollout-activity-stage-deployed {
+  background: rgba(54, 201, 135, 0.15);
+  color: #55dca0;
+}
+
+.rollout-activity-time {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+html[data-theme="light"] .rollout-card-history,
+html[data-theme="light"] .rollout-activity-panel,
+html[data-theme="light"] .rollout-activity-item {
+  background: rgba(248, 250, 252, 0.92);
+}
+
+@media (max-width: 620px) {
+  .rollout-activity-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rollout-activity-header .button {
+    width: 100%;
+  }
+}
