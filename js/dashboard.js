@@ -20,6 +20,23 @@
     const LIVE_UPDATE_MS = 1000;
     const SIGNAGE_PAGE = "index.html";
 
+    const APPLICATION_VERSION_URL =
+      "version.json";
+
+    const APPLICATION_RELEASE_FALLBACK = {
+      version: "1.2.0",
+      displayVersion: "1.2",
+      channel: "Stable",
+      build: "100",
+      status: "Release Candidate 1",
+      tag: "v1.2.0"
+    };
+
+    let applicationRelease = {
+      ...APPLICATION_RELEASE_FALLBACK
+    };
+
+
     /*
      * One cache-busting value per dashboard session.
      * This keeps Rollout Assistant URLs stable during live
@@ -915,6 +932,32 @@
     const exportDiagnosticsButton =
       document.getElementById(
         "exportDiagnosticsButton"
+      );
+
+
+    const applicationVersionBadge =
+      document.getElementById(
+        "applicationVersionBadge"
+      );
+
+    const applicationBuildLabel =
+      document.getElementById(
+        "applicationBuildLabel"
+      );
+
+    const aboutApplicationVersion =
+      document.getElementById(
+        "aboutApplicationVersion"
+      );
+
+    const releaseNotesCurrentVersion =
+      document.getElementById(
+        "releaseNotesCurrentVersion"
+      );
+
+    const releaseNotesCurrentBuild =
+      document.getElementById(
+        "releaseNotesCurrentBuild"
       );
 
     const aboutApplicationButton =
@@ -18193,13 +18236,13 @@
               "Mini Golf Signage Manager",
 
             version:
-              "1.2.0-dev",
+              applicationRelease.version,
 
             label:
-              "Version 1.2 Development",
+              `Version ${applicationRelease.displayVersion} ${applicationRelease.channel}`,
 
             build:
-              87,
+              applicationRelease.build,
 
             environment:
               getApplicationEnvironment().key,
@@ -18446,6 +18489,169 @@
       if (returnFocusElement) {
         returnFocusElement.focus();
       }
+    }
+
+
+
+    function normalizeApplicationRelease(
+      value
+    ) {
+      const release =
+        value &&
+        typeof value === "object"
+          ? value
+          : {};
+
+      const version =
+        String(
+          release.version ||
+          APPLICATION_RELEASE_FALLBACK.version
+        );
+
+      const displayVersion =
+        String(
+          release.displayVersion ||
+          version.replace(
+            /\.0$/,
+            ""
+          )
+        );
+
+      const channel =
+        String(
+          release.channel ||
+          APPLICATION_RELEASE_FALLBACK.channel
+        );
+
+      const build =
+        String(
+          release.build ||
+          APPLICATION_RELEASE_FALLBACK.build
+        );
+
+      return {
+        ...APPLICATION_RELEASE_FALLBACK,
+        ...release,
+        version,
+        displayVersion,
+        channel,
+        build
+      };
+    }
+
+
+    function renderApplicationRelease() {
+      const release =
+        normalizeApplicationRelease(
+          applicationRelease
+        );
+
+      const versionLabel =
+        `Version ${release.displayVersion} ${release.channel}`;
+
+      const buildLabel =
+        `Build ${release.build}`;
+
+      if (
+        applicationVersionBadge
+      ) {
+        applicationVersionBadge.textContent =
+          versionLabel;
+      }
+
+      if (
+        applicationBuildLabel
+      ) {
+        applicationBuildLabel.textContent =
+          buildLabel;
+      }
+
+      if (
+        aboutApplicationVersion
+      ) {
+        aboutApplicationVersion.textContent =
+          `${versionLabel} · ${buildLabel}`;
+      }
+
+      if (
+        releaseNotesCurrentVersion
+      ) {
+        releaseNotesCurrentVersion.textContent =
+          versionLabel;
+      }
+
+      if (
+        releaseNotesCurrentBuild
+      ) {
+        releaseNotesCurrentBuild.textContent =
+          `${buildLabel} · Stable Release`;
+      }
+
+      document
+        .querySelector(
+          'meta[name="dashboard-version"]'
+        )
+        ?.setAttribute(
+          "content",
+          release.version
+        );
+
+      document
+        .querySelector(
+          'meta[name="dashboard-channel"]'
+        )
+        ?.setAttribute(
+          "content",
+          release.channel.toLowerCase()
+        );
+
+      document
+        .querySelector(
+          'meta[name="dashboard-build"]'
+        )
+        ?.setAttribute(
+          "content",
+          release.build
+        );
+    }
+
+
+    async function loadApplicationRelease() {
+      renderApplicationRelease();
+
+      try {
+        const response =
+          await fetch(
+            `${APPLICATION_VERSION_URL}?release=${encodeURIComponent(APPLICATION_RELEASE_FALLBACK.build)}`,
+            {
+              cache: "no-store"
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `Version request failed with HTTP ${response.status}.`
+          );
+        }
+
+        applicationRelease =
+          normalizeApplicationRelease(
+            await response.json()
+          );
+
+      } catch (error) {
+        console.warn(
+          "Using embedded application release information because version.json could not be loaded.",
+          error
+        );
+
+        applicationRelease =
+          normalizeApplicationRelease(
+            APPLICATION_RELEASE_FALLBACK
+          );
+      }
+
+      renderApplicationRelease();
     }
 
 
@@ -24116,6 +24322,7 @@
 
     applyDashboardBrand();
     applyThemePreference();
+    loadApplicationRelease();
 
     createScreenCards();
     setupScheduleManager();
