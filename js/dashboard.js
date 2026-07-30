@@ -21608,82 +21608,240 @@
           )
           .join("");
 
-      rolloutAssistantList
-        .querySelectorAll(
-          "[data-rollout-copy]"
-        )
-        .forEach(
-          button => {
-            button.addEventListener(
-              "click",
-              async function() {
-                const screenName =
-                  button.getAttribute(
-                    "data-rollout-copy"
-                  );
-
-                await copyRolloutUrl(
-                  screenName
-                );
-              }
-            );
-          }
-        );
-
-      rolloutAssistantList
-        .querySelectorAll(
-          "[data-rollout-open]"
-        )
-        .forEach(
-          button => {
-            button.addEventListener(
-              "click",
-              function() {
-                const screenName =
-                  button.getAttribute(
-                    "data-rollout-open"
-                  );
-
-                window.open(
-                  createRolloutPlayerUrl(
-                    screenName
-                  ),
-                  "_blank",
-                  "noopener"
-                );
-              }
-            );
-          }
-        );
-
-      rolloutAssistantList
-        .querySelectorAll(
-          "[data-rollout-stage]"
-        )
-        .forEach(
-          button => {
-            button.addEventListener(
-              "click",
-              function() {
-                const screenName =
-                  button.getAttribute(
-                    "data-rollout-screen"
-                  );
-
-                const stage =
-                  button.getAttribute(
-                    "data-rollout-stage"
-                  );
-
-                setRolloutStage(
-                  screenName,
-                  stage
-                );
-              }
-            );
-          }
-        );
     }
+
+
+    /*
+     * Rollout cards are rebuilt by background health and heartbeat
+     * renders. A rebuild between pointer-down and click can remove the
+     * original button before the browser dispatches click. Handle the
+     * primary pointer action immediately on pointer-down, and retain a
+     * delegated click path for keyboard activation.
+     */
+    function setupRolloutAssistantInteractions() {
+      if (
+        !rolloutAssistantList ||
+        rolloutAssistantList.dataset.interactionsReady === "true"
+      ) {
+        return;
+      }
+
+      rolloutAssistantList.dataset.interactionsReady =
+        "true";
+
+      let lastPointerActionAt =
+        0;
+
+      let lastPointerActionKey =
+        "";
+
+      function getRolloutAction(
+        target
+      ) {
+        if (
+          !(target instanceof Element)
+        ) {
+          return null;
+        }
+
+        const button =
+          target.closest(
+            "[data-rollout-copy], [data-rollout-open], [data-rollout-stage]"
+          );
+
+        if (
+          !button ||
+          !rolloutAssistantList.contains(
+            button
+          )
+        ) {
+          return null;
+        }
+
+        if (
+          button.disabled ||
+          button.getAttribute(
+            "aria-disabled"
+          ) === "true"
+        ) {
+          return null;
+        }
+
+        const copyScreen =
+          button.getAttribute(
+            "data-rollout-copy"
+          );
+
+        if (copyScreen) {
+          return {
+            key:
+              `copy:${copyScreen}`,
+
+            type:
+              "copy",
+
+            screenName:
+              copyScreen
+          };
+        }
+
+        const openScreen =
+          button.getAttribute(
+            "data-rollout-open"
+          );
+
+        if (openScreen) {
+          return {
+            key:
+              `open:${openScreen}`,
+
+            type:
+              "open",
+
+            screenName:
+              openScreen
+          };
+        }
+
+        const stage =
+          button.getAttribute(
+            "data-rollout-stage"
+          );
+
+        const stageScreen =
+          button.getAttribute(
+            "data-rollout-screen"
+          );
+
+        if (
+          stage &&
+          stageScreen
+        ) {
+          return {
+            key:
+              `stage:${stageScreen}:${stage}`,
+
+            type:
+              "stage",
+
+            screenName:
+              stageScreen,
+
+            stage:
+              stage
+          };
+        }
+
+        return null;
+      }
+
+
+      function runRolloutAction(
+        action
+      ) {
+        if (!action) {
+          return;
+        }
+
+        if (
+          action.type === "copy"
+        ) {
+          void copyRolloutUrl(
+            action.screenName
+          );
+
+          return;
+        }
+
+        if (
+          action.type === "open"
+        ) {
+          window.open(
+            createRolloutPlayerUrl(
+              action.screenName
+            ),
+            "_blank",
+            "noopener"
+          );
+
+          return;
+        }
+
+        if (
+          action.type === "stage"
+        ) {
+          setRolloutStage(
+            action.screenName,
+            action.stage
+          );
+        }
+      }
+
+
+      rolloutAssistantList.addEventListener(
+        "pointerdown",
+        function(event) {
+          if (
+            event.button !== 0 ||
+            event.isPrimary === false
+          ) {
+            return;
+          }
+
+          const action =
+            getRolloutAction(
+              event.target
+            );
+
+          if (!action) {
+            return;
+          }
+
+          lastPointerActionAt =
+            Date.now();
+
+          lastPointerActionKey =
+            action.key;
+
+          runRolloutAction(
+            action
+          );
+        }
+      );
+
+      rolloutAssistantList.addEventListener(
+        "click",
+        function(event) {
+          const action =
+            getRolloutAction(
+              event.target
+            );
+
+          if (!action) {
+            return;
+          }
+
+          const duplicatePointerClick =
+            action.key ===
+              lastPointerActionKey &&
+            Date.now() -
+              lastPointerActionAt <
+              1200;
+
+          if (
+            duplicatePointerClick
+          ) {
+            event.preventDefault();
+            return;
+          }
+
+          runRolloutAction(
+            action
+          );
+        }
+      );
+    }
+
 
 
     async function copyRolloutUrl(
@@ -22804,6 +22962,7 @@
     setupCompatibilityAudit();
     setupDailyScheduleCalendar();
     setupSystemHealth();
+    setupRolloutAssistantInteractions();
     initializeDraftRecovery();
     initializeScheduleTemplates();
     loadPlayerHeartbeatMemory();
