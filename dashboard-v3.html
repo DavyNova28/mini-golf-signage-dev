@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=90.1">
+    <link rel="stylesheet" href="css/dashboard.css?build=90.2">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.2-development">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="90.1">
+  <meta name="dashboard-build" content="90.2">
 </head>
 
 <body>
@@ -3255,6 +3255,47 @@
             id="rolloutAssistantList"
             class="rollout-list"
           ></div>
+
+          <section
+            class="rollout-activity-panel"
+            aria-labelledby="rolloutActivityHeading"
+          >
+            <div class="rollout-activity-header">
+              <div>
+                <div class="eyebrow">
+                  Deployment history
+                </div>
+
+                <h4 id="rolloutActivityHeading">
+                  Recent rollout activity
+                </h4>
+
+                <p class="manager-description">
+                  Records manual deployment-stage changes made in this browser.
+                </p>
+              </div>
+
+              <button
+                id="clearRolloutActivityButton"
+                class="button"
+                type="button"
+              >
+                Clear history
+              </button>
+            </div>
+
+            <p
+              id="rolloutActivityEmpty"
+              class="rollout-activity-empty"
+            >
+              No deployment-stage changes have been recorded yet.
+            </p>
+
+            <ol
+              id="rolloutActivityList"
+              class="rollout-activity-list"
+            ></ol>
+          </section>
         </section>
 
         <section class="player-version-panel">
@@ -4403,7 +4444,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=90.1" defer></script>
+    <script src="js/dashboard.js?build=90.2" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

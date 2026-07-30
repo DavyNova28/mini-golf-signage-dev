@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "90.1",
+  "build": "90.2",
   "phase": "4",
-  "label": "Build 90.1 \u2014 Live Heartbeat Cards",
+  "label": "Build 90.2 — Deployment History & Activity Log",
   "releasedAt": "2026-07-30",
-  "name": "Build 90.1"
+  "name": "Build 90.2"
 }
