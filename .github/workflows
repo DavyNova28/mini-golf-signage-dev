@@ -1,0 +1,103 @@
+name: Build image index
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.png"
+      - "**/*.jpg"
+      - "**/*.jpeg"
+      - "**/*.gif"
+      - "**/*.webp"
+      - "**/*.avif"
+      - "**/*.svg"
+      - ".github/workflows/build-image-index.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-image-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate image-index.json
+        shell: python
+        run: |
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          extensions = {
+              ".png",
+              ".jpg",
+              ".jpeg",
+              ".gif",
+              ".webp",
+              ".avif",
+              ".svg",
+          }
+
+          excluded_parts = {
+              ".git",
+              ".github",
+              "node_modules",
+          }
+
+          images = []
+
+          for path in Path(".").rglob("*"):
+              if not path.is_file():
+                  continue
+
+              if any(part in excluded_parts for part in path.parts):
+                  continue
+
+              if path.suffix.lower() not in extensions:
+                  continue
+
+              images.append(
+                  path.as_posix().removeprefix("./")
+              )
+
+          images.sort(
+              key=lambda value: value.casefold()
+          )
+
+          payload = {
+              "generatedAt": datetime.now(
+                  timezone.utc
+              ).isoformat(),
+              "count": len(images),
+              "images": images,
+          }
+
+          Path("image-index.json").write_text(
+              json.dumps(
+                  payload,
+                  ensure_ascii=False,
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+
+      - name: Commit updated index
+        run: |
+          if git diff --quiet -- image-index.json; then
+            echo "Image index is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add image-index.json
+          git commit -m "Update image index"
+          git push
