@@ -9057,3 +9057,114 @@ body.player-details-open {
     transition: none;
   }
 }
+
+
+/* =========================================================
+   BUILD 90.1 — LIVE HEARTBEAT IN ROLLOUT CARDS
+   ========================================================= */
+.rollout-heartbeat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.rollout-heartbeat-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.rollout-heartbeat-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+  background: #7f8da3;
+  box-shadow: 0 0 0 3px rgba(127, 141, 163, 0.14);
+}
+
+.rollout-heartbeat-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.rollout-heartbeat-freshness {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  text-align: right;
+}
+
+.rollout-heartbeat-timestamp {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.rollout-heartbeat-online {
+  border-color: rgba(54, 201, 135, 0.38);
+  background: rgba(25, 91, 64, 0.18);
+}
+
+.rollout-heartbeat-online .rollout-heartbeat-dot {
+  background: #36c987;
+  box-shadow: 0 0 0 3px rgba(54, 201, 135, 0.16), 0 0 12px rgba(54, 201, 135, 0.28);
+}
+
+.rollout-heartbeat-stale {
+  border-color: rgba(242, 170, 63, 0.42);
+  background: rgba(105, 67, 15, 0.2);
+}
+
+.rollout-heartbeat-stale .rollout-heartbeat-dot {
+  background: #f2aa3f;
+  box-shadow: 0 0 0 3px rgba(242, 170, 63, 0.16);
+}
+
+.rollout-heartbeat-offline {
+  border-color: rgba(255, 104, 104, 0.4);
+  background: rgba(105, 36, 36, 0.18);
+}
+
+.rollout-heartbeat-offline .rollout-heartbeat-dot {
+  background: #ff6868;
+  box-shadow: 0 0 0 3px rgba(255, 104, 104, 0.15);
+}
+
+.rollout-heartbeat-sleeping {
+  border-color: rgba(127, 148, 178, 0.38);
+  background: rgba(60, 75, 98, 0.2);
+}
+
+.rollout-heartbeat-sleeping .rollout-heartbeat-dot {
+  background: #8fa4c3;
+  box-shadow: 0 0 0 3px rgba(143, 164, 195, 0.14);
+}
+
+html[data-theme="light"] .rollout-heartbeat {
+  background: #f6f8fb;
+}
+
+html[data-theme="light"] .rollout-heartbeat-online { background: #eefaf5; }
+html[data-theme="light"] .rollout-heartbeat-stale { background: #fff8eb; }
+html[data-theme="light"] .rollout-heartbeat-offline { background: #fff1f1; }
+html[data-theme="light"] .rollout-heartbeat-sleeping { background: #f1f5f9; }
+
+@media (max-width: 620px) {
+  .rollout-heartbeat {
+    grid-template-columns: 1fr;
+  }
+
+  .rollout-heartbeat-freshness {
+    text-align: left;
+  }
+}
