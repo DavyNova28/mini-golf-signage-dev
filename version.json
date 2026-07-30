@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "89.5",
+  "build": "89.6",
   "phase": "4",
-  "label": "Build 89.5 — Rollout Interaction Reliability",
+  "label": "Build 89.6 — Rollout UI Stability",
   "releasedAt": "2026-07-29",
-  "name": "Build 89.5"
+  "name": "Build 89.6"
 }
