@@ -8978,4 +8978,82 @@ body.player-details-open {
     transition: none !important;
   }
 }
-\n\n/* =========================================================\n * BUILD 89 — PHASE 4: RELEASE POLISH\n * ========================================================= */\n\n.player-details-drawer {\n  padding: 0;\n  overscroll-behavior: contain;\n}\n\n.player-details-drawer-header {\n  position: sticky;\n  top: 0;\n  z-index: 3;\n  padding: 22px 24px 18px;\n  background: color-mix(in srgb, var(--surface) 94%, transparent);\n  backdrop-filter: blur(14px);\n}\n\n.player-details-content {\n  padding: 20px 24px 36px;\n  transition: opacity 150ms ease, transform 180ms ease;\n}\n\n.player-details-content.is-content-changing {\n  opacity: 0;\n  transform: translateX(8px);\n}\n\n.player-details-content.is-content-ready {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.player-details-close:hover,\n.player-details-back:hover,\n.player-version-drawer-row:hover {\n  border-color: color-mix(in srgb, var(--accent, #326dff) 38%, var(--border));\n}\n\n.player-details-close:focus-visible,\n.player-details-back:focus-visible,\n.player-version-drawer-row:focus-visible,\n.player-heartbeat-card:focus-visible,\n.operations-intelligence-metric-interactive:focus-visible {\n  outline: 3px solid color-mix(in srgb, var(--accent, #326dff) 38%, transparent);\n  outline-offset: 3px;\n}\n\n.player-version-drawer-row {\n  align-items: center;\n  min-height: 58px;\n  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;\n}\n\n.player-version-drawer-row:hover {\n  transform: translateX(-2px);\n}\n\n.player-details-field small {\n  display: block;\n  margin-top: 6px;\n  color: var(--muted, #69758a);\n  line-height: 1.4;\n}\n\n.mission-recent-item {\n  transform: none;\n  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;\n}\n\n.mission-recent-item:hover {\n  transform: none;\n  box-shadow: 0 8px 22px rgba(8, 20, 44, 0.07);\n}\n\n.mission-recent-time {\n  white-space: nowrap;\n  font-variant-numeric: tabular-nums;\n}\n\nhtml:not([data-theme="light"]) .player-details-drawer-header {\n  background: rgba(21, 26, 34, 0.94);\n  border-bottom-color: #2b3545;\n}\n\nhtml:not([data-theme="light"]) .player-details-back {\n  background: #1c2330;\n  border-color: #364154;\n  color: #f4f7fb;\n}\n\nhtml:not([data-theme="light"]) .player-details-close {\n  background: #1c2330;\n  border-color: #364154;\n}\n\n@media (max-width: 520px) {\n  .player-details-drawer { padding: 0; }\n  .player-details-drawer-header { padding: 18px 18px 15px; }\n  .player-details-content { padding: 18px 18px 30px; }\n  .player-details-status { align-items: flex-start; }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .player-details-content,\n  .player-version-drawer-row {\n    transition: none !important;\n    transform: none !important;\n  }\n}\n
+
+
+/*
+ * =========================================================
+ * VERSION 1.2 DEVELOPMENT — BUILD 90.0
+ * ROLLOUT FEEDBACK UX
+ * =========================================================
+ * Deployment-stage feedback is a transient viewport toast.
+ * The stage chips in each rollout card remain the persistent
+ * source of truth.
+ */
+.rollout-message {
+  position: fixed;
+  top: 78px;
+  right: 18px;
+  z-index: 1200;
+
+  display: block;
+  width: min(430px, calc(100vw - 36px));
+  margin: 0;
+  padding: 12px 14px 12px 38px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.30);
+
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.45;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-10px) scale(0.985);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 0s linear 160ms;
+}
+
+.rollout-message::before {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+  transform: translateY(-50%);
+}
+
+.rollout-message.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+.rollout-message.error::before {
+  content: "!";
+}
+
+@media (max-width: 700px) {
+  .rollout-message {
+    top: 64px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rollout-message {
+    transition: none;
+  }
+}
