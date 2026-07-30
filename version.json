@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "89.7",
+  "build": "90.0",
   "phase": "4",
-  "label": "Build 89.7 \u2014 Rollout Render Stability",
+  "label": "Build 90.0 — Rollout Feedback UX",
   "releasedAt": "2026-07-29",
-  "name": "Build 89.7"
+  "name": "Build 90.0"
 }
