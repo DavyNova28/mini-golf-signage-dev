@@ -1,8 +1,8 @@
 {
   "version": "1.2 Development",
-  "build": "90.2",
+  "build": "90.3",
   "phase": "4",
-  "label": "Build 90.2 — Deployment History & Activity Log",
+  "label": "Build 90.3 — Bulk Rollout Actions",
   "releasedAt": "2026-07-30",
-  "name": "Build 90.2"
+  "name": "Build 90.3"
 }

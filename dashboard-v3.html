@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=90.2">
+    <link rel="stylesheet" href="css/dashboard.css?build=90.3">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.2-development">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="90.2">
+  <meta name="dashboard-build" content="90.3">
 </head>
 
 <body>
@@ -3251,6 +3251,77 @@
             Waiting for player and schedule information.
           </div>
 
+
+          <section
+            class="rollout-bulk-panel"
+            aria-labelledby="rolloutBulkHeading"
+          >
+            <div class="rollout-bulk-header">
+              <div>
+                <div class="eyebrow">
+                  Bulk actions
+                </div>
+
+                <h4 id="rolloutBulkHeading">
+                  Update multiple screens
+                </h4>
+
+                <p class="manager-description">
+                  Select screens in the rollout cards, then apply one deployment stage to all selected screens.
+                </p>
+              </div>
+
+              <div class="rollout-bulk-selection">
+                <strong id="rolloutBulkSelectedCount">0 selected</strong>
+
+                <button
+                  id="rolloutBulkSelectAllButton"
+                  class="button"
+                  type="button"
+                >
+                  Select all
+                </button>
+
+                <button
+                  id="rolloutBulkClearSelectionButton"
+                  class="button"
+                  type="button"
+                  disabled
+                >
+                  Clear selection
+                </button>
+              </div>
+            </div>
+
+            <div class="rollout-bulk-controls">
+              <label class="rollout-bulk-field">
+                <span>Deployment stage</span>
+
+                <select id="rolloutBulkStageSelect">
+                  <option value="not-started">Not started</option>
+                  <option value="testing">Testing</option>
+                  <option value="deployed">Deployed</option>
+                </select>
+              </label>
+
+              <button
+                id="rolloutBulkApplyButton"
+                class="button button-primary"
+                type="button"
+                disabled
+              >
+                Apply to selected screens
+              </button>
+            </div>
+
+            <p
+              id="rolloutBulkHelp"
+              class="rollout-bulk-help"
+            >
+              Marking screens Deployed still requires each selected screen to pass its live readiness checks.
+            </p>
+          </section>
+
           <div
             id="rolloutAssistantList"
             class="rollout-list"
@@ -4444,7 +4515,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=90.2" defer></script>
+    <script src="js/dashboard.js?build=90.3" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
