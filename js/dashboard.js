@@ -21,6 +21,15 @@
     const SIGNAGE_PAGE = "index.html";
 
     /*
+     * One cache-busting value per dashboard session.
+     * This keeps Rollout Assistant URLs stable during live
+     * refreshes while still generating a fresh value after
+     * the dashboard page itself is reloaded.
+     */
+    const ROLLOUT_SESSION_VERSION =
+      String(Date.now());
+
+    /*
      * GitHub repository used for unused-image detection.
      * Change only when the repository name or branch changes.
      */
@@ -21171,7 +21180,7 @@
 
       url.searchParams.set(
         "version",
-        String(Date.now())
+        ROLLOUT_SESSION_VERSION
       );
 
       return url.toString();
