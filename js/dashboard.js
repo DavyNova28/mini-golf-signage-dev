@@ -22116,6 +22116,284 @@
     }
 
 
+
+    function animateRolloutField(
+      element
+    ) {
+      if (!element) {
+        return;
+      }
+
+      element.classList.remove(
+        "rollout-field-updated"
+      );
+
+      void element.offsetWidth;
+
+      element.classList.add(
+        "rollout-field-updated"
+      );
+
+      window.setTimeout(
+        function() {
+          element.classList.remove(
+            "rollout-field-updated"
+          );
+        },
+        700
+      );
+    }
+
+
+    function syncRolloutElementAttributes(
+      currentElement,
+      nextElement
+    ) {
+      Array.from(
+        currentElement.attributes
+      ).forEach(
+        attribute => {
+          if (
+            !nextElement.hasAttribute(
+              attribute.name
+            )
+          ) {
+            currentElement.removeAttribute(
+              attribute.name
+            );
+          }
+        }
+      );
+
+      Array.from(
+        nextElement.attributes
+      ).forEach(
+        attribute => {
+          if (
+            currentElement.getAttribute(
+              attribute.name
+            ) !== attribute.value
+          ) {
+            currentElement.setAttribute(
+              attribute.name,
+              attribute.value
+            );
+          }
+        }
+      );
+    }
+
+
+    function updateRolloutCard(
+      currentCard,
+      nextCard
+    ) {
+      const historyDetails =
+        currentCard.querySelector(
+          'details[data-rollout-field="history"]'
+        );
+
+      const historyWasOpen =
+        Boolean(
+          historyDetails &&
+          historyDetails.open
+        );
+
+      syncRolloutElementAttributes(
+        currentCard,
+        nextCard
+      );
+
+      const nextCheckbox =
+        nextCard.querySelector(
+          "[data-rollout-select]"
+        );
+
+      const currentCheckbox =
+        currentCard.querySelector(
+          "[data-rollout-select]"
+        );
+
+      if (
+        nextCheckbox &&
+        currentCheckbox
+      ) {
+        currentCheckbox.checked =
+          nextCheckbox.checked;
+      }
+
+      nextCard
+        .querySelectorAll(
+          "[data-rollout-field]"
+        )
+        .forEach(
+          nextField => {
+            const fieldName =
+              nextField.getAttribute(
+                "data-rollout-field"
+              );
+
+            const currentField =
+              currentCard.querySelector(
+                `[data-rollout-field="${CSS.escape(fieldName)}"]`
+              );
+
+            if (!currentField) {
+              return;
+            }
+
+            const changed =
+              currentField.outerHTML !==
+              nextField.outerHTML;
+
+            if (!changed) {
+              return;
+            }
+
+            const replacement =
+              nextField.cloneNode(
+                true
+              );
+
+            if (
+              fieldName === "history" &&
+              historyWasOpen &&
+              replacement.tagName === "DETAILS"
+            ) {
+              replacement.open =
+                true;
+            }
+
+            currentField.replaceWith(
+              replacement
+            );
+
+            animateRolloutField(
+              replacement
+            );
+          }
+        );
+    }
+
+
+    function patchRolloutAssistantCards(
+      nextMarkup
+    ) {
+      const template =
+        document.createElement(
+          "template"
+        );
+
+      template.innerHTML =
+        nextMarkup.trim();
+
+      const nextCards =
+        Array.from(
+          template.content.querySelectorAll(
+            "[data-rollout-card]"
+          )
+        );
+
+      const nextScreenNames =
+        new Set(
+          nextCards.map(
+            card =>
+              card.getAttribute(
+                "data-rollout-card"
+              )
+          )
+        );
+
+      rolloutAssistantList
+        .querySelectorAll(
+          "[data-rollout-card]"
+        )
+        .forEach(
+          currentCard => {
+            const screenName =
+              currentCard.getAttribute(
+                "data-rollout-card"
+              );
+
+            if (
+              !nextScreenNames.has(
+                screenName
+              )
+            ) {
+              currentCard.remove();
+            }
+          }
+        );
+
+      nextCards.forEach(
+        (nextCard, index) => {
+          const screenName =
+            nextCard.getAttribute(
+              "data-rollout-card"
+            );
+
+          const currentCard =
+            Array.from(
+              rolloutAssistantList.querySelectorAll(
+                "[data-rollout-card]"
+              )
+            ).find(
+              card =>
+                card.getAttribute(
+                  "data-rollout-card"
+                ) === screenName
+            );
+
+          if (!currentCard) {
+            const insertedCard =
+              nextCard.cloneNode(
+                true
+              );
+
+            insertedCard.classList.add(
+              "rollout-card-enter"
+            );
+
+            rolloutAssistantList.appendChild(
+              insertedCard
+            );
+
+            window.setTimeout(
+              function() {
+                insertedCard.classList.remove(
+                  "rollout-card-enter"
+                );
+              },
+              700
+            );
+
+            return;
+          }
+
+          updateRolloutCard(
+            currentCard,
+            nextCard
+          );
+
+          const cardAtIndex =
+            rolloutAssistantList.children[
+              index
+            ];
+
+          if (
+            cardAtIndex !==
+            currentCard
+          ) {
+            rolloutAssistantList.insertBefore(
+              currentCard,
+              cardAtIndex || null
+            );
+          }
+        }
+      );
+    }
+
+
     function renderRolloutAssistant() {
       if (
         !rolloutAssistantList ||
@@ -22182,7 +22460,7 @@
             ) === "deployed"
         ).length;
 
-      rolloutAssistantSummary.textContent =
+      const nextSummaryText =
         `Live readiness: ${readyCount} ready · ` +
         `${reviewCount} review · ` +
         `${blockedCount} blocked · ` +
@@ -22190,6 +22468,18 @@
         `${notScheduledCount} not scheduled · ` +
         `Deployment: ${testingCount} testing · ` +
         `${deployedCount} deployed`;
+
+      if (
+        rolloutAssistantSummary.textContent !==
+        nextSummaryText
+      ) {
+        rolloutAssistantSummary.textContent =
+          nextSummaryText;
+
+        animateRolloutField(
+          rolloutAssistantSummary
+        );
+      }
 
       const nextRolloutAssistantMarkup =
         states
@@ -22215,7 +22505,7 @@
                   : "Not reported";
 
               return `
-                <article class="rollout-card rollout-stage-card-${getRolloutStage(item.screenName)} ${selectedRolloutScreens.has(item.screenName) ? "rollout-card-selected" : ""}">
+                <article class="rollout-card rollout-stage-card-${getRolloutStage(item.screenName)} ${selectedRolloutScreens.has(item.screenName) ? "rollout-card-selected" : ""}" data-rollout-card="${escapeHtml(item.screenName)}">
                   <div class="rollout-card-header">
                     <label class="rollout-card-selector">
                       <input
@@ -22231,7 +22521,7 @@
                       </span>
                     </label>
 
-                    <div class="rollout-stage rollout-stage-${getRolloutStage(item.screenName)}">
+                    <div class="rollout-stage rollout-stage-${getRolloutStage(item.screenName)}" data-rollout-field="stage">
                       ${
                         getRolloutStage(item.screenName) === "not-started"
                           ? "Not started"
@@ -22242,7 +22532,7 @@
                     </div>
                   </div>
 
-                  <div class="rollout-live-readiness">
+                  <div class="rollout-live-readiness" data-rollout-field="readiness">
                     <span>Live readiness</span>
 
                     <span class="rollout-state ${item.state}">
@@ -22250,7 +22540,7 @@
                     </span>
                   </div>
 
-                  <div class="rollout-heartbeat rollout-heartbeat-${escapeHtml(heartbeatPresentation.status)}">
+                  <div class="rollout-heartbeat rollout-heartbeat-${escapeHtml(heartbeatPresentation.status)}" data-rollout-field="heartbeat">
                     <div class="rollout-heartbeat-primary">
                       <span
                         class="rollout-heartbeat-dot"
@@ -22271,11 +22561,11 @@
                     </div>
                   </div>
 
-                  <div class="rollout-url">
+                  <div class="rollout-url" data-rollout-field="url">
                     ${escapeHtml(url)}
                   </div>
 
-                  <div class="rollout-details">
+                  <div class="rollout-details" data-rollout-field="details">
                     <div>
                       Version: ${escapeHtml(version)}
                     </div>
@@ -22297,14 +22587,14 @@
                         history.length === 0
                       ) {
                         return `
-                          <div class="rollout-card-history rollout-card-history-empty">
+                          <div class="rollout-card-history rollout-card-history-empty" data-rollout-field="history">
                             No deployment-stage changes recorded yet.
                           </div>
                         `;
                       }
 
                       return `
-                        <details class="rollout-card-history">
+                        <details class="rollout-card-history" data-rollout-field="history">
                           <summary>
                             Recent deployment history
                           </summary>
@@ -22333,7 +22623,7 @@
                     })()
                   }
 
-                  <div class="rollout-progress-summary">
+                  <div class="rollout-progress-summary" data-rollout-field="progress">
                     ${
                       getRolloutStage(item.screenName) === "deployed" &&
                       (
@@ -22406,11 +22696,24 @@
         nextRolloutAssistantMarkup !==
         rolloutAssistantMarkup
       ) {
+        const firstRender =
+          !rolloutAssistantMarkup ||
+          rolloutAssistantList.children.length === 0;
+
         rolloutAssistantMarkup =
           nextRolloutAssistantMarkup;
 
-        rolloutAssistantList.innerHTML =
-          nextRolloutAssistantMarkup;
+        if (firstRender) {
+          rolloutAssistantList.innerHTML =
+            nextRolloutAssistantMarkup;
+
+        } else {
+          patchRolloutAssistantCards(
+            nextRolloutAssistantMarkup
+          );
+        }
+
+        syncRolloutBulkSelectionUi();
       }
 
     }
