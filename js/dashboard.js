@@ -1867,6 +1867,9 @@
     let rolloutAssistantMarkup =
       "";
 
+    let rolloutMessageTimer =
+      null;
+
     const rolloutAssistantMessage =
       document.getElementById(
         "rolloutAssistantMessage"
@@ -21924,19 +21927,34 @@
       message,
       type
     ) {
+      if (!rolloutAssistantMessage) {
+        return;
+      }
+
+      if (rolloutMessageTimer) {
+        clearTimeout(
+          rolloutMessageTimer
+        );
+      }
+
       rolloutAssistantMessage.className =
         `rollout-message visible health-admin-message ${type}`;
 
       rolloutAssistantMessage.textContent =
         message;
 
-      setTimeout(
-        function() {
-          rolloutAssistantMessage.className =
-            "rollout-message";
-        },
-        3500
-      );
+      rolloutMessageTimer =
+        setTimeout(
+          function() {
+            rolloutAssistantMessage.classList.remove(
+              "visible"
+            );
+
+            rolloutMessageTimer =
+              null;
+          },
+          5000
+        );
     }
 
 
