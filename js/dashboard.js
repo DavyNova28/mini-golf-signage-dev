@@ -21400,6 +21400,66 @@
     }
 
 
+    function getRolloutHeartbeatPresentation(heartbeat) {
+      const status =
+        heartbeat && heartbeat.status
+          ? heartbeat.status
+          : "offline";
+
+      const statusLabels = {
+        online: "Online",
+        stale: "Delayed",
+        offline: "Offline",
+        sleeping: "Sleeping"
+      };
+
+      const freshness =
+        heartbeat
+          ? formatHeartbeatAge(
+              heartbeat.ageSeconds
+            )
+          : "Never seen";
+
+      const lastSeen =
+        heartbeat &&
+        heartbeat.lastSeenAt
+          ? new Date(
+              heartbeat.lastSeenAt
+            ).toLocaleString()
+          : "Never seen";
+
+      let freshnessLabel =
+        "No heartbeat received";
+
+      if (
+        heartbeat &&
+        heartbeat.ageSeconds !== null &&
+        heartbeat.ageSeconds !== undefined
+      ) {
+        freshnessLabel =
+          `Seen ${freshness}`;
+      }
+
+      if (status === "sleeping") {
+        freshnessLabel =
+          heartbeat &&
+          heartbeat.ageSeconds !== null &&
+          heartbeat.ageSeconds !== undefined
+            ? `Last seen ${freshness}`
+            : "Expected quiet hours";
+      }
+
+      return {
+        status,
+        label:
+          statusLabels[status] ||
+          "Unknown",
+        freshnessLabel,
+        lastSeen
+      };
+    }
+
+
     function renderRolloutAssistant() {
       if (
         !rolloutAssistantList ||
@@ -21487,13 +21547,10 @@
               const heartbeat =
                 item.heartbeat;
 
-              const lastSeen =
-                heartbeat &&
-                heartbeat.lastSeenAt
-                  ? new Date(
-                      heartbeat.lastSeenAt
-                    ).toLocaleString()
-                  : "Never seen";
+              const heartbeatPresentation =
+                getRolloutHeartbeatPresentation(
+                  heartbeat
+                );
 
               const version =
                 heartbeat &&
@@ -21527,26 +21584,34 @@
                     </span>
                   </div>
 
+                  <div class="rollout-heartbeat rollout-heartbeat-${escapeHtml(heartbeatPresentation.status)}">
+                    <div class="rollout-heartbeat-primary">
+                      <span
+                        class="rollout-heartbeat-dot"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="rollout-heartbeat-label">
+                        Player ${escapeHtml(heartbeatPresentation.label)}
+                      </span>
+                    </div>
+
+                    <div class="rollout-heartbeat-freshness">
+                      ${escapeHtml(heartbeatPresentation.freshnessLabel)}
+                    </div>
+
+                    <div class="rollout-heartbeat-timestamp">
+                      Last heartbeat: ${escapeHtml(heartbeatPresentation.lastSeen)}
+                    </div>
+                  </div>
+
                   <div class="rollout-url">
                     ${escapeHtml(url)}
                   </div>
 
                   <div class="rollout-details">
                     <div>
-                      Player status:
-                      ${escapeHtml(
-                        heartbeat && heartbeat.status
-                          ? heartbeat.status
-                          : "unknown"
-                      )}
-                    </div>
-
-                    <div>
                       Version: ${escapeHtml(version)}
-                    </div>
-
-                    <div>
-                      Last seen: ${escapeHtml(lastSeen)}
                     </div>
 
                     <div>
