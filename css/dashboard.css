@@ -9351,3 +9351,155 @@ html[data-theme="light"] .rollout-activity-item {
     width: 100%;
   }
 }
+
+
+/*
+ * =====================================================
+ * BUILD 90.3 — BULK ROLLOUT ACTIONS
+ * =====================================================
+ */
+
+.rollout-bulk-panel {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(107, 231, 196, 0.2);
+  border-radius: 14px;
+  background: rgba(9, 19, 28, 0.5);
+}
+
+.rollout-bulk-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rollout-bulk-header h4 {
+  margin: 4px 0 0;
+}
+
+.rollout-bulk-selection {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rollout-bulk-selection strong {
+  min-width: 78px;
+  text-align: right;
+  color: var(--text-main);
+}
+
+.rollout-bulk-controls {
+  display: grid;
+  grid-template-columns: minmax(190px, 320px) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.rollout-bulk-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.rollout-bulk-field select {
+  width: 100%;
+}
+
+.rollout-bulk-help {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.rollout-card-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.rollout-card-selector input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rollout-card-selector-box {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  border-radius: 5px;
+  background: rgba(15, 23, 42, 0.75);
+  box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.8);
+}
+
+.rollout-card-selector input:checked + .rollout-card-selector-box {
+  border-color: rgba(107, 231, 196, 0.95);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(107, 231, 196, 1),
+      rgba(46, 196, 182, 1)
+    );
+}
+
+.rollout-card-selector input:checked + .rollout-card-selector-box::after {
+  content: "✓";
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #05251f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.rollout-card-selector input:focus-visible + .rollout-card-selector-box {
+  outline: 3px solid rgba(107, 231, 196, 0.25);
+  outline-offset: 2px;
+}
+
+.rollout-card-selected {
+  box-shadow:
+    0 0 0 2px rgba(107, 231, 196, 0.45),
+    0 18px 42px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="light"] .rollout-bulk-panel {
+  background: rgba(247, 250, 252, 0.9);
+  border-color: rgba(13, 148, 136, 0.22);
+}
+
+html[data-theme="light"] .rollout-card-selector-box {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 2px #ffffff;
+}
+
+@media (max-width: 760px) {
+  .rollout-bulk-header {
+    display: grid;
+  }
+
+  .rollout-bulk-selection {
+    justify-content: flex-start;
+  }
+
+  .rollout-bulk-selection strong {
+    text-align: left;
+  }
+
+  .rollout-bulk-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .rollout-bulk-controls .button {
+    width: 100%;
+  }
+}
