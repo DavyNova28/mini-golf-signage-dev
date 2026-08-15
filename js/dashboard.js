@@ -24,12 +24,12 @@
       "version.json";
 
     const APPLICATION_RELEASE_FALLBACK = {
-      version: "1.2.0",
-      displayVersion: "1.2",
-      channel: "Stable",
-      build: "100",
-      status: "Release Candidate 1",
-      tag: "v1.2.0"
+      version: "1.3.0",
+      displayVersion: "1.3",
+      channel: "Development",
+      build: "101",
+      status: "Development",
+      tag: ""
     };
 
     let applicationRelease = {
@@ -70,6 +70,717 @@
      */
     const EXPECTED_PLAYER_VERSION =
       "v3.1-heartbeat-1";
+
+
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 101
+     * BUSINESS PROFILE ENGINE
+     * =====================================================
+     *
+     * Build 101 is intentionally informational only.
+     * It does NOT change Health Score, expected-player logic,
+     * Rollout Assistant behavior, or signage scheduling.
+     */
+
+    const BUSINESS_PROFILES = {
+      summer: {
+        id: "summer",
+        label: "Summer",
+        icon: "☀️",
+        rangeLabel: "June 23 – August 31",
+        hours: {
+          0: { open: "10:00", close: "20:00" },
+          1: { open: "10:00", close: "22:00" },
+          2: { open: "10:00", close: "22:00" },
+          3: { open: "10:00", close: "22:00" },
+          4: { open: "10:00", close: "22:00" },
+          5: { open: "10:00", close: "22:00" },
+          6: { open: "10:00", close: "22:00" }
+        }
+      },
+
+      regular: {
+        id: "regular",
+        label: "Regular",
+        icon: "🍂",
+        rangeLabel: "September 1 – June 22",
+        hours: {
+          0: { open: "10:00", close: "20:00" },
+          1: { closed: true },
+          2: { closed: true },
+          3: { open: "14:00", close: "21:00" },
+          4: { open: "14:00", close: "22:00" },
+          5: { open: "14:00", close: "22:00" },
+          6: { open: "10:00", close: "22:00" }
+        }
+      }
+    };
+
+    /*
+     * Special/Holiday business hours will live here when
+     * official hours are available. Keeping this separate
+     * from signage Holiday Overrides prevents Build 101 from
+     * guessing store hours from image schedule rows.
+     *
+     * Example future entry:
+     * {
+     *   date: "2026-12-26",
+     *   label: "Boxing Day",
+     *   open: "10:00",
+     *   close: "20:00"
+     * }
+     */
+    const BUSINESS_SPECIAL_DATES = [];
+
+
+    function getBusinessDateKey(
+      date = new Date()
+    ) {
+      const year =
+        date.getFullYear();
+
+      const month =
+        String(
+          date.getMonth() + 1
+        ).padStart(
+          2,
+          "0"
+        );
+
+      const day =
+        String(
+          date.getDate()
+        ).padStart(
+          2,
+          "0"
+        );
+
+      return `${year}-${month}-${day}`;
+    }
+
+
+    function isSummerBusinessDate(
+      date = new Date()
+    ) {
+      const monthDay =
+        (
+          date.getMonth() + 1
+        ) *
+        100 +
+        date.getDate();
+
+      return (
+        monthDay >= 623 &&
+        monthDay <= 831
+      );
+    }
+
+
+    function getSeasonalBusinessProfile(
+      date = new Date()
+    ) {
+      return isSummerBusinessDate(
+        date
+      )
+        ? BUSINESS_PROFILES.summer
+        : BUSINESS_PROFILES.regular;
+    }
+
+
+    function getBusinessSpecialDate(
+      date = new Date()
+    ) {
+      const dateKey =
+        getBusinessDateKey(
+          date
+        );
+
+      return BUSINESS_SPECIAL_DATES.find(
+        item =>
+          item &&
+          item.date === dateKey
+      ) || null;
+    }
+
+
+    function getBusinessProfileForDate(
+      date = new Date()
+    ) {
+      const seasonalProfile =
+        getSeasonalBusinessProfile(
+          date
+        );
+
+      const special =
+        getBusinessSpecialDate(
+          date
+        );
+
+      const seasonalHours =
+        seasonalProfile.hours[
+          date.getDay()
+        ] || {
+          closed: true
+        };
+
+      if (!special) {
+        return {
+          profile:
+            seasonalProfile,
+
+          hours:
+            seasonalHours,
+
+          special:
+            null
+        };
+      }
+
+      return {
+        profile: {
+          id:
+            "special",
+
+          label:
+            special.label ||
+            "Special / Holiday",
+
+          icon:
+            "🎉",
+
+          rangeLabel:
+            "Date-specific override"
+        },
+
+        hours:
+          special.closed
+            ? {
+                closed: true
+              }
+            : {
+                open:
+                  special.open,
+
+                close:
+                  special.close
+              },
+
+        special:
+          special,
+
+        baseProfile:
+          seasonalProfile
+      };
+    }
+
+
+    function businessTimeToMinutes(
+      value
+    ) {
+      const parts =
+        String(
+          value || ""
+        ).split(
+          ":"
+        );
+
+      if (parts.length !== 2) {
+        return null;
+      }
+
+      const hours =
+        Number(
+          parts[0]
+        );
+
+      const minutes =
+        Number(
+          parts[1]
+        );
+
+      if (
+        !Number.isInteger(hours) ||
+        !Number.isInteger(minutes)
+      ) {
+        return null;
+      }
+
+      return (
+        hours * 60 +
+        minutes
+      );
+    }
+
+
+    function formatBusinessClock(
+      value
+    ) {
+      const minutes =
+        businessTimeToMinutes(
+          value
+        );
+
+      if (minutes === null) {
+        return "—";
+      }
+
+      const hours24 =
+        Math.floor(
+          minutes / 60
+        );
+
+      const minuteValue =
+        minutes % 60;
+
+      const suffix =
+        hours24 >= 12
+          ? "PM"
+          : "AM";
+
+      const hours12 =
+        hours24 % 12 || 12;
+
+      return (
+        `${hours12}:` +
+        `${String(minuteValue).padStart(2, "0")} ` +
+        suffix
+      );
+    }
+
+
+    function formatBusinessHours(
+      hours
+    ) {
+      if (
+        !hours ||
+        hours.closed === true
+      ) {
+        return "CLOSED";
+      }
+
+      return (
+        `${formatBusinessClock(hours.open)} – ` +
+        `${formatBusinessClock(hours.close)}`
+      );
+    }
+
+
+    function formatBusinessDuration(
+      totalMinutes
+    ) {
+      const safeMinutes =
+        Math.max(
+          0,
+          Math.round(
+            totalMinutes
+          )
+        );
+
+      const hours =
+        Math.floor(
+          safeMinutes / 60
+        );
+
+      const minutes =
+        safeMinutes % 60;
+
+      if (hours === 0) {
+        return `${minutes} min`;
+      }
+
+      if (minutes === 0) {
+        return `${hours}h`;
+      }
+
+      return `${hours}h ${minutes}m`;
+    }
+
+
+    function getBusinessState(
+      date,
+      hours
+    ) {
+      if (
+        !hours ||
+        hours.closed === true
+      ) {
+        return {
+          id:
+            "closed",
+
+          label:
+            "Closed today",
+
+          detail:
+            "No regular business hours are scheduled today."
+        };
+      }
+
+      const nowMinutes =
+        date.getHours() *
+        60 +
+        date.getMinutes();
+
+      const openMinutes =
+        businessTimeToMinutes(
+          hours.open
+        );
+
+      const closeMinutes =
+        businessTimeToMinutes(
+          hours.close
+        );
+
+      if (
+        openMinutes === null ||
+        closeMinutes === null
+      ) {
+        return {
+          id:
+            "unknown",
+
+          label:
+            "Schedule unavailable",
+
+          detail:
+            "Business hours could not be evaluated."
+        };
+      }
+
+      if (
+        nowMinutes <
+        openMinutes
+      ) {
+        return {
+          id:
+            "before-open",
+
+          label:
+            "Before opening",
+
+          detail:
+            `Opens in ${formatBusinessDuration(openMinutes - nowMinutes)}.`
+        };
+      }
+
+      if (
+        nowMinutes <
+        closeMinutes
+      ) {
+        return {
+          id:
+            "open",
+
+          label:
+            "Open",
+
+          detail:
+            `Closes in ${formatBusinessDuration(closeMinutes - nowMinutes)}.`
+        };
+      }
+
+      return {
+        id:
+          "after-close",
+
+        label:
+          "Closed",
+
+        detail:
+          "Today’s business hours have ended."
+      };
+    }
+
+
+    function getNextBusinessProfileTransition(
+      date = new Date()
+    ) {
+      const currentYear =
+        date.getFullYear();
+
+      let transitionDate;
+      let nextProfile;
+
+      if (
+        isSummerBusinessDate(
+          date
+        )
+      ) {
+        transitionDate =
+          new Date(
+            currentYear,
+            8,
+            1,
+            0,
+            0,
+            0,
+            0
+          );
+
+        nextProfile =
+          BUSINESS_PROFILES.regular;
+
+      } else {
+        const monthDay =
+          (
+            date.getMonth() + 1
+          ) *
+          100 +
+          date.getDate();
+
+        const targetYear =
+          monthDay <= 622
+            ? currentYear
+            : currentYear + 1;
+
+        transitionDate =
+          new Date(
+            targetYear,
+            5,
+            23,
+            0,
+            0,
+            0,
+            0
+          );
+
+        nextProfile =
+          BUSINESS_PROFILES.summer;
+      }
+
+      const todayStart =
+        new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate()
+        );
+
+      const daysUntil =
+        Math.max(
+          0,
+          Math.ceil(
+            (
+              transitionDate.getTime() -
+              todayStart.getTime()
+            ) /
+            (
+              24 *
+              60 *
+              60 *
+              1000
+            )
+          )
+        );
+
+      return {
+        date:
+          transitionDate,
+
+        profile:
+          nextProfile,
+
+        daysUntil:
+          daysUntil
+      };
+    }
+
+
+    function hasSignageHolidayOverrideToday(
+      date = new Date()
+    ) {
+      if (
+        !Array.isArray(
+          holidayOverrides
+        ) ||
+        holidayOverrides.length === 0
+      ) {
+        return false;
+      }
+
+      const dateKey =
+        getBusinessDateKey(
+          date
+        );
+
+      return holidayOverrides.some(
+        item =>
+          item &&
+          item.status !== "invalid" &&
+          item.startDate &&
+          item.endDate &&
+          dateKey >= item.startDate &&
+          dateKey <= item.endDate
+      );
+    }
+
+
+    function renderBusinessProfile(
+      date = new Date()
+    ) {
+      const panel =
+        document.getElementById(
+          "businessProfilePanel"
+        );
+
+      if (!panel) {
+        return;
+      }
+
+      const result =
+        getBusinessProfileForDate(
+          date
+        );
+
+      const state =
+        getBusinessState(
+          date,
+          result.hours
+        );
+
+      const next =
+        getNextBusinessProfileTransition(
+          date
+        );
+
+      const dayName =
+        date.toLocaleDateString(
+          undefined,
+          {
+            weekday:
+              "long"
+          }
+        );
+
+      const nextDate =
+        next.date.toLocaleDateString(
+          undefined,
+          {
+            month:
+              "short",
+
+            day:
+              "numeric",
+
+            year:
+              next.date.getFullYear() !==
+              date.getFullYear()
+                ? "numeric"
+                : undefined
+          }
+        );
+
+      panel.className =
+        `business-profile-panel ` +
+        `business-profile-${result.profile.id} ` +
+        `business-state-${state.id}`;
+
+      document.getElementById(
+        "businessProfileIcon"
+      ).textContent =
+        result.profile.icon;
+
+      document.getElementById(
+        "businessProfileTitle"
+      ).textContent =
+        `${result.profile.label} Business Profile`;
+
+      document.getElementById(
+        "businessProfileBadge"
+      ).textContent =
+        state.label;
+
+      document.getElementById(
+        "businessProfileBadge"
+      ).className =
+        `business-profile-badge ` +
+        `business-profile-badge-${state.id}`;
+
+      document.getElementById(
+        "businessProfileName"
+      ).textContent =
+        result.profile.label;
+
+      document.getElementById(
+        "businessProfileSeasonRange"
+      ).textContent =
+        result.profile.rangeLabel;
+
+      document.getElementById(
+        "businessProfileHours"
+      ).textContent =
+        formatBusinessHours(
+          result.hours
+        );
+
+      document.getElementById(
+        "businessProfileDay"
+      ).textContent =
+        dayName;
+
+      document.getElementById(
+        "businessProfileState"
+      ).textContent =
+        state.label;
+
+      document.getElementById(
+        "businessProfileStateDetail"
+      ).textContent =
+        state.detail;
+
+      document.getElementById(
+        "businessProfileNext"
+      ).textContent =
+        next.profile.label;
+
+      document.getElementById(
+        "businessProfileNextDetail"
+      ).textContent =
+        `${nextDate} · ${next.daysUntil} day${next.daysUntil === 1 ? "" : "s"}`;
+
+      const summary =
+        result.hours &&
+        result.hours.closed === true
+          ? `${dayName} is closed under the ${result.profile.label} profile.`
+          : `${dayName}: ${formatBusinessHours(result.hours)}. ${state.detail}`;
+
+      document.getElementById(
+        "businessProfileSummary"
+      ).textContent =
+        summary;
+
+      const specialNotice =
+        document.getElementById(
+          "businessProfileSpecialNotice"
+        );
+
+      if (result.special) {
+        specialNotice.className =
+          "business-profile-special-notice active";
+
+        specialNotice.textContent =
+          `🎉 Special business-hours override active: ${result.profile.label}.`;
+
+      } else if (
+        hasSignageHolidayOverrideToday(
+          date
+        )
+      ) {
+        specialNotice.className =
+          "business-profile-special-notice detected";
+
+        specialNotice.textContent =
+          "🎄 Signage Holiday Override detected today. Build 101 keeps business hours on the seasonal profile until official special-day hours are configured.";
+
+      } else {
+        specialNotice.className =
+          "business-profile-special-notice";
+
+        specialNotice.textContent =
+          "Special / Holiday business-hours override: none configured.";
+      }
+    }
+
 
     const PLAYER_VERSION_MEMORY_KEY =
       "miniGolfPlayerVersionMemoryV2";
@@ -7159,6 +7870,8 @@
 
             holidayOverrides =
               payload.overrides;
+
+            renderBusinessProfile();
 
             offlineSections.delete(
               "holiday"
@@ -24352,6 +25065,7 @@
     setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
+    renderBusinessProfile();
     setupDiagnosticsExport();
     setupApplicationInformationDialogs();
     setupCommandPalette();
@@ -24411,6 +25125,7 @@
       function() {
         updateLiveInformation();
         updateOperationsPanel();
+        renderBusinessProfile();
         renderOperationsIntelligence();
 
         if (
