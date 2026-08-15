@@ -2,11 +2,11 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "101",
+  "build": "102",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
   "basedOnVersion": "v1.2.0",
-  "milestone": "Milestone 1 \u2014 Business Profiles",
-  "feature": "Summer, Regular, and Special/Holiday profile foundation"
+  "milestone": "Milestone 2 \u2014 Store Operations",
+  "feature": "Open/Closed intelligence, next opening, next closing"
 }
