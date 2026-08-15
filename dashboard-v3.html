@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=100">
+    <link rel="stylesheet" href="css/dashboard.css?build=101">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
-  <meta name="dashboard-version" content="1.2.0">
-  <meta name="dashboard-channel" content="stable">
-  <meta name="dashboard-build" content="100">
+  <meta name="dashboard-version" content="1.3.0">
+  <meta name="dashboard-channel" content="development">
+  <meta name="dashboard-build" content="101">
 </head>
 
 <body>
@@ -311,7 +311,7 @@
       <section class="mission-hero">
         <div class="mission-hero-copy">
           <div id="applicationVersionBadge" class="mission-version-badge">
-            Version 1.2 Stable
+            Version 1.3 Development
           </div>
 
           <h2
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 100</span>
+            <span id="applicationBuildLabel">Build 101</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -375,6 +375,95 @@
           >
             Waiting for telemetry
           </div>
+        </div>
+      </section>
+
+      <!--
+        =====================================================
+        VERSION 1.3 — BUILD 101
+        BUSINESS PROFILES
+        =====================================================
+      -->
+      <section
+        id="businessProfilePanel"
+        class="business-profile-panel business-profile-summer"
+        aria-labelledby="businessProfileTitle"
+      >
+        <div class="business-profile-header">
+          <div>
+            <div class="eyebrow">Version 1.3 · Business profiles</div>
+            <div class="business-profile-heading-row">
+              <span
+                id="businessProfileIcon"
+                class="business-profile-icon"
+                aria-hidden="true"
+              >☀️</span>
+
+              <div>
+                <h3
+                  id="businessProfileTitle"
+                  class="business-profile-title"
+                >
+                  Loading business profile
+                </h3>
+
+                <p
+                  id="businessProfileSummary"
+                  class="business-profile-summary"
+                >
+                  Determining today’s operating profile and business hours.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="businessProfileBadge"
+            class="business-profile-badge"
+          >
+            Checking
+          </div>
+        </div>
+
+        <div class="business-profile-grid">
+          <article class="business-profile-metric">
+            <span class="business-profile-metric-label">
+              Current profile
+            </span>
+            <strong id="businessProfileName">—</strong>
+            <small id="businessProfileSeasonRange">—</small>
+          </article>
+
+          <article class="business-profile-metric">
+            <span class="business-profile-metric-label">
+              Today’s hours
+            </span>
+            <strong id="businessProfileHours">—</strong>
+            <small id="businessProfileDay">—</small>
+          </article>
+
+          <article class="business-profile-metric">
+            <span class="business-profile-metric-label">
+              Business state
+            </span>
+            <strong id="businessProfileState">—</strong>
+            <small id="businessProfileStateDetail">—</small>
+          </article>
+
+          <article class="business-profile-metric">
+            <span class="business-profile-metric-label">
+              Next profile
+            </span>
+            <strong id="businessProfileNext">—</strong>
+            <small id="businessProfileNextDetail">—</small>
+          </article>
+        </div>
+
+        <div
+          id="businessProfileSpecialNotice"
+          class="business-profile-special-notice"
+        >
+          Special / Holiday business-hours override: none configured.
         </div>
       </section>
 
@@ -4525,7 +4614,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=100" defer></script>
+    <script src="js/dashboard.js?build=101" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

@@ -1,11 +1,12 @@
 {
-  "version": "1.2.0",
-  "displayVersion": "1.2",
-  "channel": "Stable",
-  "build": "100",
-  "status": "Release Candidate 1",
-  "releaseName": "Version 1.2 Stable",
-  "tag": "v1.2.0",
-  "releasedAt": "2026-07-30",
-  "basedOnDevelopmentBuild": "90.4"
+  "version": "1.3.0",
+  "displayVersion": "1.3",
+  "channel": "Development",
+  "build": "101",
+  "status": "Development",
+  "releaseName": "Version 1.3 Operations Center",
+  "tag": "",
+  "basedOnVersion": "v1.2.0",
+  "milestone": "Milestone 1 \u2014 Business Profiles",
+  "feature": "Summer, Regular, and Special/Holiday profile foundation"
 }
