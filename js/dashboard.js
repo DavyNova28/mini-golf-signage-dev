@@ -27,7 +27,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "103",
+      build: "104",
       status: "Development",
       tag: ""
     };
@@ -1171,6 +1171,378 @@
 
     /*
      * =====================================================
+     * VERSION 1.3 — BUILD 104
+     * MAINTENANCE MODE
+     * =====================================================
+     */
+
+    const MAINTENANCE_MODE_STORAGE_KEY =
+      "miniGolfDashboardMaintenanceModeV13";
+
+    let maintenanceModeEnabled =
+      false;
+
+    const maintenanceScreens =
+      new Set();
+
+
+    function readMaintenanceModeState() {
+      try {
+        const raw =
+          localStorage.getItem(
+            MAINTENANCE_MODE_STORAGE_KEY
+          );
+
+        if (!raw) {
+          return;
+        }
+
+        const parsed =
+          JSON.parse(
+            raw
+          );
+
+        maintenanceModeEnabled =
+          parsed &&
+          parsed.enabled === true;
+
+        maintenanceScreens.clear();
+
+        if (
+          parsed &&
+          Array.isArray(
+            parsed.screens
+          )
+        ) {
+          parsed.screens
+            .filter(screenName =>
+              SCREEN_NAMES.includes(
+                screenName
+              )
+            )
+            .forEach(screenName =>
+              maintenanceScreens.add(
+                screenName
+              )
+            );
+        }
+
+      } catch (error) {
+        console.warn(
+          "Maintenance Mode state could not be restored.",
+          error
+        );
+
+        maintenanceModeEnabled =
+          false;
+
+        maintenanceScreens.clear();
+      }
+    }
+
+
+    function persistMaintenanceModeState() {
+      try {
+        localStorage.setItem(
+          MAINTENANCE_MODE_STORAGE_KEY,
+          JSON.stringify({
+            enabled:
+              maintenanceModeEnabled,
+
+            screens:
+              Array.from(
+                maintenanceScreens
+              )
+          })
+        );
+
+      } catch (error) {
+        console.warn(
+          "Maintenance Mode state could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function isScreenInMaintenance(
+      screenName
+    ) {
+      return (
+        maintenanceModeEnabled &&
+        maintenanceScreens.has(
+          screenName
+        )
+      );
+    }
+
+
+    function getMaintenanceScreens() {
+      if (!maintenanceModeEnabled) {
+        return [];
+      }
+
+      return SCREEN_NAMES.filter(
+        screenName =>
+          maintenanceScreens.has(
+            screenName
+          )
+      );
+    }
+
+
+    function renderMaintenanceMode() {
+      const list =
+        document.getElementById(
+          "maintenanceScreenList"
+        );
+
+      const toggle =
+        document.getElementById(
+          "maintenanceModeToggle"
+        );
+
+      const status =
+        document.getElementById(
+          "maintenanceModeStatus"
+        );
+
+      const notice =
+        document.getElementById(
+          "maintenanceModeNotice"
+        );
+
+      const panel =
+        document.getElementById(
+          "maintenanceModePanel"
+        );
+
+      if (
+        !list ||
+        !toggle ||
+        !status ||
+        !notice ||
+        !panel
+      ) {
+        return;
+      }
+
+      list.innerHTML =
+        SCREEN_NAMES
+          .map(screenName => {
+            const selected =
+              maintenanceScreens.has(
+                screenName
+              );
+
+            return `
+              <label class="maintenance-screen-option ${selected ? "selected" : ""}">
+                <input
+                  type="checkbox"
+                  data-maintenance-screen="${escapeHtml(screenName)}"
+                  ${selected ? "checked" : ""}
+                >
+                <span>${escapeHtml(screenName)}</span>
+              </label>
+            `;
+          })
+          .join("");
+
+      toggle.setAttribute(
+        "aria-pressed",
+        maintenanceModeEnabled
+          ? "true"
+          : "false"
+      );
+
+      toggle.textContent =
+        maintenanceModeEnabled
+          ? "Disable Maintenance Mode"
+          : "Enable Maintenance Mode";
+
+      toggle.classList.toggle(
+        "button-primary",
+        maintenanceModeEnabled
+      );
+
+      panel.classList.toggle(
+        "active",
+        maintenanceModeEnabled
+      );
+
+      const selectedCount =
+        maintenanceScreens.size;
+
+      const excludedCount =
+        getMaintenanceScreens()
+          .length;
+
+      status.textContent =
+        maintenanceModeEnabled
+          ? `${excludedCount} player${excludedCount === 1 ? "" : "s"} excluded`
+          : `Disabled · ${selectedCount} selected`;
+
+      if (
+        maintenanceModeEnabled &&
+        excludedCount === 0
+      ) {
+        notice.className =
+          "maintenance-mode-notice warning";
+
+        notice.textContent =
+          "Maintenance Mode is enabled, but no players are selected. Operational expectations remain unchanged.";
+
+      } else if (
+        maintenanceModeEnabled
+      ) {
+        notice.className =
+          "maintenance-mode-notice active";
+
+        notice.textContent =
+          `Expected-player checks currently ignore: ${getMaintenanceScreens().join(", ")}.`;
+
+      } else {
+        notice.className =
+          "maintenance-mode-notice";
+
+        notice.textContent =
+          "Maintenance Mode is stored only in this browser and can be disabled at any time.";
+      }
+    }
+
+
+    function refreshMaintenanceAwareUi() {
+      renderMaintenanceMode();
+      renderScreenIntelligence();
+      renderOperationsIntelligence();
+      renderMissionControlStatuses();
+      renderRolloutAssistant();
+      runGoLiveReadinessCheck();
+
+      if (latestHealthScoreResult) {
+        renderHealthScore(
+          latestHealthScoreResult
+        );
+      }
+    }
+
+
+    function setupMaintenanceMode() {
+      readMaintenanceModeState();
+
+      const list =
+        document.getElementById(
+          "maintenanceScreenList"
+        );
+
+      const toggle =
+        document.getElementById(
+          "maintenanceModeToggle"
+        );
+
+      const selectAll =
+        document.getElementById(
+          "maintenanceSelectAllButton"
+        );
+
+      const clear =
+        document.getElementById(
+          "maintenanceClearButton"
+        );
+
+      if (
+        !list ||
+        !toggle ||
+        !selectAll ||
+        !clear
+      ) {
+        return;
+      }
+
+      toggle.addEventListener(
+        "click",
+        function() {
+          maintenanceModeEnabled =
+            !maintenanceModeEnabled;
+
+          persistMaintenanceModeState();
+          refreshMaintenanceAwareUi();
+        }
+      );
+
+      selectAll.addEventListener(
+        "click",
+        function() {
+          maintenanceScreens.clear();
+
+          SCREEN_NAMES.forEach(
+            screenName =>
+              maintenanceScreens.add(
+                screenName
+              )
+          );
+
+          persistMaintenanceModeState();
+          refreshMaintenanceAwareUi();
+        }
+      );
+
+      clear.addEventListener(
+        "click",
+        function() {
+          maintenanceScreens.clear();
+
+          persistMaintenanceModeState();
+          refreshMaintenanceAwareUi();
+        }
+      );
+
+      list.addEventListener(
+        "change",
+        function(event) {
+          const input =
+            event.target.closest(
+              "[data-maintenance-screen]"
+            );
+
+          if (!input) {
+            return;
+          }
+
+          const screenName =
+            input.dataset
+              .maintenanceScreen;
+
+          if (
+            !SCREEN_NAMES.includes(
+              screenName
+            )
+          ) {
+            return;
+          }
+
+          if (input.checked) {
+            maintenanceScreens.add(
+              screenName
+            );
+
+          } else {
+            maintenanceScreens.delete(
+              screenName
+            );
+          }
+
+          persistMaintenanceModeState();
+          refreshMaintenanceAwareUi();
+        }
+      );
+
+      renderMaintenanceMode();
+    }
+
+
+    /*
+     * =====================================================
      * VERSION 1.3 — BUILD 103
      * BUSINESS-AWARE SCREEN EXPECTATIONS
      * =====================================================
@@ -1276,6 +1648,14 @@
       if (
         !isBusinessOperatingToday(
           date
+        )
+      ) {
+        return false;
+      }
+
+      if (
+        isScreenInMaintenance(
+          screenName
         )
       ) {
         return false;
@@ -17914,8 +18294,19 @@
 
       if (!isScreenExpectedToday(player.screen)) {
         return {
-          label: "Not scheduled",
-          detail: "Excluded from today's version compliance check."
+          label:
+            isScreenInMaintenance(
+              player.screen
+            )
+              ? "Maintenance"
+              : "Not scheduled",
+
+          detail:
+            isScreenInMaintenance(
+              player.screen
+            )
+              ? "Temporarily excluded by Maintenance Mode."
+              : "Excluded from today's version compliance check."
         };
       }
 
@@ -18006,7 +18397,14 @@
       const events = build89Phase2PlayerEvents.get(player.screen) || [];
 
       title.textContent = player.screen;
-      eyebrow.textContent = expectedToday ? "Scheduled player" : "Not scheduled today";
+      eyebrow.textContent =
+        expectedToday
+          ? "Scheduled player"
+          : isScreenInMaintenance(
+              player.screen
+            )
+            ? "Maintenance Mode"
+            : "Not scheduled today";
       build89DrawerReturnToList = true;
       setBuild89DrawerBackButton(true);
 
@@ -18035,7 +18433,13 @@
 
           <div class="player-details-field">
             <span class="player-details-field-label">Expected today</span>
-            <span class="player-details-field-value">${expectedToday ? "Yes" : "No"}</span>
+            <span class="player-details-field-value">${
+              isScreenInMaintenance(player.screen)
+                ? "Maintenance"
+                : expectedToday
+                  ? "Yes"
+                  : "No"
+            }</span>
           </div>
 
           <div class="player-details-field full">
@@ -18579,6 +18983,9 @@
           date
         );
 
+      const maintenance =
+        getMaintenanceScreens();
+
       const expectedTodayText =
         expectedToday.length
           ? expectedToday.join(", ")
@@ -18611,6 +19018,14 @@
 
       let notice =
         "Offline states are actionable only for players expected during the current business window.";
+
+      if (
+        maintenanceModeEnabled &&
+        maintenance.length > 0
+      ) {
+        notice =
+          `Maintenance Mode excludes ${maintenance.join(", ")} from operational expectations.`;
+      }
 
       if (!operationalState.operatingToday) {
         state =
@@ -18650,7 +19065,10 @@
           `${expectedToday.length} player${expectedToday.length === 1 ? "" : "s"} scheduled today, but none are required right now.`;
 
         notice =
-          operationalState.state.detail;
+          maintenanceModeEnabled &&
+          maintenance.length > 0
+            ? `${operationalState.state.detail} Maintenance exclusions: ${maintenance.join(", ")}.`
+            : operationalState.state.detail;
 
       } else {
         const livePlayers =
@@ -23662,12 +24080,20 @@
           "not-scheduled";
 
         label =
-          "Not scheduled";
+          isScreenInMaintenance(
+            screenName
+          )
+            ? "Maintenance"
+            : "Not scheduled";
 
         notes.push(
-          isBusinessOperatingToday()
-            ? "This screen is not part of today’s active screen group."
-            : "The business is closed today, so this screen is intentionally inactive."
+          isScreenInMaintenance(
+            screenName
+          )
+            ? "Maintenance Mode is active for this screen, so it is intentionally excluded from readiness checks."
+            : isBusinessOperatingToday()
+              ? "This screen is not part of today’s active screen group."
+              : "The business is closed today, so this screen is intentionally inactive."
         );
 
       } else if (!expectedNow) {
@@ -25877,6 +26303,7 @@
     setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
+    setupMaintenanceMode();
     renderBusinessProfile();
     renderScreenIntelligence();
     setupDiagnosticsExport();
