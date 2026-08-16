@@ -2,11 +2,12 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "102",
+  "build": "103",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
   "basedOnVersion": "v1.2.0",
-  "milestone": "Milestone 2 \u2014 Store Operations",
-  "feature": "Open/Closed intelligence, next opening, next closing"
+  "milestone": "Milestone 3 \u2014 Screen Intelligence",
+  "feature": "Expected screens and closed-day awareness",
+  "safetyBoundary": "No Google Sheets, Apps Script, OptiSigns, or schedule writes changed"
 }

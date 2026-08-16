@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=102">
+    <link rel="stylesheet" href="css/dashboard.css?build=103">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.3.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="102">
+  <meta name="dashboard-build" content="103">
 </head>
 
 <body>
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 102</span>
+            <span id="applicationBuildLabel">Build 103</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -480,6 +480,88 @@
           class="business-profile-special-notice"
         >
           Special / Holiday business-hours override: none configured.
+        </div>
+      </section>
+
+      <!--
+        =====================================================
+        VERSION 1.3 — BUILD 103
+        SCREEN INTELLIGENCE
+        =====================================================
+      -->
+      <section
+        id="screenIntelligencePanel"
+        class="screen-intelligence-panel screen-intelligence-waiting"
+        aria-labelledby="screenIntelligenceTitle"
+      >
+        <div class="screen-intelligence-header">
+          <div>
+            <div class="eyebrow">Milestone 3 · Screen intelligence</div>
+
+            <div class="screen-intelligence-heading-row">
+              <span
+                id="screenIntelligenceIcon"
+                class="screen-intelligence-icon"
+                aria-hidden="true"
+              >🖥️</span>
+
+              <div>
+                <h3
+                  id="screenIntelligenceTitle"
+                  class="screen-intelligence-title"
+                >
+                  Evaluating screen expectations
+                </h3>
+
+                <p
+                  id="screenIntelligenceSummary"
+                  class="screen-intelligence-summary"
+                >
+                  Business hours now determine which players are expected to operate.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="screenIntelligenceBadge"
+            class="screen-intelligence-badge"
+          >
+            Checking
+          </div>
+        </div>
+
+        <div class="screen-intelligence-grid">
+          <article class="screen-intelligence-metric">
+            <span class="screen-intelligence-metric-label">
+              Expected today
+            </span>
+            <strong id="screenExpectedTodayCount">—</strong>
+            <small id="screenExpectedTodayList">—</small>
+          </article>
+
+          <article class="screen-intelligence-metric">
+            <span class="screen-intelligence-metric-label">
+              Expected now
+            </span>
+            <strong id="screenExpectedNowCount">—</strong>
+            <small id="screenExpectedNowList">—</small>
+          </article>
+
+          <article class="screen-intelligence-metric">
+            <span class="screen-intelligence-metric-label">
+              Intentionally inactive
+            </span>
+            <strong id="screenInactiveCount">—</strong>
+            <small id="screenInactiveList">—</small>
+          </article>
+        </div>
+
+        <div
+          id="screenIntelligenceNotice"
+          class="screen-intelligence-notice"
+        >
+          Waiting for business-profile evaluation.
         </div>
       </section>
 
@@ -4630,7 +4712,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=102" defer></script>
+    <script src="js/dashboard.js?build=103" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
