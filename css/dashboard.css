@@ -10151,3 +10151,64 @@ html[data-theme="light"] .rollout-card-selector-box {
     gap: 4px;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.3 — BUILD 106
+ * SMARTER ROLLOUT ASSISTANT
+ * =========================================================
+ */
+
+.rollout-recommendation-summary {
+  margin: 12px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rollout-recommendation {
+  margin: 12px 0;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-soft);
+}
+
+.rollout-recommendation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.rollout-recommendation-detail {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.rollout-recommendation-success {
+  border-color: var(--regular);
+}
+
+.rollout-recommendation-warning {
+  border-color: var(--warning);
+}
+
+.rollout-recommendation-danger {
+  border-color: var(--error);
+}
+
+.rollout-recommendation-muted {
+  border-color: var(--border);
+}
+
+.rollout-suggested-action {
+  margin: 2px 0 12px;
+}
