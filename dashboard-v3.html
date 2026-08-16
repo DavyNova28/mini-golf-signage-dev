@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=104">
+    <link rel="stylesheet" href="css/dashboard.css?build=105">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.3.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="104">
+  <meta name="dashboard-build" content="105">
 </head>
 
 <body>
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 104</span>
+            <span id="applicationBuildLabel">Build 105</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -3665,20 +3665,44 @@
         <section class="go-live-readiness">
           <div class="manager-header">
             <div>
-              <div class="eyebrow">Priority 7</div>
+              <div class="eyebrow">Milestone 4 · Build 105</div>
               <h3 style="margin:5px 0 0;">Go-Live Readiness</h3>
               <p class="manager-description">
-                Final preflight check before returning the store screens to the custom player.
+                Refresh live monitoring data and run a business-aware deployment preflight.
               </p>
             </div>
 
             <button
               id="refreshGoLiveReadinessButton"
-              class="button"
+              class="button button-primary"
               type="button"
             >
               Run preflight
             </button>
+          </div>
+
+          <div
+            id="goLivePreflightProgress"
+            class="go-live-preflight-progress"
+            aria-live="polite"
+          >
+            <div class="go-live-preflight-progress-track">
+              <div
+                id="goLivePreflightProgressBar"
+                class="go-live-preflight-progress-bar"
+                style="width:0%"
+              ></div>
+            </div>
+
+            <div class="go-live-preflight-progress-meta">
+              <span id="goLivePreflightProgressText">
+                Ready to run.
+              </span>
+
+              <span id="goLivePreflightLastRun">
+                Not run yet
+              </span>
+            </div>
           </div>
 
           <div class="go-live-readiness-summary">
@@ -3712,6 +3736,13 @@
             id="goLiveReadinessList"
             class="go-live-readiness-list"
           ></div>
+
+          <div
+            id="goLivePreflightFooter"
+            class="go-live-preflight-footer"
+          >
+            Build 105 preflight is informational: it does not deploy players or change schedules.
+          </div>
         </section>
 
         <section class="health-score-panel">
@@ -4778,7 +4809,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=104" defer></script>
+    <script src="js/dashboard.js?build=105" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
