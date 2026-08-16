@@ -9,8 +9,6 @@
 
     const SCREEN_NAMES = [
       "Arcade",
-      "ArcadeWeek",
-      "ArcadeSunday",
       "Golf",
       "Slush",
       "infoArcade"
@@ -27,7 +25,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "105.1",
+      build: "111",
       status: "Development",
       tag: ""
     };
@@ -1813,22 +1811,14 @@
       screenName,
       date = new Date()
     ) {
-      const day =
-        date.getDay();
-
-      if (screenName === "ArcadeSunday") {
-        return day === 0;
-      }
-
-      if (screenName === "ArcadeWeek") {
-        return day >= 1 && day <= 4;
-      }
-
-      if (screenName === "Arcade") {
-        return day === 5 || day === 6;
-      }
-
-      return true;
+      /*
+       * Build 111 exposes four stable logical players.
+       * Weekday/season schedule variation is resolved by
+       * Apps Script, not by separate player identities.
+       */
+      return SCREEN_NAMES.includes(
+        screenName
+      );
     }
 
 
@@ -5004,6 +4994,37 @@
 
         activeDate:
           payload.activeDate || "",
+
+        logicalScreen:
+          String(
+            payload.logicalScreen ||
+            screenName
+          ),
+
+        routeProfile:
+          String(
+            payload.routeProfile || ""
+          ),
+
+        routeKey:
+          String(
+            payload.routeKey || ""
+          ),
+
+        routeSourceTab:
+          String(
+            payload.routeSourceTab || ""
+          ),
+
+        routeLabel:
+          String(
+            payload.routeLabel || ""
+          ),
+
+        legacyRequest:
+          String(
+            payload.legacyRequest || ""
+          ),
 
         schedule,
         activeItem,
@@ -18446,6 +18467,7 @@
         renderOperationsSnapshot();
         renderBusinessProfile();
         renderScreenIntelligence();
+        renderScheduleRouting();
         renderOperationsIntelligence();
         renderMissionControlStatuses();
 
@@ -19225,6 +19247,128 @@
       animateDashboardNumber(imagesElement, imageCount);
       animateDashboardNumber(deploymentElement, deployedCount, { suffix: `/${SCREEN_NAMES.length}` });
     }
+
+    function renderScheduleRouting(
+      date = new Date()
+    ) {
+      const list =
+        document.getElementById(
+          "scheduleRoutingList"
+        );
+
+      const badge =
+        document.getElementById(
+          "scheduleRoutingProfileBadge"
+        );
+
+      if (
+        !list ||
+        !badge
+      ) {
+        return;
+      }
+
+      const profile =
+        getSeasonalBusinessProfile(
+          date
+        );
+
+      badge.textContent =
+        profile.label;
+
+      const rows =
+        SCREEN_NAMES.map(
+          screenName => {
+            const state =
+              screenStates.get(
+                screenName
+              );
+
+            if (
+              !state ||
+              state.error
+            ) {
+              return {
+                screenName:
+                  screenName,
+
+                source:
+                  "Waiting for Apps Script",
+
+                detail:
+                  state &&
+                  state.error
+                    ? state.error
+                    : "No route data yet.",
+
+                status:
+                  "waiting"
+              };
+            }
+
+            const source =
+              state.source === "holiday"
+                ? "Holiday Override"
+                : state.routeSourceTab ||
+                  "Unknown source";
+
+            const detailParts =
+              [];
+
+            if (state.routeLabel) {
+              detailParts.push(
+                state.routeLabel
+              );
+            }
+
+            if (
+              state.source === "holiday"
+            ) {
+              detailParts.push(
+                "Special/Holiday override has priority"
+              );
+            }
+
+            return {
+              screenName:
+                screenName,
+
+              source:
+                source,
+
+              detail:
+                detailParts.join(
+                  " · "
+                ) ||
+                `${profile.label} route`,
+
+              status:
+                "ready"
+            };
+          }
+        );
+
+      list.innerHTML =
+        rows
+          .map(row => `
+            <article class="schedule-routing-item schedule-routing-item-${row.status}">
+              <div class="schedule-routing-screen">
+                ${escapeHtml(row.screenName)}
+              </div>
+
+              <div class="schedule-routing-arrow" aria-hidden="true">
+                →
+              </div>
+
+              <div class="schedule-routing-source">
+                <strong>${escapeHtml(row.source)}</strong>
+                <small>${escapeHtml(row.detail)}</small>
+              </div>
+            </article>
+          `)
+          .join("");
+    }
+
 
     function renderScreenIntelligence(
       date = new Date()
