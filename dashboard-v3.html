@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=103">
+    <link rel="stylesheet" href="css/dashboard.css?build=104">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.3.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="103">
+  <meta name="dashboard-build" content="104">
 </head>
 
 <body>
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 103</span>
+            <span id="applicationBuildLabel">Build 104</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -563,6 +563,72 @@
         >
           Waiting for business-profile evaluation.
         </div>
+
+        <section
+          id="maintenanceModePanel"
+          class="maintenance-mode-panel"
+          aria-labelledby="maintenanceModeTitle"
+        >
+          <div class="maintenance-mode-header">
+            <div>
+              <div class="eyebrow">Build 104 · Manual exclusion</div>
+              <h4 id="maintenanceModeTitle" class="maintenance-mode-title">
+                Maintenance Mode
+              </h4>
+              <p class="maintenance-mode-description">
+                Temporarily exclude selected players from operational expectations
+                without changing Google Sheets, player URLs, or OptiSigns.
+              </p>
+            </div>
+
+            <button
+              id="maintenanceModeToggle"
+              class="button"
+              type="button"
+              aria-pressed="false"
+            >
+              Enable Maintenance Mode
+            </button>
+          </div>
+
+          <div class="maintenance-mode-toolbar">
+            <button
+              id="maintenanceSelectAllButton"
+              class="button"
+              type="button"
+            >
+              Select all
+            </button>
+
+            <button
+              id="maintenanceClearButton"
+              class="button"
+              type="button"
+            >
+              Clear selection
+            </button>
+
+            <span
+              id="maintenanceModeStatus"
+              class="maintenance-mode-status"
+            >
+              Disabled · no players excluded
+            </span>
+          </div>
+
+          <div
+            id="maintenanceScreenList"
+            class="maintenance-screen-list"
+            aria-label="Players available for maintenance exclusion"
+          ></div>
+
+          <div
+            id="maintenanceModeNotice"
+            class="maintenance-mode-notice"
+          >
+            Maintenance Mode is stored only in this browser and can be disabled at any time.
+          </div>
+        </section>
       </section>
 
       <section id="operationsIntelligence" class="operations-intelligence operations-intelligence-waiting" aria-labelledby="operationsIntelligenceTitle">
@@ -4712,7 +4778,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=103" defer></script>
+    <script src="js/dashboard.js?build=104" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

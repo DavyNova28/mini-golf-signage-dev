@@ -2,12 +2,12 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "103",
+  "build": "104",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
   "basedOnVersion": "v1.2.0",
   "milestone": "Milestone 3 \u2014 Screen Intelligence",
-  "feature": "Expected screens and closed-day awareness",
-  "safetyBoundary": "No Google Sheets, Apps Script, OptiSigns, or schedule writes changed"
+  "feature": "Maintenance Mode and manual player exclusions",
+  "storage": "Browser localStorage only"
 }
