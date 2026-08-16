@@ -10555,3 +10555,31 @@ textarea:focus-visible {
     white-space: normal;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.3 — BUILD 110
+ * STABILITY + OPTIMIZATION
+ * =========================================================
+ */
+
+/* Prevent large dynamic panels from forcing unexpected horizontal layout shifts. */
+.business-profile-panel,
+.screen-intelligence-panel,
+.operations-intelligence,
+.operations-analytics-panel,
+.operations-snapshot,
+.rollout-card {
+  min-width: 0;
+}
+
+/* Let the browser skip off-screen work for long dashboard sections where supported. */
+@supports (content-visibility: auto) {
+  .operations-analytics-panel,
+  .screen-intelligence-panel,
+  .go-live-readiness {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 420px;
+  }
+}
