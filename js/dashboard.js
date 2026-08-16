@@ -27,7 +27,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "105",
+      build: "105.1",
       status: "Development",
       tag: ""
     };
@@ -17524,64 +17524,6 @@
 
 
     function checkOfflineSnapshotHealth() {
-      const maintenance =
-        getMaintenanceScreens();
-
-      checks.push({
-        level:
-          "ok",
-
-        icon:
-          maintenance.length > 0
-            ? "🛠️"
-            : "✅",
-
-        title:
-          "Maintenance exclusions",
-
-        detail:
-          maintenance.length > 0
-            ? `${maintenance.join(", ")} excluded intentionally by Maintenance Mode.`
-            : "No players are currently excluded by Maintenance Mode."
-      });
-
-      const expectedDeploymentScreens =
-        expectedToday.filter(
-          screenName =>
-            !isScreenInMaintenance(
-              screenName
-            )
-        );
-
-      const untrackedDeploymentScreens =
-        expectedDeploymentScreens.filter(
-          screenName =>
-            getRolloutStage(
-              screenName
-            ) === "not-started"
-        );
-
-      checks.push({
-        level:
-          "ok",
-
-        icon:
-          untrackedDeploymentScreens.length > 0
-            ? "ℹ️"
-            : "✅",
-
-        title:
-          "Rollout tracking",
-
-        detail:
-          untrackedDeploymentScreens.length > 0
-            ? `Tracking only: ${untrackedDeploymentScreens.join(", ")} are not marked Testing/Deployed. This does not block signage operation.`
-            : expectedDeploymentScreens.length > 0
-              ? "All expected screens have a rollout tracking stage."
-              : "No rollout stage is required while no screens are expected."
-      });
-
-
       const savedAt =
         dashboardOfflineSnapshot &&
         dashboardOfflineSnapshot.savedAt
@@ -26227,6 +26169,63 @@
             : unavailablePlayers.length === 0
               ? `All ${expectedNow.length} player(s) expected right now have checked in.`
               : `No recent heartbeat from: ${unavailablePlayers.join(", ")}.`
+      });
+
+      const maintenance =
+        getMaintenanceScreens();
+
+      checks.push({
+        level:
+          "ok",
+
+        icon:
+          maintenance.length > 0
+            ? "🛠️"
+            : "✅",
+
+        title:
+          "Maintenance exclusions",
+
+        detail:
+          maintenance.length > 0
+            ? `${maintenance.join(", ")} excluded intentionally by Maintenance Mode.`
+            : "No players are currently excluded by Maintenance Mode."
+      });
+
+      const expectedDeploymentScreens =
+        expectedToday.filter(
+          screenName =>
+            !isScreenInMaintenance(
+              screenName
+            )
+        );
+
+      const untrackedDeploymentScreens =
+        expectedDeploymentScreens.filter(
+          screenName =>
+            getRolloutStage(
+              screenName
+            ) === "not-started"
+        );
+
+      checks.push({
+        level:
+          "ok",
+
+        icon:
+          untrackedDeploymentScreens.length > 0
+            ? "ℹ️"
+            : "✅",
+
+        title:
+          "Rollout tracking",
+
+        detail:
+          untrackedDeploymentScreens.length > 0
+            ? `Tracking only: ${untrackedDeploymentScreens.join(", ")} are not marked Testing/Deployed. This does not block signage operation.`
+            : expectedDeploymentScreens.length > 0
+              ? "All expected screens have a rollout tracking stage."
+              : "No rollout stage is required while no screens are expected."
       });
 
       const savedAt =
