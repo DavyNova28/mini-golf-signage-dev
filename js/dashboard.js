@@ -27,7 +27,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "102",
+      build: "103",
       status: "Development",
       tag: ""
     };
@@ -1169,7 +1169,84 @@
     let playerHeartbeatMemory =
       {};
 
-    function isScreenExpectedToday(
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 103
+     * BUSINESS-AWARE SCREEN EXPECTATIONS
+     * =====================================================
+     */
+
+    function isBusinessOperatingToday(
+      date = new Date()
+    ) {
+      const result =
+        getBusinessProfileForDate(
+          date
+        );
+
+      return Boolean(
+        result &&
+        result.hours &&
+        result.hours.closed !== true
+      );
+    }
+
+
+    function isBusinessOpenNow(
+      date = new Date()
+    ) {
+      const result =
+        getBusinessProfileForDate(
+          date
+        );
+
+      const state =
+        getBusinessState(
+          date,
+          result.hours
+        );
+
+      return state.id === "open";
+    }
+
+
+    function getBusinessOperationalState(
+      date = new Date()
+    ) {
+      const result =
+        getBusinessProfileForDate(
+          date
+        );
+
+      const state =
+        getBusinessState(
+          date,
+          result.hours
+        );
+
+      return {
+        profile:
+          result.profile,
+
+        hours:
+          result.hours,
+
+        state:
+          state,
+
+        operatingToday:
+          Boolean(
+            result.hours &&
+            result.hours.closed !== true
+          ),
+
+        openNow:
+          state.id === "open"
+      };
+    }
+
+
+    function isScreenDayVariantExpected(
       screenName,
       date = new Date()
     ) {
@@ -1190,6 +1267,87 @@
 
       return true;
     }
+
+
+    function isScreenExpectedToday(
+      screenName,
+      date = new Date()
+    ) {
+      if (
+        !isBusinessOperatingToday(
+          date
+        )
+      ) {
+        return false;
+      }
+
+      return isScreenDayVariantExpected(
+        screenName,
+        date
+      );
+    }
+
+
+    function isScreenExpectedNow(
+      screenName,
+      date = new Date()
+    ) {
+      return (
+        isScreenExpectedToday(
+          screenName,
+          date
+        ) &&
+        isBusinessOpenNow(
+          date
+        )
+      );
+    }
+
+
+    function getExpectedScreensToday(
+      date = new Date()
+    ) {
+      return SCREEN_NAMES.filter(
+        screenName =>
+          isScreenExpectedToday(
+            screenName,
+            date
+          )
+      );
+    }
+
+
+    function getExpectedScreensNow(
+      date = new Date()
+    ) {
+      return SCREEN_NAMES.filter(
+        screenName =>
+          isScreenExpectedNow(
+            screenName,
+            date
+          )
+      );
+    }
+
+
+    function getIntentionallyInactiveScreens(
+      date = new Date()
+    ) {
+      const expectedNow =
+        new Set(
+          getExpectedScreensNow(
+            date
+          )
+        );
+
+      return SCREEN_NAMES.filter(
+        screenName =>
+          !expectedNow.has(
+            screenName
+          )
+      );
+    }
+
 
     function loadPlayerHeartbeatMemory() {
       try {
@@ -1610,6 +1768,11 @@
 
             expectedToday:
               isScreenExpectedToday(
+                screenName
+              ),
+
+            expectedNow:
+              isScreenExpectedNow(
                 screenName
               )
           };
@@ -17592,13 +17755,17 @@
     }
 
 
-    function isPlayerQuietHours() {
-      const hour =
-        new Date().getHours();
-
-      return (
-        hour >= 22 ||
-        hour < 10
+    function isPlayerQuietHours(
+      date = new Date()
+    ) {
+      /*
+       * Build 103 keeps the legacy function name because many
+       * existing dashboard components call it. Its meaning is
+       * now business-aware: players are in an expected sleep
+       * window whenever the business is not currently open.
+       */
+      return !isBusinessOpenNow(
+        date
       );
     }
 
@@ -17666,6 +17833,7 @@
 
         runGoLiveReadinessCheck();
         renderRolloutAssistant();
+        renderScreenIntelligence();
         renderOperationsIntelligence();
         renderMissionControlStatuses();
         renderMissionRecentActivity();
@@ -18379,6 +18547,228 @@
       animateDashboardNumber(deploymentElement, deployedCount, { suffix: `/${SCREEN_NAMES.length}` });
     }
 
+    function renderScreenIntelligence(
+      date = new Date()
+    ) {
+      const panel =
+        document.getElementById(
+          "screenIntelligencePanel"
+        );
+
+      if (!panel) {
+        return;
+      }
+
+      const operationalState =
+        getBusinessOperationalState(
+          date
+        );
+
+      const expectedToday =
+        getExpectedScreensToday(
+          date
+        );
+
+      const expectedNow =
+        getExpectedScreensNow(
+          date
+        );
+
+      const inactive =
+        getIntentionallyInactiveScreens(
+          date
+        );
+
+      const expectedTodayText =
+        expectedToday.length
+          ? expectedToday.join(", ")
+          : "None";
+
+      const expectedNowText =
+        expectedNow.length
+          ? expectedNow.join(", ")
+          : "None";
+
+      const inactiveText =
+        inactive.length
+          ? inactive.join(", ")
+          : "None";
+
+      let state =
+        "ready";
+
+      let badge =
+        "Business aware";
+
+      let icon =
+        "🖥️";
+
+      let title =
+        "Screen expectations active";
+
+      let summary =
+        `${expectedNow.length} player${expectedNow.length === 1 ? "" : "s"} expected right now.`;
+
+      let notice =
+        "Offline states are actionable only for players expected during the current business window.";
+
+      if (!operationalState.operatingToday) {
+        state =
+          "closed";
+
+        badge =
+          "Closed today";
+
+        icon =
+          "🏢";
+
+        title =
+          "All screens intentionally inactive";
+
+        summary =
+          "The active business profile marks today as closed.";
+
+        notice =
+          "No player is expected today. Offline heartbeats should not be treated as an operational fault.";
+
+      } else if (!operationalState.openNow) {
+        state =
+          "sleeping";
+
+        badge =
+          operationalState.state.id === "before-open"
+            ? "Before opening"
+            : "After closing";
+
+        icon =
+          "🌙";
+
+        title =
+          "Screens intentionally sleeping";
+
+        summary =
+          `${expectedToday.length} player${expectedToday.length === 1 ? "" : "s"} scheduled today, but none are required right now.`;
+
+        notice =
+          operationalState.state.detail;
+
+      } else {
+        const livePlayers =
+          Array.isArray(
+            latestPlayerHeartbeats
+          )
+            ? latestPlayerHeartbeats
+            : [];
+
+        const expectedSet =
+          new Set(
+            expectedNow
+          );
+
+        const onlineCount =
+          livePlayers.filter(
+            player =>
+              expectedSet.has(
+                player.screen
+              ) &&
+              player.status === "online"
+          ).length;
+
+        if (
+          expectedNow.length > 0 &&
+          onlineCount <
+            expectedNow.length
+        ) {
+          state =
+            "attention";
+
+          badge =
+            "Check players";
+
+          icon =
+            "🟠";
+
+          title =
+            "Some expected screens need attention";
+
+          summary =
+            `${onlineCount} of ${expectedNow.length} expected players are currently online.`;
+        }
+      }
+
+      panel.className =
+        `screen-intelligence-panel ` +
+        `screen-intelligence-${state}`;
+
+      document.getElementById(
+        "screenIntelligenceBadge"
+      ).className =
+        `screen-intelligence-badge ` +
+        `screen-intelligence-badge-${state}`;
+
+      document.getElementById(
+        "screenIntelligenceBadge"
+      ).textContent =
+        badge;
+
+      document.getElementById(
+        "screenIntelligenceIcon"
+      ).textContent =
+        icon;
+
+      document.getElementById(
+        "screenIntelligenceTitle"
+      ).textContent =
+        title;
+
+      document.getElementById(
+        "screenIntelligenceSummary"
+      ).textContent =
+        summary;
+
+      document.getElementById(
+        "screenExpectedTodayCount"
+      ).textContent =
+        String(
+          expectedToday.length
+        );
+
+      document.getElementById(
+        "screenExpectedTodayList"
+      ).textContent =
+        expectedTodayText;
+
+      document.getElementById(
+        "screenExpectedNowCount"
+      ).textContent =
+        String(
+          expectedNow.length
+        );
+
+      document.getElementById(
+        "screenExpectedNowList"
+      ).textContent =
+        expectedNowText;
+
+      document.getElementById(
+        "screenInactiveCount"
+      ).textContent =
+        String(
+          inactive.length
+        );
+
+      document.getElementById(
+        "screenInactiveList"
+      ).textContent =
+        inactiveText;
+
+      document.getElementById(
+        "screenIntelligenceNotice"
+      ).textContent =
+        notice;
+    }
+
+
     function renderOperationsIntelligence() {
       const panel = document.getElementById("operationsIntelligence");
       if (!panel) return;
@@ -18386,9 +18776,17 @@
       const players = Array.isArray(latestPlayerHeartbeats)
         ? latestPlayerHeartbeats
         : [];
-      const quietHours = isPlayerQuietHours();
-      const expectedToday = SCREEN_NAMES.filter(name => isScreenExpectedToday(name));
-      const expectedNow = quietHours ? [] : expectedToday;
+      const operationalState =
+        getBusinessOperationalState();
+
+      const quietHours =
+        !operationalState.openNow;
+
+      const expectedToday =
+        getExpectedScreensToday();
+
+      const expectedNow =
+        getExpectedScreensNow();
       const expectedPlayers = players.filter(player => expectedNow.includes(player.screen));
       const onlineExpected = expectedPlayers.filter(player => player.status === "online");
       const attentionPlayers = expectedPlayers.filter(player =>
@@ -18426,12 +18824,32 @@
       let title = greeting.title;
       let summary = "Everything is operating normally. All scheduled players are healthy.";
 
-      if (quietHours) {
+      if (!operationalState.operatingToday) {
         state = "sleeping";
-        badge = "Quiet hours";
+        badge = "Closed today";
+        icon = "🏢";
+        title = "Business closed";
+        summary = "No signage players are expected today. Offline players are intentional and do not require attention.";
+
+      } else if (!operationalState.openNow) {
+        state = "sleeping";
+        badge =
+          operationalState.state.id === "before-open"
+            ? "Before opening"
+            : "Closed";
+
         icon = "🌙";
-        title = "Quiet Hours";
-        summary = "Players are sleeping. Monitoring resumes automatically at 10:00, while last-known data remains available.";
+
+        title =
+          operationalState.state.id === "before-open"
+            ? "Players waiting for opening"
+            : "Business hours ended";
+
+        summary =
+          operationalState.state.id === "before-open"
+            ? `Players are intentionally inactive. ${operationalState.state.detail}`
+            : "Players are intentionally inactive after closing; last-known data remains available.";
+
       } else if (attentionPlayers.some(player => player.status === "offline")) {
         state = "critical";
         badge = "Attention";
@@ -18461,12 +18879,23 @@
       document.getElementById("operationsIntelligenceTitle").textContent = title;
       document.getElementById("operationsIntelligenceSummary").textContent = summary;
 
-      document.getElementById("operationsScheduledPlayers").textContent = quietHours
-        ? `${expectedToday.length} sleeping`
-        : `${onlineExpected.length} / ${expectedNow.length}`;
-      document.getElementById("operationsScheduledPlayersDetail").textContent = quietHours
-        ? `${expectedToday.length} expected today · polling paused`
-        : `${onlineExpected.length} online now · ${attentionPlayers.length} need attention`;
+      document.getElementById(
+        "operationsScheduledPlayers"
+      ).textContent =
+        !operationalState.operatingToday
+          ? "Closed"
+          : !operationalState.openNow
+            ? `${expectedToday.length} sleeping`
+            : `${onlineExpected.length} / ${expectedNow.length}`;
+
+      document.getElementById(
+        "operationsScheduledPlayersDetail"
+      ).textContent =
+        !operationalState.operatingToday
+          ? "0 players expected today"
+          : !operationalState.openNow
+            ? `${expectedToday.length} expected today · intentionally inactive now`
+            : `${onlineExpected.length} online now · ${attentionPlayers.length} need attention`;
 
       const versionComplianceElement = document.getElementById("operationsVersionCompliance");
       if (versionEligible.length) {
@@ -22236,14 +22665,23 @@
           : "Some configured screen schedules are still unavailable."
       );
 
-      const quietHours =
-        typeof isPlayerQuietHours === "function"
-          ? isPlayerQuietHours()
-          : false;
+      const operationalState =
+        getBusinessOperationalState();
 
-      const onlinePlayers =
+      const expectedNowScreens =
+        getExpectedScreensNow();
+
+      const expectedNowSet =
+        new Set(
+          expectedNowScreens
+        );
+
+      const onlineExpectedPlayers =
         latestPlayerHeartbeats.filter(
           player =>
+            expectedNowSet.has(
+              player.screen
+            ) &&
             player.status === "online"
         ).length;
 
@@ -22251,20 +22689,25 @@
         missionPlayersCard,
         missionPlayersValue,
         missionPlayersDetail,
-        quietHours ||
-        onlinePlayers === SCREEN_NAMES.length
+        !operationalState.openNow ||
+        onlineExpectedPlayers ===
+          expectedNowScreens.length
           ? "ok"
-          : onlinePlayers > 0
+          : onlineExpectedPlayers > 0
             ? "warning"
             : "error",
-        quietHours
-          ? "Sleeping"
-          : `${onlinePlayers}/${SCREEN_NAMES.length}`,
-        quietHours
-          ? "Quiet hours are active; inactive players are expected."
-          : onlinePlayers === SCREEN_NAMES.length
-            ? "All players are checking in normally."
-            : `${SCREEN_NAMES.length - onlinePlayers} player(s) are not currently online.`
+        !operationalState.operatingToday
+          ? "Closed"
+          : !operationalState.openNow
+            ? "Sleeping"
+            : `${onlineExpectedPlayers}/${expectedNowScreens.length}`,
+        !operationalState.operatingToday
+          ? "The business is closed today; no players are expected."
+          : !operationalState.openNow
+            ? "Players are intentionally inactive outside today’s business hours."
+            : onlineExpectedPlayers === expectedNowScreens.length
+              ? "All expected players are checking in normally."
+              : `${expectedNowScreens.length - onlineExpectedPlayers} expected player(s) are not currently online.`
       );
 
       const snapshotSavedAt =
@@ -23139,14 +23582,16 @@
           screenName
         );
 
+      const businessOperationalState =
+        getBusinessOperationalState();
+
       const quietHours =
-        typeof isPlayerQuietHours === "function"
-          ? isPlayerQuietHours()
-          : false;
+        !businessOperationalState.openNow;
 
       const expectedNow =
-        expectedToday &&
-        !quietHours;
+        isScreenExpectedNow(
+          screenName
+        );
 
       const scheduleState =
         screenStates.get(
@@ -23220,10 +23665,12 @@
           "Not scheduled";
 
         notes.push(
-          "This screen is not expected to operate today."
+          isBusinessOperatingToday()
+            ? "This screen is not part of today’s active screen group."
+            : "The business is closed today, so this screen is intentionally inactive."
         );
 
-      } else if (quietHours) {
+      } else if (!expectedNow) {
         state =
           "sleeping";
 
@@ -23231,7 +23678,9 @@
           "Sleeping";
 
         notes.push(
-          "Quiet Hours are active. The player is not expected to check in between 22:00 and 10:00."
+          businessOperationalState.state.id === "before-open"
+            ? `The business has not opened yet. ${businessOperationalState.state.detail}`
+            : "Today’s business hours have ended. The player is not expected to check in."
         );
 
       } else {
@@ -25429,6 +25878,7 @@
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
     renderBusinessProfile();
+    renderScreenIntelligence();
     setupDiagnosticsExport();
     setupApplicationInformationDialogs();
     setupCommandPalette();
@@ -25489,6 +25939,7 @@
         updateLiveInformation();
         updateOperationsPanel();
         renderBusinessProfile();
+        renderScreenIntelligence();
         renderOperationsIntelligence();
 
         if (
