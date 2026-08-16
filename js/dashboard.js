@@ -25,7 +25,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Release Candidate",
-      build: "112",
+      build: "112.1",
       status: "Release Candidate 1",
       tag: "v1.3.0-rc.1"
     };
@@ -15864,6 +15864,13 @@
 
 
     function scrollDailyCalendarToNow() {
+      if (
+        !dailyCalendarWrap ||
+        !dailyCalendarGrid
+      ) {
+        return;
+      }
+
       const startHour =
         Number(
           dailyCalendarStartHour.value
@@ -15879,22 +15886,68 @@
       const startMinute =
         startHour * 60;
 
-      const offset =
-        Math.max(
-          0,
-          (
-            (
-              currentMinute -
-              startMinute
-            ) /
-            60
-          ) *
-          48 -
-          120
+      /*
+       * Build 112.1:
+       * Read the actual rendered hour height instead of using
+       * the old fixed 48px assumption.
+       */
+      const firstTimeCell =
+        dailyCalendarGrid.querySelector(
+          ".daily-calendar-time"
         );
 
-      dailyCalendarWrap.scrollTop =
-        offset;
+      const hourHeight =
+        firstTimeCell
+          ? firstTimeCell.getBoundingClientRect().height
+          : 48;
+
+      const minutesFromStart =
+        Math.max(
+          0,
+          currentMinute -
+          startMinute
+        );
+
+      const targetY =
+        minutesFromStart /
+        60 *
+        hourHeight;
+
+      const centeredTarget =
+        targetY -
+        dailyCalendarWrap.clientHeight *
+          0.42;
+
+      const maxScrollTop =
+        Math.max(
+          0,
+          dailyCalendarWrap.scrollHeight -
+          dailyCalendarWrap.clientHeight
+        );
+
+      const nextScrollTop =
+        Math.min(
+          maxScrollTop,
+          Math.max(
+            0,
+            centeredTarget
+          )
+        );
+
+      const prefersReducedMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+      dailyCalendarWrap.scrollTo({
+        top:
+          nextScrollTop,
+
+        behavior:
+          prefersReducedMotion
+            ? "auto"
+            : "smooth"
+      });
     }
 
 
