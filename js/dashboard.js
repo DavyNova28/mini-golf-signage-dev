@@ -27,7 +27,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "101",
+      build: "102",
       status: "Development",
       tag: ""
     };
@@ -615,6 +615,325 @@
     }
 
 
+
+    function getBusinessHoursForDate(
+      date
+    ) {
+      return getBusinessProfileForDate(
+        date
+      ).hours;
+    }
+
+
+    function getBusinessDateAtTime(
+      date,
+      hhmm
+    ) {
+      const minutes =
+        businessTimeToMinutes(
+          hhmm
+        );
+
+      if (minutes === null) {
+        return null;
+      }
+
+      return new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        Math.floor(
+          minutes / 60
+        ),
+        minutes % 60,
+        0,
+        0
+      );
+    }
+
+
+    function getNextBusinessOpening(
+      date = new Date()
+    ) {
+      const todayHours =
+        getBusinessHoursForDate(
+          date
+        );
+
+      if (
+        todayHours &&
+        todayHours.closed !== true
+      ) {
+        const todayOpen =
+          getBusinessDateAtTime(
+            date,
+            todayHours.open
+          );
+
+        if (
+          todayOpen &&
+          date < todayOpen
+        ) {
+          return {
+            date:
+              todayOpen,
+
+            hours:
+              todayHours,
+
+            sameDay:
+              true
+          };
+        }
+      }
+
+      for (
+        let offset = 1;
+        offset <= 14;
+        offset += 1
+      ) {
+        const candidate =
+          new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate() + offset,
+            0,
+            0,
+            0,
+            0
+          );
+
+        const hours =
+          getBusinessHoursForDate(
+            candidate
+          );
+
+        if (
+          !hours ||
+          hours.closed === true
+        ) {
+          continue;
+        }
+
+        const opening =
+          getBusinessDateAtTime(
+            candidate,
+            hours.open
+          );
+
+        if (opening) {
+          return {
+            date:
+              opening,
+
+            hours:
+              hours,
+
+            sameDay:
+              false
+          };
+        }
+      }
+
+      return null;
+    }
+
+
+    function getNextBusinessClosing(
+      date = new Date()
+    ) {
+      const todayHours =
+        getBusinessHoursForDate(
+          date
+        );
+
+      if (
+        todayHours &&
+        todayHours.closed !== true
+      ) {
+        const todayClose =
+          getBusinessDateAtTime(
+            date,
+            todayHours.close
+          );
+
+        if (
+          todayClose &&
+          date < todayClose
+        ) {
+          return {
+            date:
+              todayClose,
+
+            hours:
+              todayHours,
+
+            sameDay:
+              true
+          };
+        }
+      }
+
+      const nextOpening =
+        getNextBusinessOpening(
+          date
+        );
+
+      if (!nextOpening) {
+        return null;
+      }
+
+      const nextHours =
+        getBusinessHoursForDate(
+          nextOpening.date
+        );
+
+      const closing =
+        nextHours &&
+        nextHours.closed !== true
+          ? getBusinessDateAtTime(
+              nextOpening.date,
+              nextHours.close
+            )
+          : null;
+
+      if (!closing) {
+        return null;
+      }
+
+      return {
+        date:
+          closing,
+
+        hours:
+          nextHours,
+
+        sameDay:
+          false
+      };
+    }
+
+
+    function formatBusinessEventDate(
+      targetDate,
+      referenceDate = new Date()
+    ) {
+      if (!targetDate) {
+        return "—";
+      }
+
+      const today =
+        new Date(
+          referenceDate.getFullYear(),
+          referenceDate.getMonth(),
+          referenceDate.getDate()
+        );
+
+      const tomorrow =
+        new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + 1
+        );
+
+      const targetDay =
+        new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate()
+        );
+
+      let dayLabel;
+
+      if (
+        targetDay.getTime() ===
+        today.getTime()
+      ) {
+        dayLabel =
+          "Today";
+
+      } else if (
+        targetDay.getTime() ===
+        tomorrow.getTime()
+      ) {
+        dayLabel =
+          "Tomorrow";
+
+      } else {
+        dayLabel =
+          targetDate.toLocaleDateString(
+            undefined,
+            {
+              weekday:
+                "long",
+
+              month:
+                "short",
+
+              day:
+                "numeric"
+            }
+          );
+      }
+
+      return (
+        `${dayLabel} · ` +
+        `${formatBusinessClock(
+          `${String(targetDate.getHours()).padStart(2, "0")}:${String(targetDate.getMinutes()).padStart(2, "0")}`
+        )}`
+      );
+    }
+
+
+    function getBusinessEventCountdown(
+      targetDate,
+      referenceDate = new Date()
+    ) {
+      if (!targetDate) {
+        return "Unavailable";
+      }
+
+      const minutes =
+        Math.max(
+          0,
+          Math.round(
+            (
+              targetDate.getTime() -
+              referenceDate.getTime()
+            ) /
+            60000
+          )
+        );
+
+      const days =
+        Math.floor(
+          minutes / 1440
+        );
+
+      const remainingMinutes =
+        minutes % 1440;
+
+      const hours =
+        Math.floor(
+          remainingMinutes / 60
+        );
+
+      const mins =
+        remainingMinutes % 60;
+
+      if (days > 0) {
+        return (
+          `${days} day${days === 1 ? "" : "s"} ` +
+          `${hours}h`
+        );
+      }
+
+      return formatBusinessDuration(
+        remainingMinutes
+      );
+    }
+
+
     function renderBusinessProfile(
       date = new Date()
     ) {
@@ -727,6 +1046,50 @@
         "businessProfileStateDetail"
       ).textContent =
         state.detail;
+
+      const nextOpening =
+        getNextBusinessOpening(
+          date
+        );
+
+      const nextClosing =
+        getNextBusinessClosing(
+          date
+        );
+
+      document.getElementById(
+        "businessNextOpening"
+      ).textContent =
+        nextOpening
+          ? formatBusinessEventDate(
+              nextOpening.date,
+              date
+            )
+          : "Unavailable";
+
+      document.getElementById(
+        "businessNextOpeningDetail"
+      ).textContent =
+        nextOpening
+          ? `In ${getBusinessEventCountdown(nextOpening.date, date)}`
+          : "No opening found in the next two weeks.";
+
+      document.getElementById(
+        "businessNextClosing"
+      ).textContent =
+        nextClosing
+          ? formatBusinessEventDate(
+              nextClosing.date,
+              date
+            )
+          : "Unavailable";
+
+      document.getElementById(
+        "businessNextClosingDetail"
+      ).textContent =
+        nextClosing
+          ? `In ${getBusinessEventCountdown(nextClosing.date, date)}`
+          : "No closing found in the next two weeks.";
 
       document.getElementById(
         "businessProfileNext"
