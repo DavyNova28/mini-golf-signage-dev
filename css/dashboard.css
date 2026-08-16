@@ -10583,3 +10583,128 @@ textarea:focus-visible {
     contain-intrinsic-size: auto 420px;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.3 — BUILD 111
+ * PROFILE-AWARE SCHEDULE ROUTING
+ * =========================================================
+ */
+
+.schedule-routing-panel {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel-soft);
+}
+
+.schedule-routing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.schedule-routing-title {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.schedule-routing-description {
+  margin: 5px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.schedule-routing-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.schedule-routing-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.schedule-routing-item {
+  display: grid;
+  grid-template-columns:
+    minmax(100px, 0.7fr)
+    auto
+    minmax(0, 1.6fr);
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--panel);
+}
+
+.schedule-routing-screen {
+  font-weight: 800;
+}
+
+.schedule-routing-arrow {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.schedule-routing-source {
+  min-width: 0;
+}
+
+.schedule-routing-source strong,
+.schedule-routing-source small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.schedule-routing-source small {
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.schedule-routing-item-waiting {
+  opacity: 0.75;
+}
+
+.schedule-routing-empty,
+.schedule-routing-notice {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.schedule-routing-notice {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+
+@media (max-width: 620px) {
+  .schedule-routing-header {
+    flex-direction: column;
+  }
+
+  .schedule-routing-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .schedule-routing-arrow {
+    display: none;
+  }
+}
