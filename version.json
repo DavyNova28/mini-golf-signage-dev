@@ -2,11 +2,11 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "105.1",
-  "status": "Development Patch",
+  "build": "106",
+  "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
-  "basedOnBuild": "105",
+  "basedOnBuild": "105.1",
   "milestone": "Milestone 4 \u2014 Deployment",
-  "feature": "Preflight tracking checks placement fix"
+  "feature": "Smarter Rollout Assistant and deployment recommendations"
 }
