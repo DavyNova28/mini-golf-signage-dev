@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=107">
+    <link rel="stylesheet" href="css/dashboard.css?build=108">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.3.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="107">
+  <meta name="dashboard-build" content="108">
 </head>
 
 <body>
@@ -350,7 +350,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 107</span>
+            <span id="applicationBuildLabel">Build 108</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -704,6 +704,15 @@
               <option value="day" selected>Last 24 hours</option>
               <option value="week">Last 7 days</option>
             </select>
+
+            <button
+              id="exportOperationsAnalyticsButton"
+              class="button"
+              type="button"
+            >
+              Export CSV
+            </button>
+
             <button id="clearOperationsAnalyticsButton" class="button" type="button">Clear history</button>
           </div>
         </div>
@@ -741,6 +750,32 @@
           </div>
           <div id="analyticsHealthBars" class="operations-analytics-bars" aria-label="Health Score history">
             <div class="operations-analytics-empty">History will appear as samples are collected.</div>
+          </div>
+        </div>
+
+        <div class="operations-analytics-report">
+          <div class="operations-analytics-chart-header">
+            <span>Per-screen expected uptime</span>
+            <span id="analyticsScreenReportRangeLabel">Last 24 hours</span>
+          </div>
+
+          <div class="operations-analytics-table-wrap">
+            <table class="operations-analytics-table">
+              <thead>
+                <tr>
+                  <th>Screen</th>
+                  <th>Expected samples</th>
+                  <th>Online samples</th>
+                  <th>Uptime</th>
+                </tr>
+              </thead>
+
+              <tbody id="analyticsScreenUptimeBody">
+                <tr>
+                  <td colspan="4">No business-window samples yet.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -4882,7 +4917,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=107" defer></script>
+    <script src="js/dashboard.js?build=108" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

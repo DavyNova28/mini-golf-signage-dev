@@ -2,12 +2,11 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "107",
+  "build": "108",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
-  "basedOnBuild": "106",
+  "basedOnBuild": "107",
   "milestone": "Milestone 5 \u2014 Analytics",
-  "feature": "Health history and expected-player uptime analytics",
-  "storage": "Browser localStorage, rolling 8-day history"
+  "feature": "Per-screen uptime reporting and CSV export"
 }
