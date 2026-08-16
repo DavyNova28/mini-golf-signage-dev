@@ -27,7 +27,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "104",
+      build: "105",
       status: "Development",
       tag: ""
     };
@@ -3637,6 +3637,31 @@
     const goLiveReadinessList =
       document.getElementById(
         "goLiveReadinessList"
+      );
+
+    const goLivePreflightProgress =
+      document.getElementById(
+        "goLivePreflightProgress"
+      );
+
+    const goLivePreflightProgressBar =
+      document.getElementById(
+        "goLivePreflightProgressBar"
+      );
+
+    const goLivePreflightProgressText =
+      document.getElementById(
+        "goLivePreflightProgressText"
+      );
+
+    const goLivePreflightLastRun =
+      document.getElementById(
+        "goLivePreflightLastRun"
+      );
+
+    const goLivePreflightFooter =
+      document.getElementById(
+        "goLivePreflightFooter"
       );
 
     const healthScoreNumber =
@@ -16280,21 +16305,7 @@
       refreshGoLiveReadinessButton.addEventListener(
         "click",
         function() {
-          refreshGoLiveReadinessButton.disabled =
-            true;
-
-          refreshGoLiveReadinessButton.textContent =
-            "Checking…";
-
-          try {
-            runGoLiveReadinessCheck();
-          } finally {
-            refreshGoLiveReadinessButton.disabled =
-              false;
-
-            refreshGoLiveReadinessButton.textContent =
-              "Run preflight";
-          }
+          runFunctionalGoLivePreflight();
         }
       );
 
@@ -17513,6 +17524,64 @@
 
 
     function checkOfflineSnapshotHealth() {
+      const maintenance =
+        getMaintenanceScreens();
+
+      checks.push({
+        level:
+          "ok",
+
+        icon:
+          maintenance.length > 0
+            ? "🛠️"
+            : "✅",
+
+        title:
+          "Maintenance exclusions",
+
+        detail:
+          maintenance.length > 0
+            ? `${maintenance.join(", ")} excluded intentionally by Maintenance Mode.`
+            : "No players are currently excluded by Maintenance Mode."
+      });
+
+      const expectedDeploymentScreens =
+        expectedToday.filter(
+          screenName =>
+            !isScreenInMaintenance(
+              screenName
+            )
+        );
+
+      const untrackedDeploymentScreens =
+        expectedDeploymentScreens.filter(
+          screenName =>
+            getRolloutStage(
+              screenName
+            ) === "not-started"
+        );
+
+      checks.push({
+        level:
+          "ok",
+
+        icon:
+          untrackedDeploymentScreens.length > 0
+            ? "ℹ️"
+            : "✅",
+
+        title:
+          "Rollout tracking",
+
+        detail:
+          untrackedDeploymentScreens.length > 0
+            ? `Tracking only: ${untrackedDeploymentScreens.join(", ")} are not marked Testing/Deployed. This does not block signage operation.`
+            : expectedDeploymentScreens.length > 0
+              ? "All expected screens have a rollout tracking stage."
+              : "No rollout stage is required while no screens are expected."
+      });
+
+
       const savedAt =
         dashboardOfflineSnapshot &&
         dashboardOfflineSnapshot.savedAt
@@ -25554,6 +25623,258 @@
 
 
     /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 105
+     * FUNCTIONAL GO-LIVE PREFLIGHT
+     * =====================================================
+     */
+
+    let goLivePreflightRunning =
+      false;
+
+    let goLivePreflightLastRunAt =
+      null;
+
+
+    function setGoLivePreflightProgress(
+      percent,
+      text
+    ) {
+      const safePercent =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            Number(percent) || 0
+          )
+        );
+
+      if (goLivePreflightProgressBar) {
+        goLivePreflightProgressBar.style.width =
+          `${safePercent}%`;
+      }
+
+      if (goLivePreflightProgressText) {
+        goLivePreflightProgressText.textContent =
+          text || "";
+      }
+
+      if (goLivePreflightProgress) {
+        goLivePreflightProgress.classList.toggle(
+          "running",
+          safePercent > 0 &&
+          safePercent < 100
+        );
+      }
+    }
+
+
+    function setGoLivePreflightLastRun(
+      date
+    ) {
+      goLivePreflightLastRunAt =
+        date || null;
+
+      if (!goLivePreflightLastRun) {
+        return;
+      }
+
+      goLivePreflightLastRun.textContent =
+        goLivePreflightLastRunAt
+          ? `Last run ${goLivePreflightLastRunAt.toLocaleTimeString()}`
+          : "Not run yet";
+    }
+
+
+    async function runFunctionalGoLivePreflight() {
+      if (goLivePreflightRunning) {
+        return;
+      }
+
+      goLivePreflightRunning =
+        true;
+
+      refreshGoLiveReadinessButton.disabled =
+        true;
+
+      refreshGoLiveReadinessButton.textContent =
+        "Running…";
+
+      goLiveReadinessState.className =
+        "go-live-readiness-state go-live-warning";
+
+      goLiveReadinessState.textContent =
+        "Checking";
+
+      goLiveReadinessHeadline.textContent =
+        "Running live preflight";
+
+      goLiveReadinessDescription.textContent =
+        "Refreshing health, heartbeat, and repository state before evaluating readiness.";
+
+      if (goLiveReadinessList) {
+        goLiveReadinessList.innerHTML = `
+          <div class="go-live-readiness-item go-live-readiness-item-running">
+            <div class="go-live-readiness-icon">⏳</div>
+            <div>
+              <div class="go-live-readiness-title">
+                Live refresh in progress
+              </div>
+              <div class="go-live-readiness-detail">
+                Existing data remains available while the preflight refreshes its inputs.
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const refreshIssues =
+        [];
+
+      try {
+        setGoLivePreflightProgress(
+          12,
+          "Checking Apps Script and System Health…"
+        );
+
+        try {
+          await loadSystemHealth({
+            background:
+              true
+          });
+
+        } catch (error) {
+          refreshIssues.push(
+            `System Health refresh: ${error.message || error}`
+          );
+        }
+
+        setGoLivePreflightProgress(
+          42,
+          "Refreshing player heartbeats…"
+        );
+
+        try {
+          await loadPlayerHeartbeats({
+            background:
+              true
+          });
+
+        } catch (error) {
+          refreshIssues.push(
+            `Heartbeat refresh: ${error.message || error}`
+          );
+        }
+
+        setGoLivePreflightProgress(
+          68,
+          "Checking repository image index…"
+        );
+
+        try {
+          await scanImageHealth();
+
+        } catch (error) {
+          refreshIssues.push(
+            `Image repository refresh: ${error.message || error}`
+          );
+        }
+
+        setGoLivePreflightProgress(
+          88,
+          "Evaluating business-aware deployment readiness…"
+        );
+
+        const checks =
+          buildGoLiveReadinessChecks();
+
+        if (
+          refreshIssues.length > 0
+        ) {
+          checks.push({
+            level:
+              "warning",
+
+            icon:
+              "🟠",
+
+            title:
+              "Preflight refresh observations",
+
+            detail:
+              refreshIssues.join(
+                " · "
+              )
+          });
+        }
+
+        renderGoLiveReadiness(
+          checks
+        );
+
+        setGoLivePreflightLastRun(
+          new Date()
+        );
+
+        setGoLivePreflightProgress(
+          100,
+          "Preflight complete."
+        );
+
+        if (goLivePreflightFooter) {
+          const operationalState =
+            getBusinessOperationalState();
+
+          goLivePreflightFooter.textContent =
+            operationalState.operatingToday
+              ? operationalState.openNow
+                ? "Live business window active. Readiness reflects players expected right now."
+                : "Business is not currently open. Player inactivity is treated as intentional."
+              : "Business is closed today. No players are required for operational readiness.";
+        }
+
+      } catch (error) {
+        console.error(
+          "Functional Go-Live Preflight failed.",
+          error
+        );
+
+        goLiveReadinessState.className =
+          "go-live-readiness-state go-live-warning";
+
+        goLiveReadinessState.textContent =
+          "Review";
+
+        goLiveReadinessHeadline.textContent =
+          "Preflight could not complete";
+
+        goLiveReadinessDescription.textContent =
+          error.message ||
+          "One readiness step could not be evaluated.";
+
+        setGoLivePreflightProgress(
+          100,
+          "Preflight ended with an error."
+        );
+
+        setGoLivePreflightLastRun(
+          new Date()
+        );
+
+      } finally {
+        goLivePreflightRunning =
+          false;
+
+        refreshGoLiveReadinessButton.disabled =
+          false;
+
+        refreshGoLiveReadinessButton.textContent =
+          "Run preflight";
+      }
+    }
+
+
+    /*
      * GO-LIVE READINESS
      */
 
@@ -25592,8 +25913,22 @@
       const checks =
         [];
 
+      const operationalState =
+        getBusinessOperationalState();
+
+      const expectedToday =
+        getExpectedScreensToday();
+
+      const expectedNow =
+        getExpectedScreensNow();
+
+      const expectedTodaySet =
+        new Set(
+          expectedToday
+        );
+
       const loadedStates =
-        SCREEN_NAMES
+        expectedToday
           .map(
             screenName =>
               screenStates.get(
@@ -25603,7 +25938,7 @@
           .filter(Boolean);
 
       const missingScreens =
-        SCREEN_NAMES.filter(
+        expectedToday.filter(
           screenName =>
             !screenStates.has(
               screenName
@@ -25625,9 +25960,11 @@
           "All schedules loaded",
 
         detail:
-          missingScreens.length === 0
-            ? `All ${SCREEN_NAMES.length} configured screens have schedule data.`
-            : `Missing schedule data for: ${missingScreens.join(", ")}.`
+          !operationalState.operatingToday
+            ? "The business is closed today; no player schedules are required for go-live readiness."
+            : missingScreens.length === 0
+              ? `All ${expectedToday.length} screen(s) expected today have schedule data.`
+              : `Missing schedule data for: ${missingScreens.join(", ")}.`
       });
 
       const screensWithoutFallback =
@@ -25689,6 +26026,29 @@
             ? "All loaded schedules are live."
             : `${offlineDataCount} screen(s) are using cached dashboard data.`
       });
+
+      checks.push({
+        level:
+          "ok",
+
+        icon:
+          operationalState.openNow
+            ? "✅"
+            : operationalState.operatingToday
+              ? "🌙"
+              : "🏢",
+
+        title:
+          "Business operating profile",
+
+        detail:
+          !operationalState.operatingToday
+            ? `${operationalState.profile.label} profile: business closed today. No players are expected.`
+            : operationalState.openNow
+              ? `${operationalState.profile.label} profile is active and the business is currently open. ${expectedNow.length} player(s) are expected now.`
+              : `${operationalState.profile.label} profile is active, but the business is outside today's opening window.`
+      });
+
 
       const score =
         latestHealthScoreResult &&
@@ -25768,12 +26128,7 @@
         );
 
       const expectedScreenNames =
-        SCREEN_NAMES.filter(
-          screenName =>
-            isScreenExpectedToday(
-              screenName
-            )
-        );
+        expectedToday;
 
       const playersWithWrongVersion =
         expectedScreenNames.filter(
@@ -25833,18 +26188,9 @@
               : `Every player expected today reports ${EXPECTED_PLAYER_VERSION}.`
       });
 
-      const quietHours =
-        typeof isPlayerQuietHours === "function"
-          ? isPlayerQuietHours()
-          : false;
-
       const unavailablePlayers =
-        expectedScreenNames.filter(
+        expectedNow.filter(
           screenName => {
-            if (quietHours) {
-              return false;
-            }
-
             const player =
               heartbeatMap.get(
                 screenName
@@ -25859,13 +26205,12 @@
 
       checks.push({
         level:
-          quietHours ||
           unavailablePlayers.length === 0
             ? "ok"
             : "warning",
 
         icon:
-          quietHours
+          expectedNow.length === 0
             ? "🌙"
             : unavailablePlayers.length === 0
               ? "✅"
@@ -25875,10 +26220,12 @@
           "Player heartbeat",
 
         detail:
-          quietHours
-            ? "Quiet hours are active; sleeping players are expected."
+          expectedNow.length === 0
+            ? operationalState.operatingToday
+              ? "The business is outside its opening window; sleeping players are expected."
+              : "The business is closed today; no heartbeat is required."
             : unavailablePlayers.length === 0
-              ? "All configured players have checked in."
+              ? `All ${expectedNow.length} player(s) expected right now have checked in.`
               : `No recent heartbeat from: ${unavailablePlayers.join(", ")}.`
       });
 
