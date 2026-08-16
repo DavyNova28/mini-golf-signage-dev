@@ -16670,6 +16670,8 @@
       latestHealthScoreResult =
         scoreResult;
 
+      recordOperationsAnalyticsSample();
+
       const state =
         scoreResult.state;
 
@@ -18232,6 +18234,7 @@
         renderScreenIntelligence();
         renderOperationsIntelligence();
         renderMissionControlStatuses();
+        recordOperationsAnalyticsSample();
         renderMissionRecentActivity();
         renderNotificationCenter();
       }, options.immediate === true ? 0 : 120);
@@ -23053,6 +23056,557 @@
     }
 
 
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 107
+     * ANALYTICS FOUNDATION
+     * =====================================================
+     */
+
+    const OPERATIONS_ANALYTICS_STORAGE_KEY =
+      "miniGolfDashboardAnalyticsV13";
+
+    const OPERATIONS_ANALYTICS_MAX_AGE_MS =
+      8 * 24 * 60 * 60 * 1000;
+
+    const OPERATIONS_ANALYTICS_SAMPLE_INTERVAL_MS =
+      5 * 60 * 1000;
+
+    let operationsAnalyticsHistory = [];
+    let lastOperationsAnalyticsSampleAt = 0;
+
+
+    function loadOperationsAnalyticsHistory() {
+      try {
+        const raw =
+          localStorage.getItem(
+            OPERATIONS_ANALYTICS_STORAGE_KEY
+          );
+
+        if (!raw) {
+          return;
+        }
+
+        const parsed =
+          JSON.parse(raw);
+
+        const cutoff =
+          Date.now() -
+          OPERATIONS_ANALYTICS_MAX_AGE_MS;
+
+        operationsAnalyticsHistory =
+          Array.isArray(parsed)
+            ? parsed.filter(
+                item =>
+                  item &&
+                  Number(item.timestamp) >= cutoff
+              )
+            : [];
+
+        if (operationsAnalyticsHistory.length) {
+          lastOperationsAnalyticsSampleAt =
+            Number(
+              operationsAnalyticsHistory[
+                operationsAnalyticsHistory.length - 1
+              ].timestamp
+            ) || 0;
+        }
+      } catch (error) {
+        console.warn(
+          "Operations analytics history could not be restored.",
+          error
+        );
+
+        operationsAnalyticsHistory = [];
+      }
+    }
+
+
+    function saveOperationsAnalyticsHistory() {
+      try {
+        localStorage.setItem(
+          OPERATIONS_ANALYTICS_STORAGE_KEY,
+          JSON.stringify(
+            operationsAnalyticsHistory
+          )
+        );
+      } catch (error) {
+        console.warn(
+          "Operations analytics history could not be saved.",
+          error
+        );
+      }
+    }
+
+
+    function getAnalyticsExpectedPlayerSnapshot() {
+      const expectedNow =
+        getExpectedScreensNow();
+
+      if (!expectedNow.length) {
+        return {
+          expectedCount: 0,
+          onlineCount: 0,
+          uptime: null
+        };
+      }
+
+      const expectedSet =
+        new Set(expectedNow);
+
+      const onlineCount =
+        latestPlayerHeartbeats.filter(
+          player =>
+            expectedSet.has(
+              player.screen
+            ) &&
+            player.status === "online"
+        ).length;
+
+      return {
+        expectedCount:
+          expectedNow.length,
+        onlineCount:
+          onlineCount,
+        uptime:
+          onlineCount /
+          expectedNow.length
+      };
+    }
+
+
+    function recordOperationsAnalyticsSample(
+      force = false
+    ) {
+      const now =
+        Date.now();
+
+      if (
+        !force &&
+        lastOperationsAnalyticsSampleAt &&
+        now -
+          lastOperationsAnalyticsSampleAt <
+          OPERATIONS_ANALYTICS_SAMPLE_INTERVAL_MS
+      ) {
+        return;
+      }
+
+      const healthScore =
+        latestHealthScoreResult &&
+        Number.isFinite(
+          Number(
+            latestHealthScoreResult.score
+          )
+        )
+          ? Number(
+              latestHealthScoreResult.score
+            )
+          : null;
+
+      const playerSnapshot =
+        getAnalyticsExpectedPlayerSnapshot();
+
+      if (
+        healthScore === null &&
+        playerSnapshot.uptime === null
+      ) {
+        return;
+      }
+
+      const operationalState =
+        getBusinessOperationalState();
+
+      operationsAnalyticsHistory.push({
+        timestamp:
+          now,
+        healthScore:
+          healthScore,
+        expectedCount:
+          playerSnapshot.expectedCount,
+        onlineCount:
+          playerSnapshot.onlineCount,
+        expectedUptime:
+          playerSnapshot.uptime,
+        businessOpen:
+          operationalState.openNow,
+        businessOperatingToday:
+          operationalState.operatingToday,
+        profile:
+          operationalState.profile
+            ? operationalState.profile.label
+            : ""
+      });
+
+      const cutoff =
+        now -
+        OPERATIONS_ANALYTICS_MAX_AGE_MS;
+
+      operationsAnalyticsHistory =
+        operationsAnalyticsHistory.filter(
+          item =>
+            Number(
+              item.timestamp
+            ) >= cutoff
+        );
+
+      lastOperationsAnalyticsSampleAt =
+        now;
+
+      saveOperationsAnalyticsHistory();
+      renderOperationsAnalytics();
+    }
+
+
+    function getOperationsAnalyticsRangeMs(
+      range
+    ) {
+      if (range === "hour") {
+        return 60 * 60 * 1000;
+      }
+
+      if (range === "week") {
+        return 7 * 24 * 60 * 60 * 1000;
+      }
+
+      return 24 * 60 * 60 * 1000;
+    }
+
+
+    function getOperationsAnalyticsRangeLabel(
+      range
+    ) {
+      if (range === "hour") {
+        return "Last hour";
+      }
+
+      if (range === "week") {
+        return "Last 7 days";
+      }
+
+      return "Last 24 hours";
+    }
+
+
+    function getFilteredOperationsAnalytics() {
+      const rangeSelect =
+        document.getElementById(
+          "operationsAnalyticsRange"
+        );
+
+      const range =
+        rangeSelect
+          ? rangeSelect.value
+          : "day";
+
+      const cutoff =
+        Date.now() -
+        getOperationsAnalyticsRangeMs(
+          range
+        );
+
+      return {
+        range:
+          range,
+        samples:
+          operationsAnalyticsHistory.filter(
+            item =>
+              Number(
+                item.timestamp
+              ) >= cutoff
+          )
+      };
+    }
+
+
+    function averageNumbers(
+      values
+    ) {
+      const clean =
+        values.filter(
+          value =>
+            Number.isFinite(
+              Number(value)
+            )
+        );
+
+      if (!clean.length) {
+        return null;
+      }
+
+      return (
+        clean.reduce(
+          (sum, value) =>
+            sum +
+            Number(value),
+          0
+        ) /
+        clean.length
+      );
+    }
+
+
+    function renderOperationsAnalytics() {
+      const panel =
+        document.getElementById(
+          "operationsAnalyticsPanel"
+        );
+
+      if (!panel) {
+        return;
+      }
+
+      const result =
+        getFilteredOperationsAnalytics();
+
+      const samples =
+        result.samples;
+
+      const healthSamples =
+        samples.filter(
+          item =>
+            Number.isFinite(
+              Number(
+                item.healthScore
+              )
+            )
+        );
+
+      const uptimeSamples =
+        samples.filter(
+          item =>
+            item.expectedUptime !== null &&
+            Number.isFinite(
+              Number(
+                item.expectedUptime
+              )
+            )
+        );
+
+      const averageHealth =
+        averageNumbers(
+          healthSamples.map(
+            item =>
+              Number(
+                item.healthScore
+              )
+          )
+        );
+
+      const averageUptime =
+        averageNumbers(
+          uptimeSamples.map(
+            item =>
+              Number(
+                item.expectedUptime
+              )
+          )
+        );
+
+      const lowestHealth =
+        healthSamples.length
+          ? Math.min(
+              ...healthSamples.map(
+                item =>
+                  Number(
+                    item.healthScore
+                  )
+              )
+            )
+          : null;
+
+      const byId =
+        id =>
+          document.getElementById(
+            id
+          );
+
+      if (byId("analyticsAverageHealth")) {
+        byId("analyticsAverageHealth").textContent =
+          averageHealth === null
+            ? "—"
+            : `${Math.round(averageHealth)}/100`;
+      }
+
+      if (byId("analyticsHealthDetail")) {
+        byId("analyticsHealthDetail").textContent =
+          healthSamples.length
+            ? `${healthSamples.length} health sample${healthSamples.length === 1 ? "" : "s"}`
+            : "Waiting for samples";
+      }
+
+      if (byId("analyticsExpectedUptime")) {
+        byId("analyticsExpectedUptime").textContent =
+          averageUptime === null
+            ? "—"
+            : `${Math.round(averageUptime * 100)}%`;
+      }
+
+      if (byId("analyticsUptimeDetail")) {
+        byId("analyticsUptimeDetail").textContent =
+          uptimeSamples.length
+            ? `${uptimeSamples.length} business-window sample${uptimeSamples.length === 1 ? "" : "s"}`
+            : "No expected-player window sampled yet";
+      }
+
+      if (byId("analyticsSampleCount")) {
+        byId("analyticsSampleCount").textContent =
+          String(
+            samples.length
+          );
+      }
+
+      if (byId("analyticsSampleDetail")) {
+        byId("analyticsSampleDetail").textContent =
+          samples.length
+            ? getOperationsAnalyticsRangeLabel(
+                result.range
+              )
+            : "No history yet";
+      }
+
+      if (byId("analyticsLowestHealth")) {
+        byId("analyticsLowestHealth").textContent =
+          lowestHealth === null
+            ? "—"
+            : `${Math.round(lowestHealth)}/100`;
+      }
+
+      if (byId("analyticsLowestHealthDetail")) {
+        if (lowestHealth === null) {
+          byId("analyticsLowestHealthDetail").textContent =
+            "No samples yet";
+        } else {
+          const lowestSample =
+            healthSamples.find(
+              item =>
+                Number(
+                  item.healthScore
+                ) === lowestHealth
+            );
+
+          byId("analyticsLowestHealthDetail").textContent =
+            lowestSample
+              ? new Date(
+                  Number(
+                    lowestSample.timestamp
+                  )
+                ).toLocaleString()
+              : "Recorded in selected range";
+        }
+      }
+
+      if (byId("analyticsChartRangeLabel")) {
+        byId("analyticsChartRangeLabel").textContent =
+          getOperationsAnalyticsRangeLabel(
+            result.range
+          );
+      }
+
+      const bars =
+        byId(
+          "analyticsHealthBars"
+        );
+
+      if (bars) {
+        const chartSamples =
+          healthSamples.slice(
+            -48
+          );
+
+        if (!chartSamples.length) {
+          bars.innerHTML = `
+            <div class="operations-analytics-empty">
+              History will appear as samples are collected.
+            </div>
+          `;
+        } else {
+          bars.innerHTML =
+            chartSamples
+              .map(item => {
+                const score =
+                  Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Number(
+                        item.healthScore
+                      )
+                    )
+                  );
+
+                const timestamp =
+                  new Date(
+                    Number(
+                      item.timestamp
+                    )
+                  );
+
+                return `
+                  <div
+                    class="operations-analytics-bar"
+                    title="${escapeHtml(
+                      `${timestamp.toLocaleString()} · Health ${Math.round(score)}/100`
+                    )}"
+                  >
+                    <span style="height:${score}%"></span>
+                  </div>
+                `;
+              })
+              .join("");
+        }
+      }
+    }
+
+
+    function setupOperationsAnalytics() {
+      loadOperationsAnalyticsHistory();
+
+      const range =
+        document.getElementById(
+          "operationsAnalyticsRange"
+        );
+
+      const clearButton =
+        document.getElementById(
+          "clearOperationsAnalyticsButton"
+        );
+
+      if (range) {
+        range.addEventListener(
+          "change",
+          renderOperationsAnalytics
+        );
+      }
+
+      if (clearButton) {
+        clearButton.addEventListener(
+          "click",
+          function() {
+            const confirmed =
+              window.confirm(
+                "Clear the analytics history stored in this browser?"
+              );
+
+            if (!confirmed) {
+              return;
+            }
+
+            operationsAnalyticsHistory =
+              [];
+
+            lastOperationsAnalyticsSampleAt =
+              0;
+
+            saveOperationsAnalyticsHistory();
+            renderOperationsAnalytics();
+          }
+        );
+      }
+
+      renderOperationsAnalytics();
+    }
+
+
     function renderMissionControlStatuses() {
       if (!missionStatusUpdated) {
         return;
@@ -26915,6 +27469,7 @@
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
     setupMaintenanceMode();
+    setupOperationsAnalytics();
     renderBusinessProfile();
     renderScreenIntelligence();
     setupDiagnosticsExport();
@@ -26979,6 +27534,8 @@
         renderBusinessProfile();
         renderScreenIntelligence();
         renderOperationsIntelligence();
+        recordOperationsAnalyticsSample();
+        renderOperationsAnalytics();
 
         if (
           getSavedThemePreference() ===
