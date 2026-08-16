@@ -23147,7 +23147,9 @@
         return {
           expectedCount: 0,
           onlineCount: 0,
-          uptime: null
+          uptime: null,
+          expectedScreens: [],
+          onlineExpectedScreens: []
         };
       }
 
@@ -23163,6 +23165,20 @@
             player.status === "online"
         ).length;
 
+      const onlineExpectedScreens =
+        latestPlayerHeartbeats
+          .filter(
+            player =>
+              expectedSet.has(
+                player.screen
+              ) &&
+              player.status === "online"
+          )
+          .map(
+            player =>
+              player.screen
+          );
+
       return {
         expectedCount:
           expectedNow.length,
@@ -23170,7 +23186,11 @@
           onlineCount,
         uptime:
           onlineCount /
-          expectedNow.length
+          expectedNow.length,
+        expectedScreens:
+          expectedNow.slice(),
+        onlineExpectedScreens:
+          onlineExpectedScreens
       };
     }
 
@@ -23227,6 +23247,10 @@
           playerSnapshot.onlineCount,
         expectedUptime:
           playerSnapshot.uptime,
+        expectedScreens:
+          playerSnapshot.expectedScreens || [],
+        onlineExpectedScreens:
+          playerSnapshot.onlineExpectedScreens || [],
         businessOpen:
           operationalState.openNow,
         businessOperatingToday:
@@ -23341,6 +23365,226 @@
           0
         ) /
         clean.length
+      );
+    }
+
+
+    function buildPerScreenUptimeReport(
+      samples
+    ) {
+      return SCREEN_NAMES.map(
+        screenName => {
+          let expectedSamples = 0;
+          let onlineSamples = 0;
+
+          samples.forEach(
+            sample => {
+              const expectedScreens =
+                Array.isArray(
+                  sample.expectedScreens
+                )
+                  ? sample.expectedScreens
+                  : [];
+
+              if (
+                !expectedScreens.includes(
+                  screenName
+                )
+              ) {
+                return;
+              }
+
+              expectedSamples += 1;
+
+              const onlineScreens =
+                Array.isArray(
+                  sample.onlineExpectedScreens
+                )
+                  ? sample.onlineExpectedScreens
+                  : [];
+
+              if (
+                onlineScreens.includes(
+                  screenName
+                )
+              ) {
+                onlineSamples += 1;
+              }
+            }
+          );
+
+          return {
+            screenName:
+              screenName,
+            expectedSamples:
+              expectedSamples,
+            onlineSamples:
+              onlineSamples,
+            uptime:
+              expectedSamples > 0
+                ? onlineSamples /
+                  expectedSamples
+                : null
+          };
+        }
+      );
+    }
+
+
+    function escapeCsvValue(
+      value
+    ) {
+      const text =
+        String(
+          value ?? ""
+        );
+
+      if (
+        /[",\n]/.test(
+          text
+        )
+      ) {
+        return (
+          '"' +
+          text.replace(
+            /"/g,
+            '""'
+          ) +
+          '"'
+        );
+      }
+
+      return text;
+    }
+
+
+    function exportOperationsAnalyticsCsv() {
+      const result =
+        getFilteredOperationsAnalytics();
+
+      const samples =
+        result.samples;
+
+      if (!samples.length) {
+        window.alert(
+          "There are no analytics samples in the selected range to export."
+        );
+
+        return;
+      }
+
+      const rows = [
+        [
+          "Timestamp",
+          "Profile",
+          "Business Open",
+          "Health Score",
+          "Expected Count",
+          "Online Count",
+          "Expected Uptime %",
+          "Expected Screens",
+          "Online Expected Screens"
+        ]
+      ];
+
+      samples.forEach(
+        sample => {
+          rows.push([
+            new Date(
+              Number(
+                sample.timestamp
+              )
+            ).toISOString(),
+            sample.profile || "",
+            sample.businessOpen
+              ? "Yes"
+              : "No",
+            sample.healthScore ?? "",
+            sample.expectedCount ?? 0,
+            sample.onlineCount ?? 0,
+            sample.expectedUptime === null ||
+            sample.expectedUptime === undefined
+              ? ""
+              : Math.round(
+                  Number(
+                    sample.expectedUptime
+                  ) *
+                  100
+                ),
+            Array.isArray(
+              sample.expectedScreens
+            )
+              ? sample.expectedScreens.join(
+                  " | "
+                )
+              : "",
+            Array.isArray(
+              sample.onlineExpectedScreens
+            )
+              ? sample.onlineExpectedScreens.join(
+                  " | "
+                )
+              : ""
+          ]);
+        }
+      );
+
+      const csv =
+        rows
+          .map(
+            row =>
+              row
+                .map(
+                  escapeCsvValue
+                )
+                .join(",")
+          )
+          .join("\n");
+
+      const blob =
+        new Blob(
+          [csv],
+          {
+            type:
+              "text/csv;charset=utf-8"
+          }
+        );
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      const rangeLabel =
+        getOperationsAnalyticsRangeLabel(
+          result.range
+        )
+          .toLowerCase()
+          .replace(
+            /\s+/g,
+            "-"
+          );
+
+      link.href =
+        url;
+
+      link.download =
+        `mini-golf-analytics-${rangeLabel}-${getBusinessDateKey()}.csv`;
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(
+        url
       );
     }
 
@@ -23555,6 +23799,58 @@
               .join("");
         }
       }
+
+      const reportLabel =
+        byId(
+          "analyticsScreenReportRangeLabel"
+        );
+
+      if (reportLabel) {
+        reportLabel.textContent =
+          getOperationsAnalyticsRangeLabel(
+            result.range
+          );
+      }
+
+      const screenBody =
+        byId(
+          "analyticsScreenUptimeBody"
+        );
+
+      if (screenBody) {
+        const report =
+          buildPerScreenUptimeReport(
+            samples
+          );
+
+        const visibleRows =
+          report.filter(
+            item =>
+              item.expectedSamples > 0
+          );
+
+        if (!visibleRows.length) {
+          screenBody.innerHTML = `
+            <tr>
+              <td colspan="4">
+                No business-window samples yet.
+              </td>
+            </tr>
+          `;
+        } else {
+          screenBody.innerHTML =
+            visibleRows
+              .map(item => `
+                <tr>
+                  <td>${escapeHtml(item.screenName)}</td>
+                  <td>${item.expectedSamples}</td>
+                  <td>${item.onlineSamples}</td>
+                  <td>${Math.round(item.uptime * 100)}%</td>
+                </tr>
+              `)
+              .join("");
+        }
+      }
     }
 
 
@@ -23571,10 +23867,22 @@
           "clearOperationsAnalyticsButton"
         );
 
+      const exportButton =
+        document.getElementById(
+          "exportOperationsAnalyticsButton"
+        );
+
       if (range) {
         range.addEventListener(
           "change",
           renderOperationsAnalytics
+        );
+      }
+
+      if (exportButton) {
+        exportButton.addEventListener(
+          "click",
+          exportOperationsAnalyticsCsv
         );
       }
 
