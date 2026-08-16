@@ -2,11 +2,11 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "105",
-  "status": "Development",
+  "build": "105.1",
+  "status": "Development Patch",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
-  "basedOnVersion": "v1.2.0",
+  "basedOnBuild": "105",
   "milestone": "Milestone 4 \u2014 Deployment",
-  "feature": "Functional business-aware Go-Live Preflight"
+  "feature": "Preflight tracking checks placement fix"
 }
