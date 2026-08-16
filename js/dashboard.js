@@ -1602,10 +1602,6 @@
 
     function refreshMaintenanceAwareUi() {
       renderMaintenanceMode();
-      renderOperationsSnapshot();
-      renderScreenIntelligence();
-      renderOperationsIntelligence();
-      renderMissionControlStatuses();
       renderRolloutAssistant();
       runGoLiveReadinessCheck();
 
@@ -1614,6 +1610,11 @@
           latestHealthScoreResult
         );
       }
+
+      scheduleOperationsCenterRender({
+        immediate: true,
+        sampleAnalytics: true
+      });
     }
 
 
@@ -18412,21 +18413,84 @@
     let build89Phase3ReactiveRenderTimer = null;
     const BUILD89_PHASE3_HEALTH_REFRESH_MS = 60 * 1000;
 
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 110
+     * STABILITY + RENDER OPTIMIZATION
+     * =====================================================
+     *
+     * Coalesce cosmetic/reactive renders into one browser frame.
+     * Data refresh cadence is unchanged.
+     */
+
+    let operationsCenterRenderFrame = null;
+    let operationsCenterRenderPendingAnalyticsSample = false;
+
+
+    function scheduleOperationsCenterRender(
+      options = {}
+    ) {
+      if (
+        options.sampleAnalytics === true
+      ) {
+        operationsCenterRenderPendingAnalyticsSample = true;
+      }
+
+      if (operationsCenterRenderFrame !== null) {
+        return;
+      }
+
+      const run = function() {
+        operationsCenterRenderFrame = null;
+
+        renderOperationsSnapshot();
+        renderBusinessProfile();
+        renderScreenIntelligence();
+        renderOperationsIntelligence();
+        renderMissionControlStatuses();
+
+        if (
+          operationsCenterRenderPendingAnalyticsSample
+        ) {
+          operationsCenterRenderPendingAnalyticsSample = false;
+          recordOperationsAnalyticsSample();
+        }
+      };
+
+      if (
+        options.immediate === true ||
+        typeof window.requestAnimationFrame !== "function"
+      ) {
+        run();
+        return;
+      }
+
+      operationsCenterRenderFrame =
+        window.requestAnimationFrame(
+          run
+        );
+    }
+
+
     function scheduleBuild89Phase3ReactiveRender(options = {}) {
       window.clearTimeout(build89Phase3ReactiveRenderTimer);
 
       build89Phase3ReactiveRenderTimer = window.setTimeout(function() {
         if (latestHealthScoreResult) {
-          renderHealthScore(latestHealthScoreResult);
+          renderHealthScore(
+            latestHealthScoreResult
+          );
         }
 
-        runGoLiveReadinessCheck();
         renderRolloutAssistant();
-        renderScreenIntelligence();
-        renderOperationsIntelligence();
-        renderMissionControlStatuses();
-        renderOperationsSnapshot();
-        recordOperationsAnalyticsSample();
+
+        scheduleOperationsCenterRender({
+          immediate:
+            options.immediate === true,
+          sampleAnalytics:
+            true
+        });
+
         renderMissionRecentActivity();
         renderNotificationCenter();
       }, options.immediate === true ? 0 : 120);
@@ -27970,9 +28034,9 @@
     renderApplicationEnvironment();
     setupMaintenanceMode();
     setupOperationsAnalytics();
-    renderOperationsSnapshot();
-    renderBusinessProfile();
-    renderScreenIntelligence();
+    scheduleOperationsCenterRender({
+      immediate: true
+    });
     setupDiagnosticsExport();
     setupApplicationInformationDialogs();
     setupCommandPalette();
@@ -28009,10 +28073,10 @@
       ]).then(function() {
         runGoLiveReadinessCheck();
         renderRolloutAssistant();
-        renderOperationsIntelligence();
-        renderMissionControlStatuses();
         updateOperationsPanel();
-        scheduleBuild89Phase3ReactiveRender({ immediate: true });
+        scheduleBuild89Phase3ReactiveRender({
+          immediate: true
+        });
       });
     }
 
@@ -28030,14 +28094,21 @@
 
     setInterval(
       function() {
+        /*
+         * Data polling continues through its existing timers.
+         * Only cosmetic live rendering is skipped while this tab
+         * is hidden, then refreshed immediately on return.
+         */
+        if (document.hidden) {
+          return;
+        }
+
         updateLiveInformation();
         updateOperationsPanel();
-        renderOperationsSnapshot();
-        renderBusinessProfile();
-        renderScreenIntelligence();
-        renderOperationsIntelligence();
-        recordOperationsAnalyticsSample();
-        renderOperationsAnalytics();
+
+        scheduleOperationsCenterRender({
+          sampleAnalytics: true
+        });
 
         if (
           getSavedThemePreference() ===
@@ -28047,4 +28118,25 @@
         }
       },
       LIVE_UPDATE_MS
+    );
+
+
+    document.addEventListener(
+      "visibilitychange",
+      function() {
+        if (document.hidden) {
+          return;
+        }
+
+        updateLiveInformation();
+        updateOperationsPanel();
+
+        scheduleOperationsCenterRender({
+          immediate: true,
+          sampleAnalytics: true
+        });
+
+        renderRolloutAssistant();
+        runGoLiveReadinessCheck();
+      }
     );
