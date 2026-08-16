@@ -2,11 +2,17 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "110",
+  "build": "111",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
-  "basedOnBuild": "109",
-  "milestone": "Stability & Optimization",
-  "feature": "Coalesced UI rendering, hidden-tab optimization, analytics render deduplication"
+  "basedOnBuild": "110",
+  "milestone": "Profile-Aware Schedule Routing",
+  "feature": "Automatic Summer/Regular/weekday Google Sheets schedule routing",
+  "logicalPlayers": [
+    "Arcade",
+    "Golf",
+    "Slush",
+    "infoArcade"
+  ]
 }
