@@ -3530,6 +3530,11 @@
         "rolloutAssistantList"
       );
 
+    const rolloutRecommendationSummary =
+      document.getElementById(
+        "rolloutRecommendationSummary"
+      );
+
 
     const rolloutBulkSelectedCount =
       document.getElementById(
@@ -24003,6 +24008,202 @@
     }
 
 
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 106
+     * SMARTER ROLLOUT ASSISTANT
+     * =====================================================
+     */
+
+    function getRolloutRecommendation(
+      screenName
+    ) {
+      const state =
+        getRolloutStateForScreen(
+          screenName
+        );
+
+      if (
+        isScreenInMaintenance(
+          screenName
+        )
+      ) {
+        return {
+          id: "maintenance",
+          label: "Maintenance",
+          icon: "🛠️",
+          tone: "muted",
+          detail:
+            "This screen is intentionally excluded by Maintenance Mode."
+        };
+      }
+
+      if (!state.expectedToday) {
+        return {
+          id: "not-scheduled",
+          label: "No action needed",
+          icon: "🌙",
+          tone: "muted",
+          detail:
+            "This screen is not expected to operate today."
+        };
+      }
+
+      if (!state.expectedNow) {
+        return {
+          id: "sleeping",
+          label: "Wait for business hours",
+          icon: "🌙",
+          tone: "muted",
+          detail:
+            "This screen is scheduled today but is intentionally inactive right now."
+        };
+      }
+
+      if (
+        state.readinessState === "blocked"
+      ) {
+        return {
+          id: "blocked",
+          label: "Resolve blockers",
+          icon: "⛔",
+          tone: "danger",
+          detail:
+            state.notes.join(" ")
+        };
+      }
+
+      if (
+        state.readinessState === "review"
+      ) {
+        return {
+          id: "review",
+          label: "Review before deploy",
+          icon: "🟠",
+          tone: "warning",
+          detail:
+            state.notes.join(" ")
+        };
+      }
+
+      if (
+        state.deploymentStage ===
+        "deployed"
+      ) {
+        return {
+          id: "deployed",
+          label: "Deployed",
+          icon: "✅",
+          tone: "success",
+          detail:
+            "This screen is healthy and already marked Deployed."
+        };
+      }
+
+      if (
+        state.deploymentStage ===
+        "testing"
+      ) {
+        return {
+          id: "ready-to-deploy",
+          label: "Ready to deploy",
+          icon: "🚀",
+          tone: "success",
+          detail:
+            "Schedule, image, fallback, heartbeat, and player-version checks passed."
+        };
+      }
+
+      return {
+        id: "ready-for-testing",
+        label: "Ready for testing",
+        icon: "🧪",
+        tone: "success",
+        detail:
+          "Operational checks passed. Start Testing when you are ready."
+      };
+    }
+
+
+    function updateRolloutRecommendationSummary() {
+      if (!rolloutRecommendationSummary) {
+        return;
+      }
+
+      const recommendations =
+        SCREEN_NAMES.map(
+          screenName =>
+            getRolloutRecommendation(
+              screenName
+            )
+        );
+
+      const readyToDeploy =
+        recommendations.filter(
+          item =>
+            item.id ===
+            "ready-to-deploy"
+        ).length;
+
+      const readyForTesting =
+        recommendations.filter(
+          item =>
+            item.id ===
+            "ready-for-testing"
+        ).length;
+
+      const needReview =
+        recommendations.filter(
+          item =>
+            item.id === "review" ||
+            item.id === "blocked"
+        ).length;
+
+      const inactive =
+        recommendations.filter(
+          item =>
+            [
+              "maintenance",
+              "not-scheduled",
+              "sleeping"
+            ].includes(
+              item.id
+            )
+        ).length;
+
+      const parts = [];
+
+      if (readyToDeploy > 0) {
+        parts.push(
+          `${readyToDeploy} ready to deploy`
+        );
+      }
+
+      if (readyForTesting > 0) {
+        parts.push(
+          `${readyForTesting} ready for testing`
+        );
+      }
+
+      if (needReview > 0) {
+        parts.push(
+          `${needReview} need review`
+        );
+      }
+
+      if (inactive > 0) {
+        parts.push(
+          `${inactive} intentionally inactive`
+        );
+      }
+
+      rolloutRecommendationSummary.textContent =
+        parts.length > 0
+          ? parts.join(" · ")
+          : "All rollout states are stable.";
+    }
+
+
     function getRolloutStateForScreen(
       screenName
     ) {
@@ -24563,6 +24764,8 @@
 
 
     function renderRolloutAssistant() {
+      updateRolloutRecommendationSummary();
+
       if (
         !rolloutAssistantList ||
         !rolloutAssistantSummary
@@ -24742,6 +24945,68 @@
                       ${escapeHtml(item.notes.join(" · "))}
                     </div>
                   </div>
+
+                  <div
+                    class="rollout-recommendation rollout-recommendation-${getRolloutRecommendation(item.screenName).tone}"
+                    data-rollout-field="recommendation"
+                  >
+                    <div class="rollout-recommendation-header">
+                      <span class="rollout-recommendation-icon" aria-hidden="true">
+                        ${getRolloutRecommendation(item.screenName).icon}
+                      </span>
+
+                      <span class="rollout-recommendation-label">
+                        ${escapeHtml(getRolloutRecommendation(item.screenName).label)}
+                      </span>
+                    </div>
+
+                    <div class="rollout-recommendation-detail">
+                      ${escapeHtml(getRolloutRecommendation(item.screenName).detail)}
+                    </div>
+                  </div>
+
+                  ${
+                    (() => {
+                      const recommendation =
+                        getRolloutRecommendation(
+                          item.screenName
+                        );
+
+                      if (
+                        recommendation.id ===
+                        "ready-to-deploy"
+                      ) {
+                        return `
+                          <button
+                            class="button button-primary rollout-suggested-action"
+                            type="button"
+                            data-rollout-stage="deployed"
+                            data-rollout-screen="${escapeHtml(item.screenName)}"
+                          >
+                            ✓ Mark Deployed
+                          </button>
+                        `;
+                      }
+
+                      if (
+                        recommendation.id ===
+                        "ready-for-testing"
+                      ) {
+                        return `
+                          <button
+                            class="button button-primary rollout-suggested-action"
+                            type="button"
+                            data-rollout-stage="testing"
+                            data-rollout-screen="${escapeHtml(item.screenName)}"
+                          >
+                            🧪 Start Testing
+                          </button>
+                        `;
+                      }
+
+                      return "";
+                    })()
+                  }
 
                   ${
                     (() => {
