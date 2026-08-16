@@ -25,7 +25,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Release Candidate",
-      build: "112.1",
+      build: "112.2",
       status: "Release Candidate 1",
       tag: "v1.3.0-rc.1"
     };
@@ -18377,6 +18377,22 @@
           payload.players
         );
 
+        markAnalyticsHeartbeatSnapshotReady();
+
+        /*
+         * If the first Health-only startup sample already used
+         * the five-minute sample slot, allow the first valid
+         * heartbeat-backed uptime sample immediately.
+         */
+        if (
+          getExpectedScreensNow().length > 0
+        ) {
+          lastOperationsAnalyticsSampleAt =
+            0;
+
+          recordOperationsAnalyticsSample();
+        }
+
         runGoLiveReadinessCheck();
         renderRolloutAssistant();
         renderOperationsIntelligence();
@@ -18388,6 +18404,9 @@
           "Live heartbeat request failed; using last-known player state.",
           error
         );
+
+        analyticsHeartbeatSnapshotReady =
+          false;
 
         renderPlayerHeartbeats(
           []
@@ -23553,6 +23572,17 @@
     let operationsAnalyticsHistory = [];
     let lastOperationsAnalyticsSampleAt = 0;
 
+    /*
+     * Build 112.2:
+     * Player uptime must not begin until a successful
+     * heartbeat refresh has completed in this page session.
+     */
+    let analyticsHeartbeatSnapshotReady =
+      false;
+
+    let analyticsHeartbeatSnapshotAt =
+      0;
+
 
     function loadOperationsAnalyticsHistory() {
       try {
@@ -23617,6 +23647,33 @@
     }
 
 
+    function markAnalyticsHeartbeatSnapshotReady() {
+      analyticsHeartbeatSnapshotReady =
+        true;
+
+      analyticsHeartbeatSnapshotAt =
+        Date.now();
+    }
+
+
+    function isAnalyticsHeartbeatSnapshotCurrent() {
+      if (!analyticsHeartbeatSnapshotReady) {
+        return false;
+      }
+
+      /*
+       * Auto-refresh is every 30 seconds. Five minutes gives
+       * ample tolerance while still preventing old session
+       * state from being treated as current indefinitely.
+       */
+      return (
+        Date.now() -
+        analyticsHeartbeatSnapshotAt <=
+        5 * 60 * 1000
+      );
+    }
+
+
     function getAnalyticsExpectedPlayerSnapshot() {
       const expectedNow =
         getExpectedScreensNow();
@@ -23628,6 +23685,29 @@
           uptime: null,
           expectedScreens: [],
           onlineExpectedScreens: []
+        };
+      }
+
+      /*
+       * Critical RC fix:
+       * Expected Now can become true before the first live
+       * heartbeat request has finished. Treat that short
+       * startup window as "not sampled", not "offline".
+       */
+      if (
+        !isAnalyticsHeartbeatSnapshotCurrent()
+      ) {
+        return {
+          expectedCount:
+            expectedNow.length,
+          onlineCount:
+            0,
+          uptime:
+            null,
+          expectedScreens:
+            expectedNow.slice(),
+          onlineExpectedScreens:
+            []
         };
       }
 
@@ -23714,21 +23794,47 @@
       const operationalState =
         getBusinessOperationalState();
 
+      const playerUptimeReady =
+        !operationalState.openNow ||
+        playerSnapshot.expectedCount === 0 ||
+        playerSnapshot.uptime !== null;
+
       operationsAnalyticsHistory.push({
         timestamp:
           now,
         healthScore:
           healthScore,
+
         expectedCount:
-          playerSnapshot.expectedCount,
+          playerUptimeReady
+            ? playerSnapshot.expectedCount
+            : 0,
+
         onlineCount:
-          playerSnapshot.onlineCount,
+          playerUptimeReady
+            ? playerSnapshot.onlineCount
+            : 0,
+
         expectedUptime:
-          playerSnapshot.uptime,
+          playerUptimeReady
+            ? playerSnapshot.uptime
+            : null,
+
         expectedScreens:
-          playerSnapshot.expectedScreens || [],
+          playerUptimeReady
+            ? (
+                playerSnapshot.expectedScreens ||
+                []
+              )
+            : [],
+
         onlineExpectedScreens:
-          playerSnapshot.onlineExpectedScreens || [],
+          playerUptimeReady
+            ? (
+                playerSnapshot.onlineExpectedScreens ||
+                []
+              )
+            : [],
         businessOpen:
           operationalState.openNow,
         businessOperatingToday:
