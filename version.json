@@ -2,11 +2,11 @@
   "version": "1.3.0",
   "displayVersion": "1.3",
   "channel": "Development",
-  "build": "109",
+  "build": "110",
   "status": "Development",
   "releaseName": "Version 1.3 Operations Center",
   "tag": "",
-  "basedOnBuild": "108",
-  "milestone": "UI Polish / Operations Center Summary",
-  "feature": "Operations Snapshot, responsive polish, accessibility and reduced-motion support"
+  "basedOnBuild": "109",
+  "milestone": "Stability & Optimization",
+  "feature": "Coalesced UI rendering, hidden-tab optimization, analytics render deduplication"
 }
