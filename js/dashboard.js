@@ -24,10 +24,10 @@
     const APPLICATION_RELEASE_FALLBACK = {
       version: "1.3.0",
       displayVersion: "1.3",
-      channel: "Development",
-      build: "111.1",
-      status: "Development Patch",
-      tag: ""
+      channel: "Release Candidate",
+      build: "112",
+      status: "Release Candidate 1",
+      tag: "v1.3.0-rc.1"
     };
 
     let applicationRelease = {
