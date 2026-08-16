@@ -934,6 +934,195 @@
     }
 
 
+    /*
+     * =====================================================
+     * VERSION 1.3 — BUILD 109
+     * OPERATIONS SNAPSHOT + UI POLISH
+     * =====================================================
+     */
+
+    function renderOperationsSnapshot(
+      date = new Date()
+    ) {
+      const root =
+        document.getElementById(
+          "operationsSnapshot"
+        );
+
+      if (!root) {
+        return;
+      }
+
+      const profileResult =
+        getBusinessProfileForDate(
+          date
+        );
+
+      const operationalState =
+        getBusinessOperationalState(
+          date
+        );
+
+      const expectedNow =
+        getExpectedScreensNow(
+          date
+        );
+
+      const maintenance =
+        getMaintenanceScreens();
+
+      const profileEl =
+        document.getElementById(
+          "snapshotProfile"
+        );
+
+      const profileDetailEl =
+        document.getElementById(
+          "snapshotProfileDetail"
+        );
+
+      const storeEl =
+        document.getElementById(
+          "snapshotStoreState"
+        );
+
+      const storeDetailEl =
+        document.getElementById(
+          "snapshotStoreDetail"
+        );
+
+      const expectedEl =
+        document.getElementById(
+          "snapshotExpectedNow"
+        );
+
+      const expectedDetailEl =
+        document.getElementById(
+          "snapshotExpectedNowDetail"
+        );
+
+      const healthEl =
+        document.getElementById(
+          "snapshotHealth"
+        );
+
+      const healthDetailEl =
+        document.getElementById(
+          "snapshotHealthDetail"
+        );
+
+      const updatedEl =
+        document.getElementById(
+          "operationsSnapshotUpdated"
+        );
+
+      if (profileEl) {
+        profileEl.textContent =
+          `${profileResult.profile.icon} ${profileResult.profile.label}`;
+      }
+
+      if (profileDetailEl) {
+        profileDetailEl.textContent =
+          profileResult.profile.rangeLabel;
+      }
+
+      if (storeEl) {
+        storeEl.textContent =
+          operationalState.operatingToday
+            ? operationalState.openNow
+              ? "🟢 Open"
+              : operationalState.state.id === "before-open"
+                ? "🟡 Before opening"
+                : "⚫ Closed"
+            : "⚫ Closed today";
+      }
+
+      if (storeDetailEl) {
+        storeDetailEl.textContent =
+          formatBusinessHours(
+            operationalState.hours
+          );
+      }
+
+      if (expectedEl) {
+        expectedEl.textContent =
+          String(
+            expectedNow.length
+          );
+      }
+
+      if (expectedDetailEl) {
+        if (expectedNow.length) {
+          expectedDetailEl.textContent =
+            expectedNow.join(
+              ", "
+            );
+        } else if (
+          operationalState.operatingToday
+        ) {
+          expectedDetailEl.textContent =
+            "Intentionally inactive outside business hours";
+        } else {
+          expectedDetailEl.textContent =
+            "No players expected today";
+        }
+
+        if (
+          maintenanceModeEnabled &&
+          maintenance.length > 0
+        ) {
+          expectedDetailEl.textContent +=
+            ` · ${maintenance.length} maintenance exclusion${maintenance.length === 1 ? "" : "s"}`;
+        }
+      }
+
+      const score =
+        latestHealthScoreResult &&
+        Number.isFinite(
+          Number(
+            latestHealthScoreResult.score
+          )
+        )
+          ? Number(
+              latestHealthScoreResult.score
+            )
+          : null;
+
+      if (healthEl) {
+        healthEl.textContent =
+          score === null
+            ? "—"
+            : `${Math.round(score)}/100`;
+      }
+
+      if (healthDetailEl) {
+        healthDetailEl.textContent =
+          score === null
+            ? "Waiting for System Health"
+            : score >= 95
+              ? "Strong operational health"
+              : score >= 85
+                ? "Stable with minor observations"
+                : "Review System Health";
+      }
+
+      if (updatedEl) {
+        updatedEl.textContent =
+          `Updated ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+      }
+
+      root.classList.toggle(
+        "operations-snapshot-open",
+        operationalState.openNow
+      );
+
+      root.classList.toggle(
+        "operations-snapshot-closed",
+        !operationalState.openNow
+      );
+    }
+
+
     function renderBusinessProfile(
       date = new Date()
     ) {
@@ -1413,6 +1602,7 @@
 
     function refreshMaintenanceAwareUi() {
       renderMaintenanceMode();
+      renderOperationsSnapshot();
       renderScreenIntelligence();
       renderOperationsIntelligence();
       renderMissionControlStatuses();
@@ -16670,6 +16860,7 @@
       latestHealthScoreResult =
         scoreResult;
 
+      renderOperationsSnapshot();
       recordOperationsAnalyticsSample();
 
       const state =
@@ -18234,6 +18425,7 @@
         renderScreenIntelligence();
         renderOperationsIntelligence();
         renderMissionControlStatuses();
+        renderOperationsSnapshot();
         recordOperationsAnalyticsSample();
         renderMissionRecentActivity();
         renderNotificationCenter();
@@ -27778,6 +27970,7 @@
     renderApplicationEnvironment();
     setupMaintenanceMode();
     setupOperationsAnalytics();
+    renderOperationsSnapshot();
     renderBusinessProfile();
     renderScreenIntelligence();
     setupDiagnosticsExport();
@@ -27839,6 +28032,7 @@
       function() {
         updateLiveInformation();
         updateOperationsPanel();
+        renderOperationsSnapshot();
         renderBusinessProfile();
         renderScreenIntelligence();
         renderOperationsIntelligence();
