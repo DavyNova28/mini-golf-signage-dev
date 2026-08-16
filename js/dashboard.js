@@ -25,7 +25,7 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Release Candidate",
-      build: "112.2",
+      build: "113",
       status: "Release Candidate 1",
       tag: "v1.3.0-rc.1"
     };
