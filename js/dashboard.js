@@ -25,8 +25,8 @@
       version: "1.3.0",
       displayVersion: "1.3",
       channel: "Development",
-      build: "111",
-      status: "Development",
+      build: "111.1",
+      status: "Development Patch",
       tag: ""
     };
 
@@ -15245,13 +15245,30 @@
         76;
 
       /*
-       * The calendar has one fixed time column and six equal
-       * screen columns. Calculate the exact pixel width after
-       * the grid has rendered.
+       * Build 111.1: the calendar follows the current logical
+       * player list dynamically. Build 111 reduced the system
+       * from six player identities to four logical players, so
+       * the grid must no longer reserve six screen columns.
        */
+      const minimumScreenColumnWidth =
+        190;
+
+      const minimumCalendarWidth =
+        timeColumnWidth +
+        SCREEN_NAMES.length *
+          minimumScreenColumnWidth;
+
+      dailyCalendarGrid.style.gridTemplateColumns =
+        `${timeColumnWidth}px repeat(${SCREEN_NAMES.length}, minmax(${minimumScreenColumnWidth}px, 1fr))`;
+
+      dailyCalendarGrid.style.minWidth =
+        `${minimumCalendarWidth}px`;
+
       const calendarWidth =
-        dailyCalendarGrid.clientWidth ||
-        1100;
+        Math.max(
+          dailyCalendarGrid.clientWidth || 0,
+          minimumCalendarWidth
+        );
 
       const screenColumnWidth =
         (
@@ -15272,9 +15289,13 @@
         `<div class="daily-calendar-corner">Time</div>`;
 
       SCREEN_NAMES.forEach(
-        screenName => {
+        (screenName, screenIndex) => {
+          const isLastScreen =
+            screenIndex ===
+            SCREEN_NAMES.length - 1;
+
           html += `
-            <div class="daily-calendar-screen-header">
+            <div class="daily-calendar-screen-header${isLastScreen ? " daily-calendar-grid-edge" : ""}">
               ${escapeHtml(screenName)}
             </div>
           `;
@@ -15293,10 +15314,14 @@
         `;
 
         SCREEN_NAMES.forEach(
-          screenName => {
+          (screenName, screenIndex) => {
+            const isLastScreen =
+              screenIndex ===
+              SCREEN_NAMES.length - 1;
+
             html += `
               <div
-                class="daily-calendar-cell"
+                class="daily-calendar-cell${isLastScreen ? " daily-calendar-grid-edge" : ""}"
                 data-daily-cell-screen="${escapeHtml(screenName)}"
                 data-daily-cell-hour="${hour}"
               ></div>
