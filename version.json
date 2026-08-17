@@ -1,13 +1,13 @@
 {
   "version": "1.3.0",
   "displayVersion": "1.3",
-  "channel": "Release Candidate",
+  "channel": "Stable",
   "build": "113",
-  "status": "Release Candidate 1",
+  "status": "Stable Release",
   "releaseName": "Version 1.3 Operations Center",
-  "tag": "v1.3.0-rc.1",
-  "basedOnBuild": "112.2",
-  "feature": "Complete Summer Sunday Schedule Routing",
+  "tag": "v1.3.0",
+  "validatedFrom": "Build 113 Release Candidate 1",
+  "functionalCodeFrozen": true,
   "logicalPlayers": [
     "Arcade",
     "Golf",
