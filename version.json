@@ -1,18 +1,12 @@
 {
-  "version": "1.3.0",
-  "displayVersion": "1.3",
-  "channel": "Stable",
-  "build": "113",
-  "status": "Stable Release",
-  "releaseName": "Version 1.3 Operations Center",
-  "tag": "v1.3.0",
-  "validatedFrom": "Build 113 Release Candidate 1",
-  "functionalCodeFrozen": true,
-  "logicalPlayers": [
-    "Arcade",
-    "Golf",
-    "Slush",
-    "infoArcade"
-  ],
-  "backendBaseline": "Build 113 Complete Summer Schedule Routing"
+  "version": "1.4.0",
+  "displayVersion": "1.4",
+  "channel": "Development",
+  "build": "114",
+  "status": "Development",
+  "releaseName": "Version 1.4 Flexible Routing",
+  "tag": "",
+  "basedOnVersion": "v1.3.0",
+  "basedOnBuild": "113",
+  "feature": "Recurring Promo Days + Timed Holiday Overrides"
 }
