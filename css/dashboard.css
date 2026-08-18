@@ -10759,3 +10759,145 @@ textarea:focus-visible {
     white-space: normal;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.4 — BUILD 114
+ * RECURRING PROMO DAYS + TIMED HOLIDAY OVERRIDES
+ * =========================================================
+ */
+
+.promo-rules-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.promo-rules-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.promo-rules-title {
+  margin: 4px 0 0;
+  font-size: 0.98rem;
+}
+
+.promo-rules-description {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.promo-rules-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.promo-rules-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 13px;
+}
+
+.promo-rule-card {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(105px, 0.7fr)
+    minmax(105px, 0.8fr)
+    minmax(120px, 0.8fr)
+    minmax(170px, 1.2fr)
+    minmax(170px, 1.2fr)
+    auto;
+  gap: 9px;
+  align-items: end;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--panel-soft);
+}
+
+.promo-rule-enabled {
+  border-color: var(--regular);
+}
+
+.promo-rule-card label > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.promo-rule-toggle {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 800;
+}
+
+.promo-rule-toggle > span {
+  margin: 0 !important;
+  color: var(--text) !important;
+}
+
+.promo-rules-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.promo-rules-message {
+  display: none;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+}
+
+.promo-rules-message.visible {
+  display: block;
+}
+
+.promo-rules-message.success {
+  border: 1px solid var(--regular);
+}
+
+.promo-rules-message.error {
+  border: 1px solid var(--error);
+}
+
+.promo-rules-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1180px) {
+  .promo-rule-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .promo-rules-header,
+  .promo-rule-card {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .promo-rules-status {
+    white-space: normal;
+  }
+}
