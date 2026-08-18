@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbzrBhh78_7p8_kEZDsB4zreKkuaC0c649WNI4opLRyi9kzv2xYrMJAJ_ygZvvID3I8F/exec";
+      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
 
     const SCREEN_NAMES = [
       "Arcade",
@@ -22,12 +22,12 @@
       "version.json";
 
     const APPLICATION_RELEASE_FALLBACK = {
-      version: "1.3.0",
-      displayVersion: "1.3",
-      channel: "Stable",
-      build: "113",
-      status: "Stable Release",
-      tag: "v1.3.0"
+      version: "1.4.0",
+      displayVersion: "1.4",
+      channel: "Development",
+      build: "114",
+      status: "Development",
+      tag: ""
     };
 
     let applicationRelease = {
@@ -4335,6 +4335,18 @@
     let holidayOverrides =
       [];
 
+    let promoRules =
+      [];
+
+    let promoRulesRequestGeneration =
+      0;
+
+    let promoRulesSaveInProgress =
+      false;
+
+    let activePromoRulesSaveRequestId =
+      null;
+
     let holidayRequestGeneration =
       0;
 
@@ -4990,7 +5002,9 @@
         source:
           payload.scheduleSource === "holiday"
             ? "holiday"
-            : "regular",
+            : payload.scheduleSource === "promo"
+              ? "promo"
+              : "regular",
 
         activeDate:
           payload.activeDate || "",
@@ -8708,6 +8722,8 @@
           item.endDate || "",
         startTime:
           item.startTime || "",
+        endTime:
+          item.endTime || "",
         image:
           item.image || "",
         fade:
@@ -8793,6 +8809,8 @@
           ),
         startTime:
           "12:00",
+        endTime:
+          "",
         image:
           "",
         fade:
@@ -8861,7 +8879,10 @@
             ? ""
             : Number(input.value);
 
-      } else if (field === "startTime") {
+      } else if (
+        field === "startTime" ||
+        field === "endTime"
+      ) {
         const formatted =
           formatManagerTimeInput(
             input.value
@@ -8990,7 +9011,7 @@
       holidayTableBody.innerHTML = `
         <tr>
           <td
-            colspan="9"
+            colspan="10"
             class="manager-empty"
           >
             Loading Holiday Overrides…
@@ -9348,6 +9369,19 @@
           </td>
 
           <td>
+            <input
+              class="manager-input holiday-time-input ${rowErrors.endTime ? "invalid" : ""}"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="Optional"
+              value="${escapeHtml(item.endTime || "")}"
+              data-row-index="${index}"
+              data-holiday-field="endTime"
+            >
+          </td>
+
+          <td>
             <div class="image-picker-field">
               <div class="image-picker-row">
                 <input
@@ -9474,6 +9508,10 @@
             ${escapeHtml(item.startTime || "—")}
           </td>
 
+          <td class="manager-time">
+            ${escapeHtml(item.endTime || "—")}
+          </td>
+
           <td class="holiday-image-name">
             ${escapeHtml(item.image || "—")}
           </td>
@@ -9595,9 +9633,22 @@
       }
 
       if (
-        today > item.endDate
+        today > item.endDate ||
+        (
+          today === item.endDate &&
+          item.endTime &&
+          currentTime >= item.endTime
+        )
       ) {
         return "expired";
+      }
+
+      if (
+        item.endTime &&
+        currentTime >= item.endTime &&
+        today < item.endDate
+      ) {
+        return "upcoming";
       }
 
       return "active";
@@ -9612,6 +9663,7 @@
         !String(item.startDate || "").trim() &&
         !String(item.endDate || "").trim() &&
         !String(item.startTime || "").trim() &&
+        !String(item.endTime || "").trim() &&
         !String(item.image || "").trim() &&
         (
           item.fade === "" ||
@@ -9712,6 +9764,10 @@
           String(item.startTime || "")
             .trim();
 
+        const endTime =
+          String(item.endTime || "")
+            .trim();
+
         const image =
           String(item.image || "")
             .trim();
@@ -9764,6 +9820,31 @@
           addError(
             "startTime",
             "enter a valid time in HH:MM format."
+          );
+        }
+
+        if (
+          endTime &&
+          !/^([01]\d|2[0-3]):[0-5]\d$/
+            .test(endTime)
+        ) {
+          addError(
+            "endTime",
+            "enter a valid optional end time in HH:MM format."
+          );
+        }
+
+        if (
+          endTime &&
+          /^([01]\d|2[0-3]):[0-5]\d$/
+            .test(endTime) &&
+          /^([01]\d|2[0-3]):[0-5]\d$/
+            .test(startTime) &&
+          endTime <= startTime
+        ) {
+          addError(
+            "endTime",
+            "end time must be later than start time."
           );
         }
 
@@ -9970,6 +10051,8 @@
               String(item.endDate).trim(),
             startTime:
               String(item.startTime).trim(),
+            endTime:
+              String(item.endTime || "").trim(),
             image:
               String(item.image).trim(),
             fade:
@@ -19345,6 +19428,587 @@
       animateDashboardNumber(deploymentElement, deployedCount, { suffix: `/${SCREEN_NAMES.length}` });
     }
 
+    /*
+     * =====================================================
+     * VERSION 1.4 — BUILD 114
+     * RECURRING PROMO DAY MANAGER
+     * =====================================================
+     */
+
+    const PROMO_DAY_NAMES = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ];
+
+
+    function getDefaultPromoRules() {
+      return [
+        {
+          enabled: false,
+          profile: "regular",
+          screen: "Golf",
+          day: "Wednesday",
+          sourceTab: "GolfPromoWednesday",
+          label: "Golf Wednesday Promo"
+        },
+        {
+          enabled: false,
+          profile: "regular",
+          screen: "Arcade",
+          day: "Thursday",
+          sourceTab: "ArcadePromoThursday",
+          label: "Arcade Thursday Promo"
+        }
+      ];
+    }
+
+
+    function normalizePromoRulesForDashboard(
+      rules
+    ) {
+      const source =
+        Array.isArray(rules) &&
+        rules.length > 0
+          ? rules
+          : getDefaultPromoRules();
+
+      return source.map(item => ({
+        enabled:
+          item.enabled === true ||
+          String(item.enabled).toLowerCase() === "true",
+
+        profile:
+          ["regular", "summer", "all"].includes(
+            String(item.profile || "").toLowerCase()
+          )
+            ? String(item.profile).toLowerCase()
+            : "regular",
+
+        screen:
+          SCREEN_NAMES.includes(item.screen)
+            ? item.screen
+            : SCREEN_NAMES[0],
+
+        day:
+          PROMO_DAY_NAMES.includes(item.day)
+            ? item.day
+            : "Wednesday",
+
+        sourceTab:
+          String(item.sourceTab || "").trim(),
+
+        label:
+          String(item.label || "").trim()
+      }));
+    }
+
+
+    function loadPromoRules() {
+      promoRulesRequestGeneration += 1;
+
+      const generation =
+        promoRulesRequestGeneration;
+
+      const callbackName =
+        `promoRulesCallback_${generation}`;
+
+      const script =
+        document.createElement("script");
+
+      const separator =
+        SCHEDULE_FEED_URL.includes("?")
+          ? "&"
+          : "?";
+
+      window[callbackName] =
+        function(payload) {
+          try {
+            if (
+              !payload ||
+              payload.success !== true ||
+              !Array.isArray(payload.rules)
+            ) {
+              throw new Error(
+                payload && payload.error
+                  ? payload.error
+                  : "Promo Rules feed is invalid."
+              );
+            }
+
+            promoRules =
+              normalizePromoRulesForDashboard(
+                payload.rules
+              );
+
+            renderPromoRules();
+
+          } catch (error) {
+            promoRules =
+              getDefaultPromoRules();
+
+            renderPromoRules(
+              error.message || error
+            );
+
+          } finally {
+            delete window[callbackName];
+            script.remove();
+          }
+        };
+
+      script.src =
+        `${SCHEDULE_FEED_URL}` +
+        `${separator}action=promoManager` +
+        `&callback=${callbackName}` +
+        `&_=${Date.now()}`;
+
+      script.onerror =
+        function() {
+          delete window[callbackName];
+
+          promoRules =
+            getDefaultPromoRules();
+
+          renderPromoRules(
+            "Could not load Promo Rules from Apps Script."
+          );
+
+          script.remove();
+        };
+
+      document.head.appendChild(
+        script
+      );
+    }
+
+
+    function renderPromoRules(
+      errorMessage = ""
+    ) {
+      const list =
+        document.getElementById(
+          "promoRulesList"
+        );
+
+      const status =
+        document.getElementById(
+          "promoRulesStatus"
+        );
+
+      const message =
+        document.getElementById(
+          "promoRulesMessage"
+        );
+
+      if (
+        !list ||
+        !status
+      ) {
+        return;
+      }
+
+      const enabledCount =
+        promoRules.filter(
+          item => item.enabled
+        ).length;
+
+      status.textContent =
+        `${enabledCount} enabled · ${promoRules.length} rule${promoRules.length === 1 ? "" : "s"}`;
+
+      list.innerHTML =
+        promoRules
+          .map((rule, index) => `
+            <article class="promo-rule-card ${rule.enabled ? "promo-rule-enabled" : ""}">
+              <label class="promo-rule-toggle">
+                <input
+                  type="checkbox"
+                  data-promo-index="${index}"
+                  data-promo-field="enabled"
+                  ${rule.enabled ? "checked" : ""}
+                >
+                <span>${rule.enabled ? "ON" : "OFF"}</span>
+              </label>
+
+              <label>
+                <span>Profile</span>
+                <select
+                  class="manager-select"
+                  data-promo-index="${index}"
+                  data-promo-field="profile"
+                >
+                  <option value="regular" ${rule.profile === "regular" ? "selected" : ""}>Regular</option>
+                  <option value="summer" ${rule.profile === "summer" ? "selected" : ""}>Summer</option>
+                  <option value="all" ${rule.profile === "all" ? "selected" : ""}>All profiles</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Screen</span>
+                <select
+                  class="manager-select"
+                  data-promo-index="${index}"
+                  data-promo-field="screen"
+                >
+                  ${SCREEN_NAMES.map(name => `
+                    <option value="${escapeHtml(name)}" ${name === rule.screen ? "selected" : ""}>
+                      ${escapeHtml(name)}
+                    </option>
+                  `).join("")}
+                </select>
+              </label>
+
+              <label>
+                <span>Day</span>
+                <select
+                  class="manager-select"
+                  data-promo-index="${index}"
+                  data-promo-field="day"
+                >
+                  ${PROMO_DAY_NAMES.map(day => `
+                    <option value="${day}" ${day === rule.day ? "selected" : ""}>
+                      ${day}
+                    </option>
+                  `).join("")}
+                </select>
+              </label>
+
+              <label class="promo-rule-source">
+                <span>Source tab</span>
+                <input
+                  class="manager-input"
+                  type="text"
+                  value="${escapeHtml(rule.sourceTab)}"
+                  data-promo-index="${index}"
+                  data-promo-field="sourceTab"
+                  placeholder="GolfPromoWednesday"
+                >
+              </label>
+
+              <label class="promo-rule-label">
+                <span>Label</span>
+                <input
+                  class="manager-input"
+                  type="text"
+                  value="${escapeHtml(rule.label)}"
+                  data-promo-index="${index}"
+                  data-promo-field="label"
+                  placeholder="Promo name"
+                >
+              </label>
+
+              <button
+                class="manager-icon-button danger"
+                type="button"
+                data-delete-promo-index="${index}"
+              >
+                Delete
+              </button>
+            </article>
+          `)
+          .join("");
+
+      if (message) {
+        message.textContent =
+          errorMessage;
+
+        message.className =
+          errorMessage
+            ? "promo-rules-message visible error"
+            : "promo-rules-message";
+      }
+    }
+
+
+    function handlePromoRuleInput(
+      event
+    ) {
+      const input =
+        event.target.closest(
+          "[data-promo-field]"
+        );
+
+      if (!input) {
+        return;
+      }
+
+      const index =
+        Number(
+          input.dataset.promoIndex
+        );
+
+      const field =
+        input.dataset.promoField;
+
+      if (
+        !Number.isInteger(index) ||
+        !promoRules[index]
+      ) {
+        return;
+      }
+
+      promoRules[index][field] =
+        field === "enabled"
+          ? Boolean(input.checked)
+          : input.value;
+
+      renderPromoRules();
+    }
+
+
+    function savePromoRules() {
+      if (promoRulesSaveInProgress) {
+        return;
+      }
+
+      const cleaned =
+        normalizePromoRulesForDashboard(
+          promoRules
+        );
+
+      for (
+        let index = 0;
+        index < cleaned.length;
+        index += 1
+      ) {
+        const rule =
+          cleaned[index];
+
+        if (!rule.sourceTab) {
+          window.alert(
+            `Promo rule ${index + 1} needs a Source tab.`
+          );
+          return;
+        }
+      }
+
+      const pin =
+        window.prompt(
+          "Enter the dashboard save PIN for Promo Rules:"
+        );
+
+      if (pin === null) {
+        return;
+      }
+
+      if (!String(pin).trim()) {
+        window.alert(
+          "A save PIN is required."
+        );
+        return;
+      }
+
+      if (
+        !window.confirm(
+          "Save these recurring Promo Rules to Google Sheets?\n\nEnabled rules can automatically change the source schedule on their configured weekday."
+        )
+      ) {
+        return;
+      }
+
+      activePromoRulesSaveRequestId =
+        createSaveRequestId();
+
+      promoRulesSaveInProgress =
+        true;
+
+      const form =
+        document.getElementById(
+          "promoSaveForm"
+        );
+
+      form.action =
+        SCHEDULE_FEED_URL;
+
+      document.getElementById(
+        "promoSavePinField"
+      ).value =
+        String(pin);
+
+      document.getElementById(
+        "promoSaveDataField"
+      ).value =
+        JSON.stringify(cleaned);
+
+      document.getElementById(
+        "promoSaveRequestIdField"
+      ).value =
+        activePromoRulesSaveRequestId;
+
+      const message =
+        document.getElementById(
+          "promoRulesMessage"
+        );
+
+      if (message) {
+        message.textContent =
+          "Saving Promo Rules…";
+
+        message.className =
+          "promo-rules-message visible success";
+      }
+
+      form.submit();
+    }
+
+
+    function handlePromoRulesSaveMessage(
+      event
+    ) {
+      const data =
+        event.data;
+
+      if (
+        !data ||
+        data.type !== "miniGolfPromoRulesSaveResult" ||
+        data.requestId !==
+          activePromoRulesSaveRequestId
+      ) {
+        return;
+      }
+
+      promoRulesSaveInProgress =
+        false;
+
+      activePromoRulesSaveRequestId =
+        null;
+
+      const message =
+        document.getElementById(
+          "promoRulesMessage"
+        );
+
+      if (data.success !== true) {
+        if (message) {
+          message.textContent =
+            data.error ||
+            "Promo Rules could not be saved.";
+
+          message.className =
+            "promo-rules-message visible error";
+        }
+
+        return;
+      }
+
+      if (message) {
+        message.textContent =
+          `Saved ${data.rowsWritten} Promo Rule(s). Routing cache was refreshed.`;
+
+        message.className =
+          "promo-rules-message visible success";
+      }
+
+      setTimeout(
+        function() {
+          loadPromoRules();
+          refreshDashboard();
+        },
+        500
+      );
+    }
+
+
+    function setupPromoRules() {
+      const list =
+        document.getElementById(
+          "promoRulesList"
+        );
+
+      if (!list) {
+        return;
+      }
+
+      list.addEventListener(
+        "change",
+        handlePromoRuleInput
+      );
+
+      list.addEventListener(
+        "input",
+        handlePromoRuleInput
+      );
+
+      list.addEventListener(
+        "click",
+        function(event) {
+          const button =
+            event.target.closest(
+              "[data-delete-promo-index]"
+            );
+
+          if (!button) {
+            return;
+          }
+
+          const index =
+            Number(
+              button.dataset.deletePromoIndex
+            );
+
+          if (
+            Number.isInteger(index) &&
+            promoRules[index]
+          ) {
+            promoRules.splice(
+              index,
+              1
+            );
+
+            renderPromoRules();
+          }
+        }
+      );
+
+      document.getElementById(
+        "addPromoRuleButton"
+      ).addEventListener(
+        "click",
+        function() {
+          promoRules.push({
+            enabled: false,
+            profile: "regular",
+            screen: "Golf",
+            day: "Wednesday",
+            sourceTab: "",
+            label: "New Promo"
+          });
+
+          renderPromoRules();
+        }
+      );
+
+      document.getElementById(
+        "reloadPromoRulesButton"
+      ).addEventListener(
+        "click",
+        loadPromoRules
+      );
+
+      document.getElementById(
+        "savePromoRulesButton"
+      ).addEventListener(
+        "click",
+        savePromoRules
+      );
+
+      window.addEventListener(
+        "message",
+        handlePromoRulesSaveMessage
+      );
+
+      promoRules =
+        getDefaultPromoRules();
+
+      renderPromoRules();
+      loadPromoRules();
+    }
+
+
     function renderScheduleRouting(
       date = new Date()
     ) {
@@ -19406,8 +20070,10 @@
             const source =
               state.source === "holiday"
                 ? "Holiday Override"
-                : state.routeSourceTab ||
-                  "Unknown source";
+                : state.source === "promo"
+                  ? "Promo Day"
+                  : state.routeSourceTab ||
+                    "Unknown source";
 
             const detailParts =
               [];
@@ -19423,6 +20089,12 @@
             ) {
               detailParts.push(
                 "Special/Holiday override has priority"
+              );
+            } else if (
+              state.source === "promo"
+            ) {
+              detailParts.push(
+                "Recurring Promo Day override is active"
               );
             }
 
@@ -28360,6 +29032,7 @@
     setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
+    setupPromoRules();
     setupMaintenanceMode();
     setupOperationsAnalytics();
     scheduleOperationsCenterRender({
