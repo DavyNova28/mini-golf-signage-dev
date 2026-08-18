@@ -5,7 +5,7 @@
      */
 
     const SCHEDULE_FEED_URL =
-      "https://script.google.com/macros/s/AKfycbwUINP9DCEUywwCU1YMjfnPT3H8ZUq1lsGVk8ShACrTp2EZIqMYrChADlk_uEh2F-DGXw/exec";
+      "https://script.google.com/macros/s/AKfycbzrBhh78_7p8_kEZDsB4zreKkuaC0c649WNI4opLRyi9kzv2xYrMJAJ_ygZvvID3I8F/exec";
 
     const SCREEN_NAMES = [
       "Arcade",
