@@ -10901,3 +10901,28 @@ textarea:focus-visible {
     white-space: normal;
   }
 }
+
+
+/*
+ * =========================================================
+ * VERSION 1.4 — BUILD 114.1
+ * NOTIFICATION CENTER ACTION BUTTON FIX
+ * =========================================================
+ */
+
+.notification-item {
+  cursor: default;
+}
+
+.notification-item-open,
+.notification-item-snooze {
+  position: relative;
+  z-index: 1;
+  appearance: none;
+}
+
+.notification-item-open:focus-visible,
+.notification-item-snooze:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
