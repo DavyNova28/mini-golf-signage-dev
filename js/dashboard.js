@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "114",
+      build: "114.1",
       status: "Development",
       tag: ""
     };
@@ -22996,9 +22996,8 @@
           : `${items.length} visible, all reviewed${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`;
 
       notificationCenterList.innerHTML = items.map((item,index) => `
-        <button
+        <div
           class="notification-item notification-item-${escapeHtml(item.severity)} ${item.unread ? "notification-item-unread" : "notification-item-read"}"
-          type="button"
           data-notification-index="${index}"
         >
           <span class="notification-item-icon">${escapeHtml(item.icon)}</span>
@@ -23012,83 +23011,23 @@
           </span>
 
           <span class="notification-item-actions">
-            <span
+            <button
               class="notification-item-open"
+              type="button"
               data-notification-open="${index}"
             >
               Open →
-            </span>
+            </button>
 
-            <span
+            <button
               class="notification-item-snooze"
+              type="button"
               data-notification-snooze="${index}"
             >
               Snooze
-            </span>
+            </button>
           </span>
-        </button>`).join("");
-
-      notificationCenterList
-        .querySelectorAll(
-          "[data-notification-index]"
-        )
-        .forEach(
-          button => {
-            button.addEventListener(
-              "click",
-              function(event) {
-                const index =
-                  Number(
-                    button.dataset.notificationIndex
-                  );
-
-                const item =
-                  items[
-                    index
-                  ];
-
-                if (!item) {
-                  return;
-                }
-
-                const snoozeTarget =
-                  event.target.closest(
-                    "[data-notification-snooze]"
-                  );
-
-                if (snoozeTarget) {
-                  openNotificationSnoozeMenu(
-                    event,
-                    item.fingerprint
-                  );
-
-                  return;
-                }
-
-                notificationMemory.fingerprints[
-                  item.fingerprint
-                ] =
-                  true;
-
-                notificationMemory.reviewedAt =
-                  new Date().toISOString();
-
-                addNotificationHistoryEvent(
-                  item,
-                  "reviewed",
-                  "Opened from the Notification Center."
-                );
-
-                saveNotificationMemory();
-
-                closeNotificationCenter();
-                openWorkspace(
-                  item.workspace
-                );
-              }
-            );
-          }
-        );
+        </div>`).join("");
     }
 
     function openNotificationCenter() {
@@ -23192,6 +23131,95 @@
             item.classList.toggle("active",item===button));
           renderNotificationHistory();
         });
+
+      if (notificationCenterList) {
+        notificationCenterList.addEventListener(
+          "click",
+          function(event) {
+            const snoozeTarget =
+              event.target.closest(
+                "[data-notification-snooze]"
+              );
+
+            const openTarget =
+              event.target.closest(
+                "[data-notification-open]"
+              );
+
+            const row =
+              event.target.closest(
+                "[data-notification-index]"
+              );
+
+            if (!row) {
+              return;
+            }
+
+            const index =
+              Number(
+                row.dataset.notificationIndex
+              );
+
+            const currentItems =
+              getNotificationItems()
+                .filter(
+                  item =>
+                    !isNotificationSnoozed(
+                      item.fingerprint
+                    )
+                );
+
+            const item =
+              currentItems[index];
+
+            if (!item) {
+              renderNotificationCenter();
+              return;
+            }
+
+            if (snoozeTarget) {
+              event.preventDefault();
+              event.stopPropagation();
+
+              openNotificationSnoozeMenu(
+                event,
+                item.fingerprint
+              );
+
+              return;
+            }
+
+            if (!openTarget) {
+              return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            notificationMemory.fingerprints[
+              item.fingerprint
+            ] =
+              true;
+
+            notificationMemory.reviewedAt =
+              new Date().toISOString();
+
+            addNotificationHistoryEvent(
+              item,
+              "reviewed",
+              "Opened from the Notification Center."
+            );
+
+            saveNotificationMemory();
+
+            closeNotificationCenter();
+
+            openWorkspace(
+              item.workspace
+            );
+          }
+        );
+      }
 
       notificationCenterOverlay.addEventListener("click",event => {
         if (event.target === notificationCenterOverlay) closeNotificationCenter();
