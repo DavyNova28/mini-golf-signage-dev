@@ -2,11 +2,11 @@
   "version": "1.4.0",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "114",
+  "build": "114.1",
   "status": "Development",
   "releaseName": "Version 1.4 Flexible Routing",
   "tag": "",
   "basedOnVersion": "v1.3.0",
-  "basedOnBuild": "113",
-  "feature": "Recurring Promo Days + Timed Holiday Overrides"
+  "basedOnBuild": "114",
+  "feature": "Notification Center Open/Snooze action fix"
 }
