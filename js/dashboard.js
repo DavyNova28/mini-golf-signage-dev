@@ -23823,7 +23823,35 @@
             });
           }
         );
-
+        
+/*
+ * =========================================================
+ * THE DEEP MAGIC — PROTECTED DASHBOARD LORE
+ * =========================================================
+ *
+ * 1969-12-31
+ *
+ * If an activity has no valid schedule date, the Dashboard
+ * may display 1969-12-31 because of the Unix Epoch / timezone
+ * fallback behavior.
+ *
+ * This originally appeared during Build 114 testing and does
+ * not affect scheduling, routing, players, or System Health.
+ *
+ * DO NOT "FIX" THIS DISPLAY QUIRK unless it begins affecting
+ * actual system functionality.
+ *
+ * Classification: DEEP MAGIC
+ * Status:         PROTECTED
+ * Severity:       LORE
+ *
+ * "Do not cite the Deep Magic to me, Witch.
+ *  I was there when it was written."
+ *
+ * — The Ancient Mini Golf Signage Manager Doctrine
+ * =========================================================
+ */
+        
       screenStates.forEach(
         state => {
           if (!state) {
