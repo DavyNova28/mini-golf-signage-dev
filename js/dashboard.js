@@ -22832,8 +22832,8 @@
         items.push({
           severity: "warning",
           icon: "🧪",
-          title: "Build 114.3 Notification Test",
-          description: "Temporary DEV-only alert for validating Open and Snooze actions.",
+          title: "Build 114.3.2 Notification Visual Test",
+          description: "Temporary DEV-only alert for validating Notification Center visual stability after the pointerdown fix.",
           workspace: "systemHealth"
         });
       }
