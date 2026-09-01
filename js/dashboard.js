@@ -22823,6 +22823,20 @@
 
     function buildDashboardNotifications() {
       const items = [];
+
+      /*
+       * BUILD 114.3 — TEMPORARY DEV-ONLY NOTIFICATION TEST HARNESS
+       * Remove after Open/Snooze validation. Never appears in Production.
+       */
+      if (getApplicationEnvironment().key === "development") {
+        items.push({
+          severity: "warning",
+          icon: "🧪",
+          title: "Build 114.3 Notification Test",
+          description: "Temporary DEV-only alert for validating Open and Snooze actions.",
+          workspace: "systemHealth"
+        });
+      }
       const quiet = typeof isPlayerQuietHours === "function" ? isPlayerQuietHours() : false;
       const score = latestHealthScoreResult && Number.isFinite(latestHealthScoreResult.score)
         ? latestHealthScoreResult.score : null;
