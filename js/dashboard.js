@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "114.3",
+      build: "114.4",
       status: "Development",
       tag: ""
     };
@@ -22823,20 +22823,6 @@
 
     function buildDashboardNotifications() {
       const items = [];
-
-      /*
-       * BUILD 114.3 — TEMPORARY DEV-ONLY NOTIFICATION TEST HARNESS
-       * Remove after Open/Snooze validation. Never appears in Production.
-       */
-      if (getApplicationEnvironment().key === "development") {
-        items.push({
-          severity: "warning",
-          icon: "🧪",
-          title: "Build 114.3.4 Notification Visual Test",
-          description: "Temporary DEV-only alert for validating open-panel render freezing after the pointerdown fix.",
-          workspace: "systemHealth"
-        });
-      }
       const quiet = typeof isPlayerQuietHours === "function" ? isPlayerQuietHours() : false;
       const score = latestHealthScoreResult && Number.isFinite(latestHealthScoreResult.score)
         ? latestHealthScoreResult.score : null;
@@ -22941,7 +22927,7 @@
       );
 
       /*
-       * Build 114.3.4 — open-panel render freeze
+       * Build 114.4 — Notification Center open-panel render stability
        *
        * The Dashboard has several background render pipelines (health,
        * heartbeat, Mission Control) that can call renderNotificationCenter()
