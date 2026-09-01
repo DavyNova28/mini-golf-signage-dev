@@ -22987,8 +22987,16 @@
           snoozedItems.length > 0
             ? `No visible alerts · ${snoozedItems.length} snoozed.`
             : "No active alerts. Core monitoring checks are clear.";
-        notificationCenterList.innerHTML =
+        const emptyNotificationHtml =
           '<div class="notification-center-empty">✅ Everything currently looks good.<br>New alerts will appear here automatically.</div>';
+
+        // Build 114.3.2 — preserve the existing notification DOM when
+        // its rendered content has not changed. Background Dashboard
+        // refreshes can call this renderer frequently; replacing identical
+        // buttons on every pass resets :hover and causes visible flicker.
+        if (notificationCenterList.innerHTML !== emptyNotificationHtml) {
+          notificationCenterList.innerHTML = emptyNotificationHtml;
+        }
         return;
       }
 
@@ -23003,7 +23011,7 @@
           ? `${unreadCount} new · ${items.length} visible${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`
           : `${items.length} visible, all reviewed${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`;
 
-      notificationCenterList.innerHTML = items.map(item => {
+      const nextNotificationListHtml = items.map(item => {
         const encodedFingerprint =
           encodeURIComponent(item.fingerprint);
 
@@ -23041,6 +23049,13 @@
           </span>
         </div>`;
       }).join("");
+
+      // Do not destroy and recreate identical notification buttons during
+      // background telemetry/heartbeat renders. Keeping the same DOM nodes
+      // preserves the browser's hover state and eliminates the visual flash.
+      if (notificationCenterList.innerHTML !== nextNotificationListHtml) {
+        notificationCenterList.innerHTML = nextNotificationListHtml;
+      }
     }
 
     function openNotificationCenter() {
