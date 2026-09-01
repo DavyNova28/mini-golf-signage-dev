@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "114.1",
+      build: "114.3",
       status: "Development",
       tag: ""
     };
@@ -22310,21 +22310,15 @@
 
 
     function openNotificationSnoozeMenu(
-      event,
+      button,
       fingerprint
     ) {
-      if (!notificationSnoozeMenu) {
+      if (!notificationSnoozeMenu || !button) {
         return;
       }
 
-      event.preventDefault();
-      event.stopPropagation();
-
       notificationSnoozeTargetFingerprint =
         fingerprint;
-
-      const button =
-        event.currentTarget;
 
       const rectangle =
         button.getBoundingClientRect();
@@ -22995,10 +22989,14 @@
           ? `${unreadCount} new · ${items.length} visible${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`
           : `${items.length} visible, all reviewed${snoozedItems.length ? ` · ${snoozedItems.length} snoozed` : ""}${critical ? ` · ${critical} critical` : ""}.`;
 
-      notificationCenterList.innerHTML = items.map((item,index) => `
+      notificationCenterList.innerHTML = items.map(item => {
+        const encodedFingerprint =
+          encodeURIComponent(item.fingerprint);
+
+        return `
         <div
           class="notification-item notification-item-${escapeHtml(item.severity)} ${item.unread ? "notification-item-unread" : "notification-item-read"}"
-          data-notification-index="${index}"
+          data-notification-fingerprint="${encodedFingerprint}"
         >
           <span class="notification-item-icon">${escapeHtml(item.icon)}</span>
 
@@ -23014,7 +23012,7 @@
             <button
               class="notification-item-open"
               type="button"
-              data-notification-open="${index}"
+              data-notification-open="${encodedFingerprint}"
             >
               Open →
             </button>
@@ -23022,12 +23020,13 @@
             <button
               class="notification-item-snooze"
               type="button"
-              data-notification-snooze="${index}"
+              data-notification-snooze="${encodedFingerprint}"
             >
               Snooze
             </button>
           </span>
-        </div>`).join("");
+        </div>`;
+      }).join("");
     }
 
     function openNotificationCenter() {
@@ -23146,31 +23145,48 @@
                 "[data-notification-open]"
               );
 
-            const row =
-              event.target.closest(
-                "[data-notification-index]"
-              );
+            const actionTarget =
+              snoozeTarget || openTarget;
 
-            if (!row) {
+            if (!actionTarget) {
               return;
             }
 
-            const index =
-              Number(
-                row.dataset.notificationIndex
+            event.preventDefault();
+            event.stopPropagation();
+
+            let fingerprint = "";
+
+            try {
+              fingerprint = decodeURIComponent(
+                actionTarget.dataset.notificationSnooze ||
+                actionTarget.dataset.notificationOpen ||
+                ""
               );
+            } catch (error) {
+              console.warn(
+                "Notification fingerprint could not be decoded.",
+                error
+              );
+              renderNotificationCenter();
+              return;
+            }
 
             const currentItems =
-              getNotificationItems()
-                .filter(
-                  item =>
-                    !isNotificationSnoozed(
-                      item.fingerprint
-                    )
-                );
+              enrichDashboardNotifications(
+                buildDashboardNotifications()
+              ).filter(
+                item =>
+                  !isNotificationSnoozed(
+                    item
+                  )
+              );
 
             const item =
-              currentItems[index];
+              currentItems.find(
+                notification =>
+                  notification.fingerprint === fingerprint
+              );
 
             if (!item) {
               renderNotificationCenter();
@@ -23178,23 +23194,13 @@
             }
 
             if (snoozeTarget) {
-              event.preventDefault();
-              event.stopPropagation();
-
               openNotificationSnoozeMenu(
-                event,
+                snoozeTarget,
                 item.fingerprint
               );
 
               return;
             }
-
-            if (!openTarget) {
-              return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
 
             notificationMemory.fingerprints[
               item.fingerprint
