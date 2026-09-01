@@ -23146,97 +23146,171 @@
         });
 
       if (notificationCenterList) {
+        let lastNotificationPointerActionAt = 0;
+        let lastNotificationPointerActionKey = "";
+
+        function getNotificationCenterAction(target) {
+          if (!target || typeof target.closest !== "function") {
+            return null;
+          }
+
+          const snoozeTarget = target.closest(
+            "[data-notification-snooze]"
+          );
+
+          const openTarget = target.closest(
+            "[data-notification-open]"
+          );
+
+          const actionTarget = snoozeTarget || openTarget;
+
+          if (
+            !actionTarget ||
+            !notificationCenterList.contains(actionTarget)
+          ) {
+            return null;
+          }
+
+          let fingerprint = "";
+
+          try {
+            fingerprint = decodeURIComponent(
+              actionTarget.dataset.notificationSnooze ||
+              actionTarget.dataset.notificationOpen ||
+              ""
+            );
+          } catch (error) {
+            console.warn(
+              "Notification fingerprint could not be decoded.",
+              error
+            );
+            return null;
+          }
+
+          if (!fingerprint) {
+            return null;
+          }
+
+          return {
+            type: snoozeTarget ? "snooze" : "open",
+            target: actionTarget,
+            fingerprint,
+            key: `${snoozeTarget ? "snooze" : "open"}:${fingerprint}`
+          };
+        }
+
+        function runNotificationCenterAction(action) {
+          if (!action) {
+            return;
+          }
+
+          const currentItems =
+            enrichDashboardNotifications(
+              buildDashboardNotifications()
+            ).filter(
+              item =>
+                !isNotificationSnoozed(
+                  item
+                )
+            );
+
+          const item =
+            currentItems.find(
+              notification =>
+                notification.fingerprint === action.fingerprint
+            );
+
+          if (!item) {
+            renderNotificationCenter();
+            return;
+          }
+
+          if (action.type === "snooze") {
+            openNotificationSnoozeMenu(
+              action.target,
+              item.fingerprint
+            );
+            return;
+          }
+
+          notificationMemory.fingerprints[
+            item.fingerprint
+          ] = true;
+
+          notificationMemory.reviewedAt =
+            new Date().toISOString();
+
+          addNotificationHistoryEvent(
+            item,
+            "reviewed",
+            "Opened from the Notification Center."
+          );
+
+          saveNotificationMemory();
+          closeNotificationCenter();
+          openWorkspace(item.workspace);
+        }
+
+        /*
+         * Build 114.3.1 — Notification Center interaction stability
+         *
+         * Dynamic Dashboard renders can replace a notification button
+         * between pointer-down and the browser's later click event.
+         * This mirrors the proven Rollout Assistant stability pattern:
+         * execute primary-pointer actions on pointerdown, then retain
+         * click as the keyboard/accessibility fallback with duplicate
+         * suppression.
+         */
+        notificationCenterList.addEventListener(
+          "pointerdown",
+          function(event) {
+            if (
+              event.button !== 0 ||
+              event.isPrimary === false
+            ) {
+              return;
+            }
+
+            const action =
+              getNotificationCenterAction(
+                event.target
+              );
+
+            if (!action) {
+              return;
+            }
+
+            lastNotificationPointerActionAt = Date.now();
+            lastNotificationPointerActionKey = action.key;
+
+            runNotificationCenterAction(action);
+          }
+        );
+
         notificationCenterList.addEventListener(
           "click",
           function(event) {
-            const snoozeTarget =
-              event.target.closest(
-                "[data-notification-snooze]"
+            const action =
+              getNotificationCenterAction(
+                event.target
               );
 
-            const openTarget =
-              event.target.closest(
-                "[data-notification-open]"
-              );
+            if (!action) {
+              return;
+            }
 
-            const actionTarget =
-              snoozeTarget || openTarget;
+            const duplicatePointerClick =
+              action.key === lastNotificationPointerActionKey &&
+              Date.now() - lastNotificationPointerActionAt < 1200;
 
-            if (!actionTarget) {
+            if (duplicatePointerClick) {
+              event.preventDefault();
               return;
             }
 
             event.preventDefault();
             event.stopPropagation();
-
-            let fingerprint = "";
-
-            try {
-              fingerprint = decodeURIComponent(
-                actionTarget.dataset.notificationSnooze ||
-                actionTarget.dataset.notificationOpen ||
-                ""
-              );
-            } catch (error) {
-              console.warn(
-                "Notification fingerprint could not be decoded.",
-                error
-              );
-              renderNotificationCenter();
-              return;
-            }
-
-            const currentItems =
-              enrichDashboardNotifications(
-                buildDashboardNotifications()
-              ).filter(
-                item =>
-                  !isNotificationSnoozed(
-                    item
-                  )
-              );
-
-            const item =
-              currentItems.find(
-                notification =>
-                  notification.fingerprint === fingerprint
-              );
-
-            if (!item) {
-              renderNotificationCenter();
-              return;
-            }
-
-            if (snoozeTarget) {
-              openNotificationSnoozeMenu(
-                snoozeTarget,
-                item.fingerprint
-              );
-
-              return;
-            }
-
-            notificationMemory.fingerprints[
-              item.fingerprint
-            ] =
-              true;
-
-            notificationMemory.reviewedAt =
-              new Date().toISOString();
-
-            addNotificationHistoryEvent(
-              item,
-              "reviewed",
-              "Opened from the Notification Center."
-            );
-
-            saveNotificationMemory();
-
-            closeNotificationCenter();
-
-            openWorkspace(
-              item.workspace
-            );
+            runNotificationCenterAction(action);
           }
         );
       }
