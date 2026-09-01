@@ -22296,7 +22296,7 @@
 
       saveNotificationSnoozes();
       closeNotificationSnoozeMenu();
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
 
       if (
         typeof showToast === "function"
@@ -22629,7 +22629,7 @@
 
       saveNotificationPreferences();
       closeNotificationPreferences();
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
 
       if (
         typeof showToast === "function"
@@ -22650,7 +22650,7 @@
 
       saveNotificationPreferences();
       populateNotificationPreferencesForm();
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
 
       if (
         typeof showToast === "function"
@@ -22784,7 +22784,7 @@
         addNotificationHistoryEvent(notification,"reviewed","Marked as reviewed."));
 
       saveNotificationMemory();
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
 
       if (
         typeof showToast === "function"
@@ -22832,8 +22832,8 @@
         items.push({
           severity: "warning",
           icon: "🧪",
-          title: "Build 114.3.2 Notification Visual Test",
-          description: "Temporary DEV-only alert for validating Notification Center visual stability after the pointerdown fix.",
+          title: "Build 114.3.4 Notification Visual Test",
+          description: "Temporary DEV-only alert for validating open-panel render freezing after the pointerdown fix.",
           workspace: "systemHealth"
         });
       }
@@ -22931,8 +22931,31 @@
       return items;
     }
 
-    function renderNotificationCenter() {
+    function renderNotificationCenter(options = {}) {
       if (!notificationCenterBadge || !notificationCenterSummary || !notificationCenterList) return;
+
+      const forceOpenPanelRefresh = options.force === true;
+      const notificationPanelIsOpen = Boolean(
+        notificationCenterOverlay &&
+        !notificationCenterOverlay.hidden
+      );
+
+      /*
+       * Build 114.3.4 — open-panel render freeze
+       *
+       * The Dashboard has several background render pipelines (health,
+       * heartbeat, Mission Control) that can call renderNotificationCenter()
+       * while the user is actively hovering/clicking inside the dialog.
+       * Rollout Assistant history showed that live DOM churn can destabilize
+       * pointer/hover state. While Notifications is open, treat it as a
+       * stable snapshot unless the user explicitly refreshes or performs an
+       * action that requires a redraw. Background telemetry continues to run;
+       * it simply cannot mutate the open Notification Center DOM.
+       */
+      if (notificationPanelIsOpen && !forceOpenPanelRefresh) {
+        return;
+      }
+
       removeExpiredNotificationSnoozes();
 
       const allItems =
@@ -23050,19 +23073,71 @@
         </div>`;
       }).join("");
 
-      // Do not destroy and recreate identical notification buttons during
-      // background telemetry/heartbeat renders. Keeping the same DOM nodes
-      // preserves the browser's hover state and eliminates the visual flash.
-      if (notificationCenterList.innerHTML !== nextNotificationListHtml) {
-        notificationCenterList.innerHTML = nextNotificationListHtml;
-      }
+      /*
+       * Build 114.3.3 — keyed Notification Center DOM stability
+       *
+       * A list-level innerHTML comparison is not enough: one changing alert
+       * (for example a live Health Score notification) changes the complete
+       * list markup and would still rebuild every other notification button.
+       * Patch cards by their stable fingerprint instead, mirroring the
+       * Rollout Assistant's stable-card strategy. Unchanged cards keep the
+       * exact same DOM nodes, so a hovered Open/Snooze button is not destroyed
+       * by unrelated telemetry or heartbeat updates.
+       */
+      patchNotificationCenterItems(nextNotificationListHtml);
+    }
+
+    function patchNotificationCenterItems(nextMarkup) {
+      if (!notificationCenterList) return;
+
+      const template = document.createElement("template");
+      template.innerHTML = nextMarkup.trim();
+
+      const nextItems = Array.from(
+        template.content.querySelectorAll("[data-notification-fingerprint]")
+      );
+
+      const nextKeys = new Set(
+        nextItems.map(item => item.getAttribute("data-notification-fingerprint"))
+      );
+
+      notificationCenterList
+        .querySelectorAll("[data-notification-fingerprint]")
+        .forEach(currentItem => {
+          const key = currentItem.getAttribute("data-notification-fingerprint");
+          if (!nextKeys.has(key)) currentItem.remove();
+        });
+
+      nextItems.forEach((nextItem, index) => {
+        const key = nextItem.getAttribute("data-notification-fingerprint");
+        const currentItem = Array.from(
+          notificationCenterList.querySelectorAll("[data-notification-fingerprint]")
+        ).find(item => item.getAttribute("data-notification-fingerprint") === key);
+
+        let itemToPlace = currentItem;
+
+        if (!currentItem) {
+          itemToPlace = nextItem.cloneNode(true);
+          notificationCenterList.appendChild(itemToPlace);
+        } else if (currentItem.outerHTML !== nextItem.outerHTML) {
+          // Only replace the notification whose own rendered state changed.
+          // Unrelated cards — including a currently hovered test card — stay put.
+          itemToPlace = nextItem.cloneNode(true);
+          currentItem.replaceWith(itemToPlace);
+        }
+
+        const itemAtIndex = notificationCenterList.children[index];
+        if (itemAtIndex !== itemToPlace) {
+          notificationCenterList.insertBefore(itemToPlace, itemAtIndex || null);
+        }
+      });
     }
 
     function openNotificationCenter() {
       if (!notificationCenterOverlay) return;
       closeWorkspaceNavigationMenus();
       closeCommandPalette();
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
       setNotificationCenterView("active");
       notificationCenterOverlay.hidden = false;
       document.body.style.overflow = "hidden";
@@ -23098,7 +23173,7 @@
       if (refreshNotificationCenterButton) {
         refreshNotificationCenterButton.addEventListener(
           "click",
-          renderNotificationCenter
+          function() { renderNotificationCenter({ force: true }); }
         );
       }
 
@@ -23236,7 +23311,7 @@
             );
 
           if (!item) {
-            renderNotificationCenter();
+            renderNotificationCenter({ force: true });
             return;
           }
 
@@ -23338,7 +23413,7 @@
           event.preventDefault(); closeNotificationCenter();
         }
       });
-      renderNotificationCenter();
+      renderNotificationCenter({ force: true });
     }
 
 
