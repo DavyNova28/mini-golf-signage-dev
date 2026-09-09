@@ -5410,6 +5410,12 @@
       const isHoliday =
         state.source === "holiday";
 
+      const isHolidayScheduleDay =
+        isHoliday &&
+        String(state.routeKey || "").startsWith(
+          "holiday-schedule-"
+        );
+
       card.className =
         state.offlineSnapshot
           ? "screen-card offline-card"
@@ -5446,7 +5452,11 @@
         state.offlineSnapshot
           ? `💾 Cached snapshot · ${formatOfflineSnapshotAge(state.snapshotSavedAt)}`
           : isHoliday
-            ? "Holiday override currently active"
+            ? (
+                isHolidayScheduleDay
+                  ? "Holiday schedule currently active"
+                  : "Holiday override currently active"
+              )
             : state.activeItem.endTime
               ? `Temporary item active until ${state.activeItem.endTime}`
               : "Regular schedule operating normally";
@@ -5458,11 +5468,19 @@
         state.offlineSnapshot
           ? (
               isHoliday
-                ? "Cached Holiday Override"
+                ? (
+                    isHolidayScheduleDay
+                      ? "Cached Holiday Schedule"
+                      : "Cached Holiday Override"
+                  )
                 : "Cached Regular Schedule"
             )
           : isHoliday
-            ? "Holiday Override"
+            ? (
+                isHolidayScheduleDay
+                  ? "Holiday Schedule"
+                  : "Holiday Override"
+              )
             : "Regular Schedule";
 
       nextChange.textContent =
@@ -8183,7 +8201,13 @@
 
       managerSource.textContent =
         state.source === "holiday"
-          ? "Holiday Override"
+          ? (
+              String(state.routeKey || "").startsWith(
+                "holiday-schedule-"
+              )
+                ? "Holiday Schedule"
+                : "Holiday Override"
+            )
           : "Regular Schedule";
 
       managerEntryCount.textContent =
@@ -20179,9 +20203,19 @@
               };
             }
 
+            const isHolidayScheduleDay =
+              state.source === "holiday" &&
+              String(state.routeKey || "").startsWith(
+                "holiday-schedule-"
+              );
+
             const source =
               state.source === "holiday"
-                ? "Holiday Override"
+                ? (
+                    isHolidayScheduleDay
+                      ? "Holiday Schedule"
+                      : "Holiday Override"
+                  )
                 : state.source === "promo"
                   ? "Promo Day"
                   : state.routeSourceTab ||
@@ -20200,7 +20234,9 @@
               state.source === "holiday"
             ) {
               detailParts.push(
-                "Special/Holiday override has priority"
+                isHolidayScheduleDay
+                  ? "Holiday Schedule has priority"
+                  : "Special/Holiday override has priority"
               );
             } else if (
               state.source === "promo"
