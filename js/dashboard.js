@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "114.4",
+      build: "115.0",
       status: "Development",
       tag: ""
     };
@@ -129,7 +129,7 @@
      *   close: "20:00"
      * }
      */
-    const BUSINESS_SPECIAL_DATES = [];
+    let BUSINESS_SPECIAL_DATES = [];
 
 
     function getBusinessDateKey(
@@ -1329,6 +1329,111 @@
         specialNotice.textContent =
           "Special / Holiday business-hours override: none configured.";
       }
+    }
+
+
+    let holidayScheduleDaysRequestGeneration = 0;
+
+    function loadHolidayScheduleDays() {
+      holidayScheduleDaysRequestGeneration += 1;
+
+      const generation =
+        holidayScheduleDaysRequestGeneration;
+
+      const callbackName =
+        `holidayScheduleDaysCallback_${generation}`;
+
+      const scriptId =
+        "holiday-schedule-days-feed";
+
+      const previousScript =
+        document.getElementById(scriptId);
+
+      if (previousScript) {
+        previousScript.remove();
+      }
+
+      window[callbackName] =
+        function(payload) {
+          try {
+            if (
+              !payload ||
+              payload.success !== true ||
+              !Array.isArray(payload.days)
+            ) {
+              throw new Error(
+                payload && payload.error
+                  ? payload.error
+                  : "Holiday Schedule Days feed is invalid."
+              );
+            }
+
+            BUSINESS_SPECIAL_DATES =
+              payload.days
+                .filter(day =>
+                  day &&
+                  day.enabled === true &&
+                  day.valid === true &&
+                  day.date
+                )
+                .map(day => ({
+                  date: day.date,
+                  label: day.label || "Special / Holiday",
+                  open: day.open || "",
+                  close: day.close || "",
+                  closed: day.closed === true,
+                  sourceTabs: day.sourceTabs || {}
+                }));
+
+            saveOfflineSnapshotSection(
+              "holidayScheduleDays",
+              BUSINESS_SPECIAL_DATES
+            );
+
+            renderBusinessProfile();
+            updateOperationsPanel();
+            renderScheduleRouting();
+
+            scheduleOperationsCenterRender({
+              immediate: true
+            });
+          } catch (error) {
+            console.warn(
+              "Holiday Schedule Days could not be loaded.",
+              error
+            );
+          } finally {
+            delete window[callbackName];
+            const script = document.getElementById(scriptId);
+            if (script) script.remove();
+          }
+        };
+
+      const script =
+        document.createElement("script");
+
+      script.id = scriptId;
+
+      const separator =
+        SCHEDULE_FEED_URL.includes("?")
+          ? "&"
+          : "?";
+
+      script.src =
+        `${SCHEDULE_FEED_URL}` +
+        `${separator}action=holidayScheduleDays` +
+        `&callback=${callbackName}` +
+        `&_=${Date.now()}`;
+
+      script.onerror =
+        function() {
+          delete window[callbackName];
+          console.warn(
+            "Could not load Holiday Schedule Days from Apps Script."
+          );
+        };
+
+      document.head.appendChild(script);
     }
 
 
@@ -20034,8 +20139,15 @@
           date
         );
 
+      const businessProfileResult =
+        getBusinessProfileForDate(
+          date
+        );
+
       badge.textContent =
-        profile.label;
+        businessProfileResult.special
+          ? businessProfileResult.profile.label
+          : profile.label;
 
       const rows =
         SCREEN_NAMES.map(
@@ -29239,6 +29351,7 @@
       );
 
     setupHolidayManager();
+    loadHolidayScheduleDays();
     setupBackupHistory();
     setupImageLibrary();
     setupGitHubImagePicker();
@@ -29317,6 +29430,11 @@
     setInterval(
       refreshDashboard,
       DATA_REFRESH_MS
+    );
+
+    setInterval(
+      loadHolidayScheduleDays,
+      5 * 60 * 1000
     );
 
     setInterval(
