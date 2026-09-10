@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "115.2",
+  "build": "115.3",
   "status": "Development",
   "releaseName": "Version 1.4 Holiday Schedule Days",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "115.1",
-  "feature": "Holiday Schedule Manager reload safety: recall all saved rows before editing or saving",
+  "basedOnBuild": "115.2",
+  "feature": "Holiday Schedule Manager CLOSED state disables hours and Holiday tab fields",
   "label": "Development"
 }
