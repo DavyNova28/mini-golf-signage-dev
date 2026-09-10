@@ -20130,10 +20130,10 @@
             <td><input class="holiday-schedule-input" data-hsd-field="label" data-hsd-index="${index}" value="${escapeHtml(row.label)}"></td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="open" data-hsd-index="${index}" value="${escapeHtml(row.open)}" ${row.closed?'disabled':''}></td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="close" data-hsd-index="${index}" value="${escapeHtml(row.close)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input" data-hsd-field="arcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.arcadeTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input" data-hsd-field="golfTab" data-hsd-index="${index}" value="${escapeHtml(row.golfTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input" data-hsd-field="slushTab" data-hsd-index="${index}" value="${escapeHtml(row.slushTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input" data-hsd-field="infoArcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.infoArcadeTab)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="arcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.arcadeTab)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="golfTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.golfTab)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="slushTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.slushTab)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="infoArcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.infoArcadeTab)}" ${row.closed?'disabled':''}></td>
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="closed" data-hsd-index="${index}" ${row.closed?'checked':''}></td>
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="enabled" data-hsd-index="${index}" ${row.enabled?'checked':''}></td>
             <td><button class="button button-danger" type="button" data-hsd-delete="${index}">Delete</button></td>
