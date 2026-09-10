@@ -5410,12 +5410,6 @@
       const isHoliday =
         state.source === "holiday";
 
-      const isHolidayScheduleDay =
-        isHoliday &&
-        String(state.routeKey || "").startsWith(
-          "holiday-schedule-"
-        );
-
       card.className =
         state.offlineSnapshot
           ? "screen-card offline-card"
@@ -5452,11 +5446,7 @@
         state.offlineSnapshot
           ? `💾 Cached snapshot · ${formatOfflineSnapshotAge(state.snapshotSavedAt)}`
           : isHoliday
-            ? (
-                isHolidayScheduleDay
-                  ? "Holiday schedule currently active"
-                  : "Holiday override currently active"
-              )
+            ? "Holiday override currently active"
             : state.activeItem.endTime
               ? `Temporary item active until ${state.activeItem.endTime}`
               : "Regular schedule operating normally";
@@ -5468,19 +5458,11 @@
         state.offlineSnapshot
           ? (
               isHoliday
-                ? (
-                    isHolidayScheduleDay
-                      ? "Cached Holiday Schedule"
-                      : "Cached Holiday Override"
-                  )
+                ? "Cached Holiday Override"
                 : "Cached Regular Schedule"
             )
           : isHoliday
-            ? (
-                isHolidayScheduleDay
-                  ? "Holiday Schedule"
-                  : "Holiday Override"
-              )
+            ? "Holiday Override"
             : "Regular Schedule";
 
       nextChange.textContent =
@@ -6558,6 +6540,9 @@
       const showHoliday =
         workspaceName === "holiday";
 
+      const showHolidaySchedule =
+        workspaceName === "holidaySchedule";
+
       const showBackups =
         workspaceName === "backups";
 
@@ -6597,6 +6582,11 @@
       holidayManagerTab.classList.toggle(
         "active",
         showHoliday
+      );
+
+      document.getElementById("holidayScheduleManagerTab").classList.toggle(
+        "active",
+        showHolidaySchedule
       );
 
       backupHistoryTab.classList.toggle(
@@ -6652,6 +6642,11 @@
       holidayManagerWorkspace.classList.toggle(
         "active",
         showHoliday
+      );
+
+      document.getElementById("holidayScheduleManagerWorkspace").classList.toggle(
+        "active",
+        showHolidaySchedule
       );
 
       backupHistoryWorkspace.classList.toggle(
@@ -8201,13 +8196,7 @@
 
       managerSource.textContent =
         state.source === "holiday"
-          ? (
-              String(state.routeKey || "").startsWith(
-                "holiday-schedule-"
-              )
-                ? "Holiday Schedule"
-                : "Holiday Override"
-            )
+          ? "Holiday Override"
           : "Regular Schedule";
 
       managerEntryCount.textContent =
@@ -20042,6 +20031,114 @@
     }
 
 
+
+    let holidayScheduleManagerRows = [];
+    let holidayScheduleSaveInProgress = false;
+    let activeHolidayScheduleSaveRequestId = null;
+
+    function normalizeHolidayScheduleManagerRows(days) {
+      return (Array.isArray(days) ? days : []).map(day => ({
+        date: String(day.date || ""), label: String(day.label || ""),
+        open: String(day.open || ""), close: String(day.close || ""),
+        arcadeTab: String((day.sourceTabs && day.sourceTabs.Arcade) || "ArcadeHoliday"),
+        golfTab: String((day.sourceTabs && day.sourceTabs.Golf) || "GolfHoliday"),
+        slushTab: String((day.sourceTabs && day.sourceTabs.Slush) || "SlushHoliday"),
+        infoArcadeTab: String((day.sourceTabs && day.sourceTabs.infoArcade) || "infoArcadeHoliday"),
+        closed: day.closed === true, enabled: day.enabled === true
+      }));
+    }
+
+    function renderHolidayScheduleManager() {
+      const body = document.getElementById("holidayScheduleManagerBody");
+      const status = document.getElementById("holidayScheduleManagerStatus");
+      if (!body) return;
+      if (!holidayScheduleManagerRows.length) {
+        body.innerHTML = '<tr><td colspan="11" class="manager-empty">No Holiday Schedule Days configured.</td></tr>';
+      } else {
+        body.innerHTML = holidayScheduleManagerRows.map((row,index) => `
+          <tr data-holiday-schedule-row="${index}">
+            <td><input class="holiday-schedule-input" type="date" data-hsd-field="date" data-hsd-index="${index}" value="${escapeHtml(row.date)}"></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="label" data-hsd-index="${index}" value="${escapeHtml(row.label)}"></td>
+            <td><input class="holiday-schedule-input" type="time" data-hsd-field="open" data-hsd-index="${index}" value="${escapeHtml(row.open)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" type="time" data-hsd-field="close" data-hsd-index="${index}" value="${escapeHtml(row.close)}" ${row.closed?'disabled':''}></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="arcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.arcadeTab)}"></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="golfTab" data-hsd-index="${index}" value="${escapeHtml(row.golfTab)}"></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="slushTab" data-hsd-index="${index}" value="${escapeHtml(row.slushTab)}"></td>
+            <td><input class="holiday-schedule-input" data-hsd-field="infoArcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.infoArcadeTab)}"></td>
+            <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="closed" data-hsd-index="${index}" ${row.closed?'checked':''}></td>
+            <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="enabled" data-hsd-index="${index}" ${row.enabled?'checked':''}></td>
+            <td><button class="button button-danger" type="button" data-hsd-delete="${index}">Delete</button></td>
+          </tr>`).join("");
+      }
+      if (status) status.textContent = `${holidayScheduleManagerRows.length} special day${holidayScheduleManagerRows.length===1?'':'s'}`;
+    }
+
+    function syncHolidayScheduleManagerFromFeed() {
+      holidayScheduleManagerRows = normalizeHolidayScheduleManagerRows(
+        Object.values(BUSINESS_SPECIAL_DATES || {})
+      ).sort((a,b) => a.date.localeCompare(b.date));
+      renderHolidayScheduleManager();
+    }
+
+    function addHolidayScheduleManagerRow() {
+      holidayScheduleManagerRows.push({date:"",label:"Special / Holiday",open:"10:00",close:"22:00",arcadeTab:"ArcadeHoliday",golfTab:"GolfHoliday",slushTab:"SlushHoliday",infoArcadeTab:"infoArcadeHoliday",closed:false,enabled:true});
+      renderHolidayScheduleManager();
+    }
+
+    function handleHolidayScheduleManagerInput(event) {
+      const el = event.target.closest("[data-hsd-field]");
+      if (!el) return;
+      const index = Number(el.dataset.hsdIndex), field = el.dataset.hsdField;
+      if (!Number.isInteger(index) || !holidayScheduleManagerRows[index]) return;
+      holidayScheduleManagerRows[index][field] = (field === "closed" || field === "enabled") ? Boolean(el.checked) : el.value;
+      if (field === "closed") renderHolidayScheduleManager();
+    }
+
+    function saveHolidayScheduleManager() {
+      if (holidayScheduleSaveInProgress) return;
+      const rows = holidayScheduleManagerRows.map(row => ({
+        date: row.date.trim(), label: row.label.trim(), open: row.open, close: row.close,
+        sourceTabs:{Arcade:row.arcadeTab.trim(),Golf:row.golfTab.trim(),Slush:row.slushTab.trim(),infoArcade:row.infoArcadeTab.trim()},
+        closed: row.closed === true, enabled: row.enabled === true
+      }));
+      for (let i=0;i<rows.length;i++) {
+        const r=rows[i];
+        if (!r.date) { window.alert(`Holiday Schedule row ${i+1} needs a date.`); return; }
+        if (!r.closed && (!r.open || !r.close || r.close <= r.open)) { window.alert(`Holiday Schedule row ${i+1} needs valid opening and closing times.`); return; }
+      }
+      const pin=window.prompt("Enter the dashboard save PIN for Holiday Schedules:");
+      if (pin===null) return;
+      if (!String(pin).trim()) { window.alert("A save PIN is required."); return; }
+      if (!window.confirm(`Save ${rows.length} Holiday Schedule Day(s) to Google Sheets?`)) return;
+      activeHolidayScheduleSaveRequestId=createSaveRequestId(); holidayScheduleSaveInProgress=true;
+      const form=document.getElementById("holidayScheduleSaveForm"); form.action=SCHEDULE_FEED_URL;
+      document.getElementById("holidayScheduleSavePinField").value=String(pin);
+      document.getElementById("holidayScheduleSaveDataField").value=JSON.stringify(rows);
+      document.getElementById("holidayScheduleSaveRequestIdField").value=activeHolidayScheduleSaveRequestId;
+      const msg=document.getElementById("holidayScheduleManagerMessage"); msg.textContent="Saving Holiday Schedules…"; msg.className="promo-rules-message visible success";
+      form.submit();
+    }
+
+    function handleHolidayScheduleSaveMessage(event) {
+      const data=event.data;
+      if (!data || data.type!=="miniGolfHolidayScheduleDaysSaveResult" || data.requestId!==activeHolidayScheduleSaveRequestId) return;
+      holidayScheduleSaveInProgress=false; activeHolidayScheduleSaveRequestId=null;
+      const msg=document.getElementById("holidayScheduleManagerMessage");
+      if (data.success!==true) { msg.textContent=data.error||"Holiday Schedules could not be saved."; msg.className="promo-rules-message visible error"; return; }
+      msg.textContent=`Saved ${data.rowsWritten} Holiday Schedule Day(s). Routing cache was refreshed.`; msg.className="promo-rules-message visible success";
+      setTimeout(()=>{ loadHolidayScheduleDays(true); refreshDashboard(); },500);
+    }
+
+    function setupHolidayScheduleManager() {
+      const body=document.getElementById("holidayScheduleManagerBody"); if (!body) return;
+      body.addEventListener("input",handleHolidayScheduleManagerInput); body.addEventListener("change",handleHolidayScheduleManagerInput);
+      body.addEventListener("click",event=>{ const b=event.target.closest("[data-hsd-delete]"); if(!b)return; holidayScheduleManagerRows.splice(Number(b.dataset.hsdDelete),1); renderHolidayScheduleManager(); });
+      document.getElementById("holidayScheduleAddButton").addEventListener("click",addHolidayScheduleManagerRow);
+      document.getElementById("holidayScheduleReloadButton").addEventListener("click",()=>loadHolidayScheduleDays(true));
+      document.getElementById("holidayScheduleSaveButton").addEventListener("click",saveHolidayScheduleManager);
+      window.addEventListener("message",handleHolidayScheduleSaveMessage);
+    }
+
     function setupPromoRules() {
       const list =
         document.getElementById(
@@ -20205,17 +20302,11 @@
 
             const isHolidayScheduleDay =
               state.source === "holiday" &&
-              String(state.routeKey || "").startsWith(
-                "holiday-schedule-"
-              );
+              String(state.routeKey || "").startsWith("holiday-schedule-");
 
             const source =
               state.source === "holiday"
-                ? (
-                    isHolidayScheduleDay
-                      ? "Holiday Schedule"
-                      : "Holiday Override"
-                  )
+                ? (isHolidayScheduleDay ? "Holiday Schedule" : "Holiday Override")
                 : state.source === "promo"
                   ? "Promo Day"
                   : state.routeSourceTab ||
@@ -29307,6 +29398,14 @@
       }
     );
 
+    document.getElementById("holidayScheduleManagerTab").addEventListener(
+      "click",
+      function() {
+        openWorkspace("holidaySchedule");
+        loadHolidayScheduleDays(true);
+      }
+    );
+
     backupHistoryTab.addEventListener(
       "click",
       function() {
@@ -29407,6 +29506,7 @@
     setupNotificationCenter();
     setupDashboardScrollNavigation();
     renderApplicationEnvironment();
+    setupHolidayScheduleManager();
     setupPromoRules();
     setupMaintenanceMode();
     setupOperationsAnalytics();
