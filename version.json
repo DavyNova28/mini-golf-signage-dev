@@ -1,12 +1,13 @@
 {
-  "version": "1.4.0",
+  "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "115.0",
+  "build": "115.1",
   "status": "Development",
   "releaseName": "Version 1.4 Holiday Schedule Days",
   "tag": "",
   "basedOnVersion": "v1.4.0",
   "basedOnBuild": "114.4",
-  "feature": "Holiday Schedule Days: official special-day hours plus reusable per-screen schedule tabs"
+  "feature": "Holiday Schedule Days: official special-day hours plus reusable per-screen schedule tabs",
+  "label": "Development"
 }

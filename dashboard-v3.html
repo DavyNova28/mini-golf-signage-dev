@@ -151,6 +151,10 @@
             Holiday Calendar
           </button>
 
+          <button id="holidayScheduleManagerTab" class="workspace-nav-item" type="button">
+            Holiday Schedule Manager
+          </button>
+
           <button id="holidayManagerTab" class="workspace-nav-item" type="button">
             Holiday Overrides
           </button>
@@ -2154,6 +2158,34 @@
             </tbody>
           </table>
         </div>
+      </section>
+    </section>
+
+
+    <section id="holidayScheduleManagerWorkspace" class="workspace">
+      <section class="holiday-schedule-manager">
+        <div class="manager-header">
+          <div>
+            <div class="eyebrow">Build 115.1 · Special-day operations</div>
+            <h2 class="manager-title">Holiday Schedule Manager</h2>
+            <p class="manager-description">Manage date-specific business hours and choose the reusable schedule tab for each player. Holiday Schedules have priority over legacy Holiday Overrides, Promo Rules, and normal profile routing.</p>
+          </div>
+          <div id="holidayScheduleManagerStatus" class="manager-status">Loading…</div>
+        </div>
+
+        <div class="holiday-schedule-manager-actions">
+          <button id="holidayScheduleAddButton" class="button" type="button">＋ Add special day</button>
+          <button id="holidayScheduleReloadButton" class="button" type="button">↻ Reload</button>
+          <button id="holidayScheduleSaveButton" class="button button-primary" type="button">Save Holiday Schedules</button>
+        </div>
+        <div id="holidayScheduleManagerMessage" class="promo-rules-message"></div>
+        <div class="holiday-schedule-table-wrap">
+          <table class="holiday-schedule-table">
+            <thead><tr><th>Date</th><th>Label</th><th>Open</th><th>Close</th><th>Arcade Tab</th><th>Golf Tab</th><th>Slush Tab</th><th>infoArcade Tab</th><th>Closed</th><th>Enabled</th><th></th></tr></thead>
+            <tbody id="holidayScheduleManagerBody"><tr><td colspan="11" class="manager-empty">Loading Holiday Schedule Days…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="schedule-routing-notice">Changes are written to the <strong>Holiday Schedule Days</strong> Google Sheets tab. Existing reusable Holiday schedule tabs are not modified here.</div>
       </section>
     </section>
 
@@ -4234,6 +4266,15 @@
       id="holidaySaveRequestIdField"
       name="requestId"
     >
+  </form>
+
+
+  <iframe id="holidayScheduleSaveFrame" name="holidayScheduleSaveFrame" title="Holiday Schedule save response" style="display:none"></iframe>
+  <form id="holidayScheduleSaveForm" method="post" target="holidayScheduleSaveFrame" style="display:none">
+    <input name="action" value="saveHolidayScheduleDays">
+    <input id="holidayScheduleSavePinField" name="pin">
+    <input id="holidayScheduleSaveDataField" name="days">
+    <input id="holidayScheduleSaveRequestIdField" name="requestId">
   </form>
 
   <iframe
