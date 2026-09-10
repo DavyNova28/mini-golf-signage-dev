@@ -2934,6 +2934,14 @@
       background: var(--surface-hover);
     }
 
+
+    .calendar-event-disabled {
+      color: var(--muted);
+      background: var(--surface-hover);
+      opacity: 0.72;
+      border: 1px dashed var(--border);
+    }
+
     .calendar-event-invalid {
       color: #ffd6d6;
       background: var(--error-dark);
