@@ -10926,3 +10926,15 @@ textarea:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
+
+
+/* Build 115.1 — Holiday Schedule Manager */
+.holiday-schedule-manager { border:1px solid var(--border-color); border-radius:18px; padding:20px; background:var(--panel-background); }
+.holiday-schedule-manager-actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+.holiday-schedule-table-wrap { overflow-x:auto; border:1px solid var(--border-color); border-radius:14px; margin:14px 0; }
+.holiday-schedule-table { width:100%; min-width:1320px; border-collapse:collapse; }
+.holiday-schedule-table th,.holiday-schedule-table td { padding:9px; border-bottom:1px solid var(--border-color); text-align:left; vertical-align:middle; }
+.holiday-schedule-table th { font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.75; }
+.holiday-schedule-input { width:100%; min-width:110px; box-sizing:border-box; padding:8px 9px; border:1px solid var(--border-color); border-radius:8px; background:var(--input-background, transparent); color:inherit; }
+.holiday-schedule-check { text-align:center !important; }
+.holiday-schedule-check input { width:18px; height:18px; }
