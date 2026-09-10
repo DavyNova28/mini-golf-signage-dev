@@ -1449,6 +1449,13 @@
             syncHolidayScheduleManagerFromFeed();
             setHolidayScheduleManagerLoadState("ready");
 
+            if (holidayCalendarWorkspace.classList.contains("active")) {
+              renderHolidayCalendar();
+              if (selectedCalendarDate) {
+                openCalendarDetails(selectedCalendarDate);
+              }
+            }
+
             renderBusinessProfile();
             updateOperationsPanel();
             renderScheduleRouting();
@@ -6786,8 +6793,8 @@
       }
 
       if (showCalendar) {
-        if (holidayOverrides.length === 0) {
-          loadHolidayOverrides();
+        if (!holidayScheduleManagerFeedLoaded) {
+          loadHolidayScheduleDays(true);
         }
 
         renderHolidayCalendar();
@@ -13752,12 +13759,7 @@
       reloadCalendarButton.addEventListener(
         "click",
         function() {
-          loadHolidayOverrides();
-
-          setTimeout(
-            renderHolidayCalendar,
-            500
-          );
+          loadHolidayScheduleDays(true);
         }
       );
 
@@ -13791,12 +13793,12 @@
 
       createHolidayForDateButton.addEventListener(
         "click",
-        createHolidayOverrideFromCalendar
+        createHolidayScheduleFromCalendar
       );
 
       editHolidayForDateButton.addEventListener(
         "click",
-        editHolidayOverridesFromCalendar
+        editHolidayScheduleFromCalendar
       );
     }
 
@@ -13919,11 +13921,11 @@
                 .map(item => `
                   <div
                     class="calendar-event calendar-event-${escapeHtml(item.status)}"
-                    title="${escapeHtml(item.screen)} · ${escapeHtml(item.startTime)} · ${escapeHtml(item.image)}"
+                    title="${escapeHtml(item.label || "Special / Holiday")} · ${escapeHtml(getHolidayScheduleCalendarSummary(item))}"
                   >
-                    ${escapeHtml(item.screen)}
+                    ${escapeHtml(item.label || "Special / Holiday")}
                     ·
-                    ${escapeHtml(item.startTime)}
+                    ${escapeHtml(getHolidayScheduleCalendarSummary(item))}
                   </div>
                 `)
                 .join("")}
@@ -13950,42 +13952,40 @@
     function getHolidayEventsForDate(
       dateText
     ) {
-      return holidayOverrides
-        .filter(item => {
-          if (
-            item.status === "invalid" ||
-            !item.startDate ||
-            !item.endDate
-          ) {
-            return false;
-          }
-
-          return (
-            dateText >= item.startDate &&
-            dateText <= item.endDate
-          );
-        })
+      return HOLIDAY_SCHEDULE_DAYS_ALL
+        .filter(item =>
+          item &&
+          item.date === dateText
+        )
         .map(item => ({
           ...item,
           status:
-            getCalendarEventStatus(
+            getHolidayScheduleCalendarStatus(
               item,
               dateText
             )
         }))
         .sort((a, b) =>
-          String(a.startTime)
+          String(a.label || "")
             .localeCompare(
-              String(b.startTime)
+              String(b.label || "")
             )
         );
     }
 
 
-    function getCalendarEventStatus(
+    function getHolidayScheduleCalendarStatus(
       item,
       dateText
     ) {
+      if (item.valid !== true) {
+        return "invalid";
+      }
+
+      if (item.enabled !== true) {
+        return "disabled";
+      }
+
       const today =
         formatDateForInput(
           new Date()
@@ -13999,9 +13999,28 @@
         return "upcoming";
       }
 
-      return getHolidayRowStatus(
-        item
-      );
+      return "active";
+    }
+
+
+    function getHolidayScheduleCalendarSummary(item) {
+      if (item.valid !== true) {
+        return "INVALID";
+      }
+
+      if (item.enabled !== true) {
+        return "DISABLED";
+      }
+
+      if (item.closed === true) {
+        return "CLOSED";
+      }
+
+      if (item.open && item.close) {
+        return `${item.open}–${item.close}`;
+      }
+
+      return "Special hours";
     }
 
 
@@ -14029,32 +14048,49 @@
       if (events.length === 0) {
         calendarDetailsList.innerHTML = `
           <div class="calendar-details-item">
-            No Holiday Overrides are active on this date.
+            No Holiday Schedule Day is configured for this date.
           </div>
         `;
 
       } else {
         calendarDetailsList.innerHTML =
           events
-            .map(item => `
-              <div class="calendar-details-item">
-                <div class="calendar-details-title">
-                  ${escapeHtml(item.screen)}
-                  ·
-                  ${escapeHtml(item.startTime)}
-                </div>
+            .map(item => {
+              const summary =
+                getHolidayScheduleCalendarSummary(item);
 
-                <div class="calendar-details-meta">
-                  ${escapeHtml(item.startDate)}
-                  →
-                  ${escapeHtml(item.endDate)}
-                  <br>
-                  ${escapeHtml(item.image)}
-                  ·
-                  ${escapeHtml(item.fade)} ms
+              const sourceTabs =
+                item.sourceTabs || {};
+
+              const problems =
+                Array.isArray(item.problems) && item.problems.length
+                  ? `<br>${escapeHtml(item.problems.join(" · "))}`
+                  : "";
+
+              const tabs =
+                item.closed === true
+                  ? "Holiday tabs: Not Used - Closed"
+                  : `Arcade: ${escapeHtml(sourceTabs.Arcade || "ArcadeHoliday")} · Golf: ${escapeHtml(sourceTabs.Golf || "GolfHoliday")} · Slush: ${escapeHtml(sourceTabs.Slush || "SlushHoliday")} · infoArcade: ${escapeHtml(sourceTabs.infoArcade || "infoArcadeHoliday")}`;
+
+              return `
+                <div class="calendar-details-item">
+                  <div class="calendar-details-title">
+                    ${escapeHtml(item.label || "Special / Holiday")}
+                    ·
+                    ${escapeHtml(summary)}
+                  </div>
+
+                  <div class="calendar-details-meta">
+                    ${item.enabled === true ? "Enabled" : "Disabled"}
+                    ·
+                    ${item.valid === true ? "Valid" : "Needs attention"}
+                    <br>
+                    ${tabs}
+                    ${problems}
+                  </div>
                 </div>
-              </div>
-            `)
+              `;
+            })
             .join("");
       }
 
@@ -14064,87 +14100,76 @@
     }
 
 
-    function createHolidayOverrideFromCalendar() {
+    function createHolidayScheduleFromCalendar() {
       if (!selectedCalendarDate) {
         return;
       }
 
-      if (!holidayDraft) {
-        holidayDraft =
-          cloneHolidayRows(
-            holidayOverrides
-          );
+      if (!holidayScheduleManagerFeedLoaded) {
+        window.alert(
+          "Holiday Schedule Days must finish loading before a new special day can be added."
+        );
+        loadHolidayScheduleDays(true);
+        return;
       }
 
-      holidayDraft.push({
-        screen:
-          SCREEN_NAMES[0] || "All",
+      const existingIndex =
+        holidayScheduleManagerRows.findIndex(
+          item => item.date === selectedCalendarDate
+        );
 
-        startDate:
-          selectedCalendarDate,
+      if (existingIndex >= 0) {
+        editHolidayScheduleFromCalendar();
+        return;
+      }
 
-        endDate:
-          selectedCalendarDate,
-
-        startTime:
-          "12:00",
-
-        image:
-          "",
-
-        fade:
-          1500
+      holidayScheduleManagerRows.push({
+        date: selectedCalendarDate,
+        label: "Special / Holiday",
+        open: "10:00",
+        close: "22:00",
+        arcadeTab: "ArcadeHoliday",
+        golfTab: "GolfHoliday",
+        slushTab: "SlushHoliday",
+        infoArcadeTab: "infoArcadeHoliday",
+        closed: false,
+        enabled: true
       });
 
-      persistHolidayDraft(
-        holidayDraft
+      holidayScheduleManagerRows.sort(
+        (a, b) =>
+          String(a.date).localeCompare(String(b.date))
       );
 
-      holidayEditingEnabled =
-        true;
-
-      holidayScreenFilter.value =
-        "all";
-
-      holidayStatusFilter.value =
-        "all";
-
-      updateHolidayEditingControls();
-
-      openWorkspace(
-        "holiday"
-      );
-
-      renderHolidayOverrides();
+      openWorkspace("holidaySchedule");
+      renderHolidayScheduleManager();
 
       setTimeout(
         function() {
-          const rows =
-            holidayTableBody.querySelectorAll(
-              "tr"
+          const index =
+            holidayScheduleManagerRows.findIndex(
+              item => item.date === selectedCalendarDate
             );
 
-          const lastRow =
-            rows[
-              rows.length - 1
-            ];
+          const row =
+            document.querySelector(
+              `[data-holiday-schedule-row="${index}"]`
+            );
 
-          if (lastRow) {
-            lastRow.scrollIntoView({
-              behavior:
-                "smooth",
-
-              block:
-                "center"
+          if (row) {
+            row.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
             });
 
-            const firstInput =
-              lastRow.querySelector(
-                "[data-holiday-field]"
+            const labelInput =
+              row.querySelector(
+                '[data-hsd-field="label"]'
               );
 
-            if (firstInput) {
-              firstInput.focus();
+            if (labelInput) {
+              labelInput.focus();
+              labelInput.select();
             }
           }
         },
@@ -14153,84 +14178,52 @@
     }
 
 
-    function editHolidayOverridesFromCalendar() {
+    function editHolidayScheduleFromCalendar() {
       if (!selectedCalendarDate) {
         return;
       }
 
-      if (!holidayDraft) {
-        holidayDraft =
-          cloneHolidayRows(
-            holidayOverrides
-          );
+      if (!holidayScheduleManagerFeedLoaded) {
+        window.alert(
+          "Holiday Schedule Days must finish loading before they can be edited."
+        );
+        loadHolidayScheduleDays(true);
+        return;
       }
 
-      holidayEditingEnabled =
-        true;
-
-      holidayScreenFilter.value =
-        "all";
-
-      holidayStatusFilter.value =
-        "all";
-
-      updateHolidayEditingControls();
-
-      openWorkspace(
-        "holiday"
-      );
-
-      renderHolidayOverrides();
+      openWorkspace("holidaySchedule");
+      renderHolidayScheduleManager();
 
       setTimeout(
         function() {
-          const rows =
-            Array.from(
-              holidayTableBody.querySelectorAll(
-                "tr"
-              )
+          const index =
+            holidayScheduleManagerRows.findIndex(
+              item => item.date === selectedCalendarDate
             );
 
-          const targetIndex =
-            holidayDraft.findIndex(
-              item =>
-                item.startDate &&
-                item.endDate &&
-                selectedCalendarDate >=
-                  item.startDate &&
-                selectedCalendarDate <=
-                  item.endDate
-            );
-
-          if (
-            targetIndex < 0 ||
-            !rows[targetIndex]
-          ) {
+          if (index < 0) {
             return;
           }
 
-          const targetRow =
-            rows[targetIndex];
-
-          targetRow.classList.add(
-            "active-selection"
-          );
-
-          targetRow.scrollIntoView({
-            behavior:
-              "smooth",
-
-            block:
-              "center"
-          });
-
-          const firstInput =
-            targetRow.querySelector(
-              "[data-holiday-field]"
+          const row =
+            document.querySelector(
+              `[data-holiday-schedule-row="${index}"]`
             );
 
-          if (firstInput) {
-            firstInput.focus();
+          if (row) {
+            row.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+
+            const firstInput =
+              row.querySelector(
+                "[data-hsd-field]"
+              );
+
+            if (firstInput) {
+              firstInput.focus();
+            }
           }
         },
         100
