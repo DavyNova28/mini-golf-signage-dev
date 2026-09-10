@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "115.3",
+  "build": "115.4",
   "status": "Development",
   "releaseName": "Version 1.4 Holiday Schedule Days",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "115.2",
-  "feature": "Holiday Schedule Manager CLOSED state disables hours and Holiday tab fields",
+  "basedOnBuild": "115.3",
+  "feature": "Holiday Schedule Manager CLOSED tab fields display Not Used - Closed",
   "label": "Development"
 }
