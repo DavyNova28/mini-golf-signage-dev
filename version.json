@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "115.1",
+  "build": "115.2",
   "status": "Development",
   "releaseName": "Version 1.4 Holiday Schedule Days",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "114.4",
-  "feature": "Holiday Schedule Days: official special-day hours plus reusable per-screen schedule tabs",
+  "basedOnBuild": "115.1",
+  "feature": "Holiday Schedule Manager reload safety: recall all saved rows before editing or saving",
   "label": "Development"
 }
