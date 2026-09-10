@@ -131,6 +131,14 @@
      */
     let BUSINESS_SPECIAL_DATES = [];
 
+    /*
+     * Build 115.2 keeps the complete Holiday Schedule Days feed separate
+     * from the routing-only list above. The manager must be able to recall
+     * disabled (and even currently invalid) rows so that saving a new row
+     * can never silently replace rows that were already in Google Sheets.
+     */
+    let HOLIDAY_SCHEDULE_DAYS_ALL = [];
+
 
     function getBusinessDateKey(
       date = new Date()
@@ -1333,9 +1341,41 @@
 
 
     let holidayScheduleDaysRequestGeneration = 0;
+    let holidayScheduleManagerFeedLoaded = false;
+
+    function setHolidayScheduleManagerLoadState(state, message) {
+      const addButton = document.getElementById("holidayScheduleAddButton");
+      const saveButton = document.getElementById("holidayScheduleSaveButton");
+      const status = document.getElementById("holidayScheduleManagerStatus");
+      const body = document.getElementById("holidayScheduleManagerBody");
+
+      if (addButton) addButton.disabled = state !== "ready";
+      if (saveButton) saveButton.disabled = state !== "ready";
+
+      if (state === "loading") {
+        holidayScheduleManagerFeedLoaded = false;
+        if (status) status.textContent = "Loading…";
+        if (body) {
+          body.innerHTML = '<tr><td colspan="11" class="manager-empty">Loading Holiday Schedule Days…</td></tr>';
+        }
+        return;
+      }
+
+      if (state === "error") {
+        holidayScheduleManagerFeedLoaded = false;
+        if (status) status.textContent = "LOAD FAILED";
+        if (body && !holidayScheduleManagerRows.length) {
+          body.innerHTML = `<tr><td colspan="11" class="manager-empty">${escapeHtml(message || "Holiday Schedule Days could not be loaded. Use Reload to try again.")}</td></tr>`;
+        }
+        return;
+      }
+
+      holidayScheduleManagerFeedLoaded = true;
+    }
 
     function loadHolidayScheduleDays() {
       holidayScheduleDaysRequestGeneration += 1;
+      setHolidayScheduleManagerLoadState("loading");
 
       const generation =
         holidayScheduleDaysRequestGeneration;
@@ -1368,8 +1408,24 @@
               );
             }
 
-            BUSINESS_SPECIAL_DATES =
+            HOLIDAY_SCHEDULE_DAYS_ALL =
               payload.days
+                .filter(day => day)
+                .map(day => ({
+                  rowNumber: day.rowNumber,
+                  date: day.date || "",
+                  label: day.label || "Special / Holiday",
+                  open: day.open || "",
+                  close: day.close || "",
+                  closed: day.closed === true,
+                  enabled: day.enabled === true,
+                  sourceTabs: day.sourceTabs || {},
+                  valid: day.valid === true,
+                  problems: Array.isArray(day.problems) ? day.problems : []
+                }));
+
+            BUSINESS_SPECIAL_DATES =
+              HOLIDAY_SCHEDULE_DAYS_ALL
                 .filter(day =>
                   day &&
                   day.enabled === true &&
@@ -1390,6 +1446,9 @@
               BUSINESS_SPECIAL_DATES
             );
 
+            syncHolidayScheduleManagerFromFeed();
+            setHolidayScheduleManagerLoadState("ready");
+
             renderBusinessProfile();
             updateOperationsPanel();
             renderScheduleRouting();
@@ -1401,6 +1460,12 @@
             console.warn(
               "Holiday Schedule Days could not be loaded.",
               error
+            );
+            setHolidayScheduleManagerLoadState(
+              "error",
+              error && error.message
+                ? error.message
+                : "Holiday Schedule Days could not be loaded. Use Reload to try again."
             );
           } finally {
             delete window[callbackName];
@@ -1430,6 +1495,10 @@
           delete window[callbackName];
           console.warn(
             "Could not load Holiday Schedule Days from Apps Script."
+          );
+          setHolidayScheduleManagerLoadState(
+            "error",
+            "Could not load Holiday Schedule Days from Apps Script. Use Reload to try again."
           );
         };
 
@@ -20075,12 +20144,16 @@
 
     function syncHolidayScheduleManagerFromFeed() {
       holidayScheduleManagerRows = normalizeHolidayScheduleManagerRows(
-        Object.values(BUSINESS_SPECIAL_DATES || {})
+        HOLIDAY_SCHEDULE_DAYS_ALL
       ).sort((a,b) => a.date.localeCompare(b.date));
       renderHolidayScheduleManager();
     }
 
     function addHolidayScheduleManagerRow() {
+      if (!holidayScheduleManagerFeedLoaded) {
+        window.alert("Holiday Schedule Days must finish loading before a new row can be added.");
+        return;
+      }
       holidayScheduleManagerRows.push({date:"",label:"Special / Holiday",open:"10:00",close:"22:00",arcadeTab:"ArcadeHoliday",golfTab:"GolfHoliday",slushTab:"SlushHoliday",infoArcadeTab:"infoArcadeHoliday",closed:false,enabled:true});
       renderHolidayScheduleManager();
     }
@@ -20096,6 +20169,10 @@
 
     function saveHolidayScheduleManager() {
       if (holidayScheduleSaveInProgress) return;
+      if (!holidayScheduleManagerFeedLoaded) {
+        window.alert("Holiday Schedule Days have not loaded successfully yet. Reload them before saving so existing Google Sheets rows cannot be overwritten.");
+        return;
+      }
       const rows = holidayScheduleManagerRows.map(row => ({
         date: row.date.trim(), label: row.label.trim(), open: row.open, close: row.close,
         sourceTabs:{Arcade:row.arcadeTab.trim(),Golf:row.golfTab.trim(),Slush:row.slushTab.trim(),infoArcade:row.infoArcadeTab.trim()},
