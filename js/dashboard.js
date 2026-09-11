@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "115.0",
+      build: "117.2",
       status: "Development",
       tag: ""
     };
@@ -10412,6 +10412,12 @@
           <option value="Holiday Overrides">
             Holiday Overrides
           </option>
+          <option value="Holiday Schedule Days">
+            Holiday Schedule Days
+          </option>
+          <option value="Audit Log">
+            Audit Log
+          </option>
         ` +
         SCREEN_NAMES
           .map(screenName => `
@@ -20445,9 +20451,16 @@
         sourceTabs:{Arcade:row.arcadeTab.trim(),Golf:row.golfTab.trim(),Slush:row.slushTab.trim(),infoArcade:row.infoArcadeTab.trim()},
         closed: row.closed === true, enabled: row.enabled === true
       }));
+      const holidayDateRows = new Map();
       for (let i=0;i<rows.length;i++) {
         const r=rows[i];
         if (!r.date) { window.alert(`Holiday Schedule row ${i+1} needs a date.`); return; }
+        if (holidayDateRows.has(r.date)) {
+          const firstRow = holidayDateRows.get(r.date) + 1;
+          window.alert(`Holiday Schedule rows ${firstRow} and ${i+1} use the same date (${r.date}). Each date can only appear once.`);
+          return;
+        }
+        holidayDateRows.set(r.date, i);
         if (!r.closed && (!r.open || !r.close || r.close <= r.open)) { window.alert(`Holiday Schedule row ${i+1} needs valid opening and closing times.`); return; }
       }
       const pin=window.prompt("Enter the dashboard save PIN for Holiday Schedules:");
@@ -22277,8 +22290,15 @@
       if (
         releaseNotesCurrentBuild
       ) {
+        const releaseStatusLabel =
+          String(
+            release.status ||
+            release.channel ||
+            "Development"
+          ).trim();
+
         releaseNotesCurrentBuild.textContent =
-          `${buildLabel} · Stable Release`;
+          `${buildLabel} · ${releaseStatusLabel}`;
       }
 
       document
