@@ -11031,6 +11031,26 @@ textarea:focus-visible {
 .holiday-day-badge-disabled { color:#cbd5e1; background:rgba(148,163,184,.12); border-color:rgba(148,163,184,.25); }
 .holiday-schedule-input:disabled { cursor:not-allowed; opacity:.72; }
 
+
+/* Build 117.1 — clearer reusable-tab value bubbles */
+.holiday-schedule-tab-input {
+  background: rgba(51, 65, 85, .46);
+  border-color: rgba(148, 163, 184, .28);
+  border-radius: 9px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+  font-weight: 650;
+}
+.holiday-schedule-tab-input:hover:not(:disabled),
+.holiday-schedule-tab-input:focus {
+  background: rgba(51, 65, 85, .62);
+  border-color: rgba(115, 183, 255, .5);
+}
+.holiday-schedule-tab-input:disabled {
+  background: rgba(51, 65, 85, .30);
+  border-color: rgba(148, 163, 184, .20);
+  opacity: .78;
+}
+
 /* =====================================================
  * BUILD 117 — AUDIT LOG RETENTION
  * ===================================================== */
