@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "117.1",
+  "build": "117.2",
   "status": "Development",
-  "releaseName": "Version 1.4 Holiday Manager UX and Audit Retention",
+  "releaseName": "Version 1.4 Release Hardening",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "116",
-  "feature": "Holiday Schedule Manager visual grouping plus configurable Audit Log retention",
+  "basedOnBuild": "117.1",
+  "feature": "Release hardening: Holiday/Audit error routing, cache marker alignment, duplicate-date protection, and Audit destination filters",
   "label": "Development"
 }
