@@ -2181,7 +2181,18 @@
         <div id="holidayScheduleManagerMessage" class="promo-rules-message"></div>
         <div class="holiday-schedule-table-wrap">
           <table class="holiday-schedule-table">
-            <thead><tr><th>Date</th><th>Label</th><th>Open</th><th>Close</th><th>Arcade Tab</th><th>Golf Tab</th><th>Slush Tab</th><th>infoArcade Tab</th><th>Closed</th><th>Enabled</th><th></th></tr></thead>
+            <thead>
+              <tr class="holiday-schedule-group-row">
+                <th colspan="2" class="holiday-group-special">Special day</th>
+                <th colspan="2" class="holiday-group-hours">Business hours</th>
+                <th colspan="4" class="holiday-group-tabs">Schedule tabs (reusable tabs)</th>
+                <th colspan="2" class="holiday-group-status">Status</th>
+                <th class="holiday-group-actions">Actions</th>
+              </tr>
+              <tr class="holiday-schedule-column-row">
+                <th>Date</th><th>Label</th><th>Open</th><th>Close</th><th>Arcade Tab</th><th>Golf Tab</th><th>Slush Tab</th><th>infoArcade Tab</th><th>Closed</th><th>Enabled</th><th></th>
+              </tr>
+            </thead>
             <tbody id="holidayScheduleManagerBody"><tr><td colspan="11" class="manager-empty">Loading Holiday Schedule Days…</td></tr></tbody>
           </table>
         </div>
@@ -3080,6 +3091,22 @@
                 Holiday Override save
               </option>
 
+              <option value="saveHolidayScheduleDays">
+                Holiday Schedule save
+              </option>
+
+              <option value="savePromoRules">
+                Promo Rules save
+              </option>
+
+              <option value="setAuditRetention">
+                Audit retention update
+              </option>
+
+              <option value="clearOldAuditLogs">
+                Audit cleanup
+              </option>
+
               <option value="restoreBackup">
                 Backup restore
               </option>
@@ -3132,6 +3159,31 @@
             ↻ Reload audit log
           </button>
         </div>
+
+        <section class="audit-retention-panel" aria-labelledby="auditRetentionHeading">
+          <div class="audit-retention-copy">
+            <div class="eyebrow">Log housekeeping</div>
+            <h3 id="auditRetentionHeading">Audit Log Retention</h3>
+            <p class="manager-description">Keep recent audit history automatically. The default retention period is 90 days.</p>
+          </div>
+
+          <div class="audit-retention-controls">
+            <label class="audit-filter-field">
+              <span class="manager-label">Keep audit logs for</span>
+              <select id="auditRetentionSelect" class="manager-select">
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90" selected>90 days (default)</option>
+                <option value="forever">Forever</option>
+              </select>
+            </label>
+
+            <button id="saveAuditRetentionButton" class="button" type="button">Save retention</button>
+            <button id="clearOldAuditLogsButton" class="button button-danger" type="button">Clear old logs now</button>
+          </div>
+
+          <div id="auditRetentionMessage" class="promo-rules-message"></div>
+        </section>
 
         <section class="audit-summary-grid">
           <article class="manager-stat">
@@ -4275,6 +4327,14 @@
     <input id="holidayScheduleSavePinField" name="pin">
     <input id="holidayScheduleSaveDataField" name="days">
     <input id="holidayScheduleSaveRequestIdField" name="requestId">
+  </form>
+
+  <iframe id="auditRetentionFrame" name="auditRetentionFrame" title="Audit retention response" style="display:none"></iframe>
+  <form id="auditRetentionForm" method="post" target="auditRetentionFrame" style="display:none">
+    <input id="auditRetentionActionField" name="action">
+    <input id="auditRetentionPinField" name="pin">
+    <input id="auditRetentionDaysField" name="retention">
+    <input id="auditRetentionRequestIdField" name="requestId">
   </form>
 
   <iframe

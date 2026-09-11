@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "116",
+  "build": "117",
   "status": "Development",
-  "releaseName": "Version 1.4 Holiday Calendar Integration",
+  "releaseName": "Version 1.4 Holiday Manager UX and Audit Retention",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "115.4",
-  "feature": "Holiday Calendar now uses Holiday Schedule Manager / Holiday Schedule Days as its source of truth",
+  "basedOnBuild": "116",
+  "feature": "Holiday Schedule Manager visual grouping plus configurable Audit Log retention",
   "label": "Development"
 }
