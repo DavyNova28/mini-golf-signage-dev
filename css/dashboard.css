@@ -10946,3 +10946,112 @@ textarea:focus-visible {
 .holiday-schedule-input { width:100%; min-width:110px; box-sizing:border-box; padding:8px 9px; border:1px solid var(--border-color); border-radius:8px; background:var(--input-background, transparent); color:inherit; }
 .holiday-schedule-check { text-align:center !important; }
 .holiday-schedule-check input { width:18px; height:18px; }
+
+
+/* =====================================================
+ * BUILD 117 — HOLIDAY MANAGER VISUAL GROUPING
+ * ===================================================== */
+.holiday-schedule-table-wrap {
+  border: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+.holiday-schedule-table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+.holiday-schedule-table thead th {
+  border-bottom: 0;
+}
+.holiday-schedule-group-row th {
+  padding: 11px 12px 9px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  opacity: 1;
+  font-size: 11px;
+  letter-spacing: .075em;
+}
+.holiday-schedule-group-row th:first-child { border-left:1px solid var(--border-color); border-radius:10px 0 0 0; }
+.holiday-schedule-group-row th:last-child { border-right:1px solid var(--border-color); border-radius:0 10px 0 0; }
+.holiday-group-special { background:rgba(45,126,247,.10); color:#73b7ff; }
+.holiday-group-hours { background:rgba(33,190,140,.09); color:#62d8ae; }
+.holiday-group-tabs { background:rgba(147,94,255,.09); color:#b99cff; }
+.holiday-group-status { background:rgba(235,188,52,.08); color:#e7cd67; }
+.holiday-group-actions { background:rgba(45,126,247,.07); color:#9ec8ff; }
+.holiday-schedule-column-row th {
+  background:rgba(255,255,255,.018);
+  padding-top:9px;
+  padding-bottom:9px;
+}
+.holiday-schedule-table tbody tr {
+  position:relative;
+}
+.holiday-schedule-table tbody td {
+  background:rgba(255,255,255,.018);
+  border-top:1px solid var(--border-color);
+  border-bottom:1px solid var(--border-color);
+  padding:12px 10px;
+}
+.holiday-schedule-table tbody td:first-child {
+  border-left:1px solid var(--border-color);
+  border-radius:12px 0 0 12px;
+}
+.holiday-schedule-table tbody td:last-child {
+  border-right:1px solid var(--border-color);
+  border-radius:0 12px 12px 0;
+}
+.holiday-schedule-table tbody td:nth-child(3),
+.holiday-schedule-table tbody td:nth-child(5),
+.holiday-schedule-table tbody td:nth-child(9),
+.holiday-schedule-table tbody td:nth-child(11),
+.holiday-schedule-column-row th:nth-child(3),
+.holiday-schedule-column-row th:nth-child(5),
+.holiday-schedule-column-row th:nth-child(9),
+.holiday-schedule-column-row th:nth-child(11) {
+  border-left:1px solid rgba(148,163,184,.18);
+}
+.holiday-schedule-table tbody tr.holiday-row-closed td { background:rgba(71,85,105,.08); }
+.holiday-schedule-table tbody tr.holiday-row-disabled td { opacity:.72; }
+.holiday-label-stack { display:flex; flex-direction:column; gap:7px; min-width:150px; }
+.holiday-day-badge {
+  align-self:flex-start;
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+  border:1px solid transparent;
+}
+.holiday-day-badge-open { color:#8af0c4; background:rgba(29,185,123,.15); border-color:rgba(29,185,123,.32); }
+.holiday-day-badge-closed { color:#ff9b9b; background:rgba(225,71,71,.14); border-color:rgba(225,71,71,.30); }
+.holiday-day-badge-disabled { color:#cbd5e1; background:rgba(148,163,184,.12); border-color:rgba(148,163,184,.25); }
+.holiday-schedule-input:disabled { cursor:not-allowed; opacity:.72; }
+
+/* =====================================================
+ * BUILD 117 — AUDIT LOG RETENTION
+ * ===================================================== */
+.audit-retention-panel {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px 24px;
+  margin:16px 0;
+  padding:16px;
+  border:1px solid var(--border-color);
+  border-radius:14px;
+  background:rgba(255,255,255,.018);
+}
+.audit-retention-copy { flex:1 1 330px; }
+.audit-retention-copy h3 { margin:4px 0 4px; }
+.audit-retention-controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; }
+.audit-retention-controls .audit-filter-field { min-width:190px; }
+#auditRetentionMessage { flex-basis:100%; margin:0; }
+@media (max-width: 900px) {
+  .audit-retention-controls { width:100%; }
+  .audit-retention-controls .audit-filter-field { flex:1 1 180px; }
+}
