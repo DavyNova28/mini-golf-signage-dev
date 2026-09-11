@@ -3647,6 +3647,26 @@
         "reloadAuditButton"
       );
 
+    const auditRetentionSelect =
+      document.getElementById(
+        "auditRetentionSelect"
+      );
+
+    const saveAuditRetentionButton =
+      document.getElementById(
+        "saveAuditRetentionButton"
+      );
+
+    const clearOldAuditLogsButton =
+      document.getElementById(
+        "clearOldAuditLogsButton"
+      );
+
+    const auditRetentionMessage =
+      document.getElementById(
+        "auditRetentionMessage"
+      );
+
     const auditTotalCount =
       document.getElementById(
         "auditTotalCount"
@@ -4584,6 +4604,13 @@
 
     let auditRequestGeneration =
       0;
+
+
+    let activeAuditRetentionRequestId =
+      null;
+
+    const AUDIT_RETENTION_STORAGE_KEY =
+      "miniGolfAuditRetentionDays";
 
     let scheduleTemplates =
       [];
@@ -13408,6 +13435,214 @@
         "click",
         loadAuditLog
       );
+
+      const storedRetention =
+        localStorage.getItem(
+          AUDIT_RETENTION_STORAGE_KEY
+        );
+
+      if (
+        auditRetentionSelect &&
+        ["30", "60", "90", "forever"].includes(storedRetention)
+      ) {
+        auditRetentionSelect.value =
+          storedRetention;
+      }
+
+      updateAuditRetentionControls();
+
+      if (auditRetentionSelect) {
+        auditRetentionSelect.addEventListener(
+          "change",
+          updateAuditRetentionControls
+        );
+      }
+
+      if (saveAuditRetentionButton) {
+        saveAuditRetentionButton.addEventListener(
+          "click",
+          function() {
+            submitAuditRetentionAction(
+              "setAuditRetention"
+            );
+          }
+        );
+      }
+
+      if (clearOldAuditLogsButton) {
+        clearOldAuditLogsButton.addEventListener(
+          "click",
+          function() {
+            submitAuditRetentionAction(
+              "clearOldAuditLogs"
+            );
+          }
+        );
+      }
+
+      window.addEventListener(
+        "message",
+        handleAuditRetentionMessage
+      );
+    }
+
+
+    function updateAuditRetentionControls() {
+      if (!auditRetentionSelect || !clearOldAuditLogsButton) {
+        return;
+      }
+
+      clearOldAuditLogsButton.disabled =
+        auditRetentionSelect.value === "forever";
+
+      clearOldAuditLogsButton.title =
+        auditRetentionSelect.value === "forever"
+          ? "Choose a day-based retention period before clearing old logs."
+          : `Delete audit rows older than ${auditRetentionSelect.value} days.`;
+    }
+
+
+    function submitAuditRetentionAction(action) {
+      if (!auditRetentionSelect) {
+        return;
+      }
+
+      const retention =
+        auditRetentionSelect.value;
+
+      if (
+        action === "clearOldAuditLogs" &&
+        retention === "forever"
+      ) {
+        window.alert(
+          "Retention is set to Forever, so there are no old logs to clear by age."
+        );
+        return;
+      }
+
+      const pin = window.prompt(
+        action === "setAuditRetention"
+          ? "Enter the dashboard save PIN to update Audit Log retention:"
+          : `Enter the dashboard save PIN to delete audit rows older than ${retention} days:`
+      );
+
+      if (pin === null) {
+        return;
+      }
+
+      if (!String(pin).trim()) {
+        window.alert("A dashboard PIN is required.");
+        return;
+      }
+
+      const confirmation =
+        action === "setAuditRetention"
+          ? `Set Audit Log retention to ${retention === "forever" ? "Forever" : `${retention} days`}?`
+          : `Delete Audit Log rows older than ${retention} days now? This cannot be undone.`;
+
+      if (!window.confirm(confirmation)) {
+        return;
+      }
+
+      activeAuditRetentionRequestId =
+        createSaveRequestId();
+
+      const form =
+        document.getElementById(
+          "auditRetentionForm"
+        );
+
+      if (!form) {
+        return;
+      }
+
+      form.action =
+        SCHEDULE_FEED_URL;
+
+      document.getElementById(
+        "auditRetentionActionField"
+      ).value = action;
+
+      document.getElementById(
+        "auditRetentionPinField"
+      ).value = String(pin);
+
+      document.getElementById(
+        "auditRetentionDaysField"
+      ).value = retention;
+
+      document.getElementById(
+        "auditRetentionRequestIdField"
+      ).value = activeAuditRetentionRequestId;
+
+      if (auditRetentionMessage) {
+        auditRetentionMessage.textContent =
+          action === "setAuditRetention"
+            ? "Saving Audit Log retention…"
+            : "Clearing old Audit Log rows…";
+        auditRetentionMessage.className =
+          "promo-rules-message visible success";
+      }
+
+      form.submit();
+    }
+
+
+    function handleAuditRetentionMessage(event) {
+      const data =
+        event.data;
+
+      if (
+        !data ||
+        data.type !== "miniGolfAuditRetentionActionResult" ||
+        data.requestId !== activeAuditRetentionRequestId
+      ) {
+        return;
+      }
+
+      activeAuditRetentionRequestId =
+        null;
+
+      if (data.success !== true) {
+        if (auditRetentionMessage) {
+          auditRetentionMessage.textContent =
+            data.error ||
+            "Audit Log retention could not be updated.";
+          auditRetentionMessage.className =
+            "promo-rules-message visible error";
+        }
+        return;
+      }
+
+      const retention =
+        String(data.retention || auditRetentionSelect.value || "90");
+
+      if (["30", "60", "90", "forever"].includes(retention)) {
+        auditRetentionSelect.value = retention;
+        localStorage.setItem(
+          AUDIT_RETENTION_STORAGE_KEY,
+          retention
+        );
+      }
+
+      updateAuditRetentionControls();
+
+      if (auditRetentionMessage) {
+        if (data.operation === "clearOldAuditLogs") {
+          auditRetentionMessage.textContent =
+            `Cleared ${Number(data.rowsDeleted || 0)} old Audit Log row(s).`;
+        } else {
+          auditRetentionMessage.textContent =
+            `Audit Log retention saved as ${retention === "forever" ? "Forever" : `${retention} days`}.`;
+        }
+        auditRetentionMessage.className =
+          "promo-rules-message visible success";
+      }
+
+      setTimeout(
+        loadAuditLog,
+        400
+      );
     }
 
 
@@ -13691,7 +13926,23 @@
         action ===
         "saveHolidayOverrides"
       ) {
-        return "Holiday save";
+        return "Holiday Override save";
+      }
+
+      if (action === "saveHolidayScheduleDays") {
+        return "Holiday Schedule save";
+      }
+
+      if (action === "savePromoRules") {
+        return "Promo Rules save";
+      }
+
+      if (action === "setAuditRetention") {
+        return "Audit retention update";
+      }
+
+      if (action === "clearOldAuditLogs") {
+        return "Audit cleanup";
       }
 
       if (action === "restoreBackup") {
@@ -20117,10 +20368,32 @@
       if (!holidayScheduleManagerRows.length) {
         body.innerHTML = '<tr><td colspan="11" class="manager-empty">No Holiday Schedule Days configured.</td></tr>';
       } else {
-        body.innerHTML = holidayScheduleManagerRows.map((row,index) => `
-          <tr data-holiday-schedule-row="${index}">
+        body.innerHTML = holidayScheduleManagerRows.map((row,index) => {
+          const isDisabled = row.enabled !== true;
+          const badgeClass = isDisabled
+            ? "holiday-day-badge-disabled"
+            : row.closed
+              ? "holiday-day-badge-closed"
+              : "holiday-day-badge-open";
+          const badgeText = isDisabled
+            ? "Disabled"
+            : row.closed
+              ? "Closed day"
+              : "Open day";
+          const rowClass = [
+            row.closed ? "holiday-row-closed" : "holiday-row-open",
+            isDisabled ? "holiday-row-disabled" : ""
+          ].filter(Boolean).join(" ");
+
+          return `
+          <tr class="${rowClass}" data-holiday-schedule-row="${index}">
             <td><input class="holiday-schedule-input" type="date" data-hsd-field="date" data-hsd-index="${index}" value="${escapeHtml(row.date)}"></td>
-            <td><input class="holiday-schedule-input" data-hsd-field="label" data-hsd-index="${index}" value="${escapeHtml(row.label)}"></td>
+            <td>
+              <div class="holiday-label-stack">
+                <input class="holiday-schedule-input" data-hsd-field="label" data-hsd-index="${index}" value="${escapeHtml(row.label)}">
+                <span class="holiday-day-badge ${badgeClass}">${badgeText}</span>
+              </div>
+            </td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="open" data-hsd-index="${index}" value="${escapeHtml(row.open)}" ${row.closed?'disabled':''}></td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="close" data-hsd-index="${index}" value="${escapeHtml(row.close)}" ${row.closed?'disabled':''}></td>
             <td><input class="holiday-schedule-input" data-hsd-field="arcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.arcadeTab)}" ${row.closed?'disabled':''}></td>
@@ -20130,7 +20403,8 @@
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="closed" data-hsd-index="${index}" ${row.closed?'checked':''}></td>
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="enabled" data-hsd-index="${index}" ${row.enabled?'checked':''}></td>
             <td><button class="button button-danger" type="button" data-hsd-delete="${index}">Delete</button></td>
-          </tr>`).join("");
+          </tr>`;
+        }).join("");
       }
       if (status) status.textContent = `${holidayScheduleManagerRows.length} special day${holidayScheduleManagerRows.length===1?'':'s'}`;
     }
