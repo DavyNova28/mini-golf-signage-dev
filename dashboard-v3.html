@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=117.3">
+    <link rel="stylesheet" href="css/dashboard.css?build=118">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
-  <meta name="dashboard-version" content="1.4.0">
+  <meta name="dashboard-version" content="1.5.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="117.3">
+  <meta name="dashboard-build" content="118">
 </head>
 
 <body>
@@ -354,7 +354,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 117.3</span>
+            <span id="applicationBuildLabel">Build 118</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -2166,9 +2166,9 @@
       <section class="holiday-schedule-manager">
         <div class="manager-header">
           <div>
-            <div class="eyebrow">Build 117.3 · Special-day operations</div>
+            <div class="eyebrow">Build 118 · Safer special-day routing</div>
             <h2 class="manager-title">Holiday Schedule Manager</h2>
-            <p class="manager-description">Manage date-specific business hours and choose the reusable schedule tab for each player. Holiday Schedules have priority over legacy Holiday Overrides, Promo Rules, and normal profile routing.</p>
+            <p class="manager-description">Manage date-specific business hours and choose approved reusable schedule tabs from controlled dropdowns. Holiday Schedules have priority over legacy Holiday Overrides, Promo Rules, and normal profile routing.</p>
           </div>
           <div id="holidayScheduleManagerStatus" class="manager-status">Loading…</div>
         </div>
@@ -2196,7 +2196,7 @@
             <tbody id="holidayScheduleManagerBody"><tr><td colspan="11" class="manager-empty">Loading Holiday Schedule Days…</td></tr></tbody>
           </table>
         </div>
-        <div class="schedule-routing-notice">Changes are written to the <strong>Holiday Schedule Days</strong> Google Sheets tab. Existing reusable Holiday schedule tabs are not modified here.</div>
+        <div class="schedule-routing-notice"><strong>Build 118:</strong> source tabs are selected from screen-specific approved lists to prevent typing mistakes. CLOSED days still preserve their selected source tabs underneath. Changes are written to the <strong>Holiday Schedule Days</strong> Google Sheets tab; reusable schedule tabs themselves are not modified here.</div>
       </section>
     </section>
 
@@ -4874,7 +4874,7 @@
           </div>
 
           <div id="aboutApplicationVersion" class="about-product-version">
-            Version 1.4 Development · Build 117.3
+            Version 1.5 Development · Build 118
           </div>
 
           <div
@@ -4955,11 +4955,11 @@
       <div class="release-notes-current">
         <div>
           <div id="releaseNotesCurrentVersion" class="release-notes-version">
-            Version 1.4 Development
+            Version 1.5 Development
           </div>
 
           <div id="releaseNotesCurrentBuild" class="release-notes-build">
-            Build 117.3 · Development
+            Build 118 · Development
           </div>
         </div>
 
@@ -4970,6 +4970,21 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry release-note-featured">
+          <div class="release-note-build">Build 118 · Development</div>
+          <h3>Holiday Source Dropdowns</h3>
+          <p>
+            Makes Holiday Schedule creation safer by replacing free-text source-tab fields with controlled, screen-specific dropdowns.
+          </p>
+          <ul>
+            <li><strong>Approved source lists</strong> — Arcade, Golf, Slush, and infoArcade only show tabs that belong to that screen.</li>
+            <li><strong>Profile grouping</strong> — Choices are grouped as Holiday, Regular, Summer, and Promo where applicable.</li>
+            <li><strong>CLOSED behavior preserved</strong> — Source controls show Not Used - Closed while the underlying selections remain intact.</li>
+            <li><strong>Legacy-value protection</strong> — Existing unknown values are displayed without silently replacing them, but active open days must use an approved source before saving.</li>
+            <li><strong>No Apps Script change</strong> — Holiday Schedule Days continue storing the same exact source-tab strings.</li>
+          </ul>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">v1.4.0 · Build 117.3</div>
           <h3>Holiday Scheduling &amp; Reliability</h3>
           <p>
@@ -5208,7 +5223,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=117.3" defer></script>
+    <script src="js/dashboard.js?build=118" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

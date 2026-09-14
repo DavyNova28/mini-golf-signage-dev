@@ -1,13 +1,13 @@
 {
-  "version": "1.4",
-  "displayVersion": "1.4",
+  "version": "1.5",
+  "displayVersion": "1.5",
   "channel": "Development",
-  "build": "117.3",
+  "build": "118",
   "status": "Development",
-  "releaseName": "Version 1.4 Final Fallback Hardening",
+  "releaseName": "Version 1.5 Holiday Source Dropdowns",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "117.2",
-  "feature": "Final release hardening: preserve routing metadata in cached schedules and complete refresh lifecycle after all screen requests settle",
+  "basedOnBuild": "117.3",
+  "feature": "Holiday Schedule Manager controlled source-tab dropdowns with screen-specific allowlists and legacy-value protection",
   "label": "Development"
 }
