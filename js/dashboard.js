@@ -25,7 +25,7 @@
       version: "1.4.0",
       displayVersion: "1.4",
       channel: "Development",
-      build: "117.2",
+      build: "117.3",
       status: "Development",
       tag: ""
     };
@@ -4521,6 +4521,11 @@
 
     let requestGeneration = 0;
 
+    let refreshLifecycleGeneration = 0;
+
+    const refreshSettledScreens =
+      new Set();
+
     const managerDrafts =
       new Map();
 
@@ -5022,6 +5027,11 @@
       const currentGeneration =
         requestGeneration;
 
+      refreshLifecycleGeneration =
+        currentGeneration;
+
+      refreshSettledScreens.clear();
+
       lastRefreshElement.textContent =
         `Refreshing at ${formatLocalClock(new Date())}`;
 
@@ -5034,6 +5044,36 @@
           );
         }
       );
+    }
+
+    function markScreenRefreshSettled(
+      screenName,
+      generation
+    ) {
+      if (
+        generation !== requestGeneration ||
+        generation !== refreshLifecycleGeneration
+      ) {
+        return;
+      }
+
+      refreshSettledScreens.add(
+        screenName
+      );
+
+      if (
+        refreshSettledScreens.size <
+        SCREEN_NAMES.length
+      ) {
+        return;
+      }
+
+      refreshButton.classList.remove(
+        "refreshing"
+      );
+
+      lastRefreshElement.textContent =
+        `Last refreshed: ${formatLocalClock(new Date())}`;
     }
 
     function loadScreenSchedule(
@@ -5061,6 +5101,10 @@
           callbackCompleted = true;
 
           try {
+            if (generation !== requestGeneration) {
+              return;
+            }
+
             processScreenPayload(
               screenName,
               payload
@@ -5074,6 +5118,11 @@
             if (script) {
               script.remove();
             }
+
+            markScreenRefreshSettled(
+              screenName,
+              generation
+            );
           }
         };
 
@@ -5096,13 +5145,31 @@
 
       script.onerror =
         function() {
+          if (callbackCompleted) {
+            return;
+          }
+
           callbackCompleted = true;
 
           delete window[callbackName];
 
-          setScreenError(
+          const failedScript =
+            document.getElementById(scriptId);
+
+          if (failedScript) {
+            failedScript.remove();
+          }
+
+          if (generation === requestGeneration) {
+            setScreenError(
+              screenName,
+              "Could not connect to Apps Script."
+            );
+          }
+
+          markScreenRefreshSettled(
             screenName,
-            "Could not connect to Apps Script."
+            generation
           );
         };
 
@@ -5114,11 +5181,27 @@
             !callbackCompleted &&
             window[callbackName]
           ) {
+            callbackCompleted = true;
+
             delete window[callbackName];
 
-            setScreenError(
+            const timedOutScript =
+              document.getElementById(scriptId);
+
+            if (timedOutScript) {
+              timedOutScript.remove();
+            }
+
+            if (generation === requestGeneration) {
+              setScreenError(
+                screenName,
+                "Apps Script did not respond within 12 seconds."
+              );
+            }
+
+            markScreenRefreshSettled(
               screenName,
-              "Apps Script did not respond within 12 seconds."
+              generation
             );
           }
         },
@@ -5299,12 +5382,6 @@
         updateScheduleManager();
       }
 
-      lastRefreshElement.textContent =
-        `Last refreshed: ${formatLocalClock(new Date())}`;
-
-      refreshButton.classList.remove(
-        "refreshing"
-      );
     }
 
     function isValidScheduleItem(item) {
@@ -6158,10 +6235,6 @@
 
       previewOverlay.textContent =
         message;
-
-      refreshButton.classList.remove(
-        "refreshing"
-      );
 
       updateDashboardSummary();
     }
@@ -17680,6 +17753,18 @@
           state.source,
         activeDate:
           state.activeDate || "",
+        logicalScreen:
+          state.logicalScreen || screenName,
+        routeProfile:
+          state.routeProfile || "",
+        routeKey:
+          state.routeKey || "",
+        routeSourceTab:
+          state.routeSourceTab || "",
+        routeLabel:
+          state.routeLabel || "",
+        legacyRequest:
+          state.legacyRequest || "",
         schedule:
           state.schedule,
         savedAt:
@@ -17777,10 +17862,43 @@
         source:
           snapshot.source === "holiday"
             ? "holiday"
-            : "regular",
+            : snapshot.source === "promo"
+              ? "promo"
+              : "regular",
 
         activeDate:
           snapshot.activeDate || "",
+
+        logicalScreen:
+          String(
+            snapshot.logicalScreen ||
+            screenName
+          ),
+
+        routeProfile:
+          String(
+            snapshot.routeProfile || ""
+          ),
+
+        routeKey:
+          String(
+            snapshot.routeKey || ""
+          ),
+
+        routeSourceTab:
+          String(
+            snapshot.routeSourceTab || ""
+          ),
+
+        routeLabel:
+          String(
+            snapshot.routeLabel || ""
+          ),
+
+        legacyRequest:
+          String(
+            snapshot.legacyRequest || ""
+          ),
 
         schedule:
           snapshot.schedule,
