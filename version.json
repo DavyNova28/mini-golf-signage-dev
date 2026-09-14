@@ -2,12 +2,12 @@
   "version": "1.4",
   "displayVersion": "1.4",
   "channel": "Development",
-  "build": "117.2",
+  "build": "117.3",
   "status": "Development",
-  "releaseName": "Version 1.4 Release Hardening",
+  "releaseName": "Version 1.4 Final Fallback Hardening",
   "tag": "",
   "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "117.1",
-  "feature": "Release hardening: Holiday/Audit error routing, cache marker alignment, duplicate-date protection, and Audit destination filters",
+  "basedOnBuild": "117.2",
+  "feature": "Final release hardening: preserve routing metadata in cached schedules and complete refresh lifecycle after all screen requests settle",
   "label": "Development"
 }
