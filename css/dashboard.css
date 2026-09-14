@@ -11075,3 +11075,38 @@ textarea:focus-visible {
   .audit-retention-controls { width:100%; }
   .audit-retention-controls .audit-filter-field { flex:1 1 180px; }
 }
+
+
+/* =====================================================
+ * BUILD 118 — HOLIDAY SOURCE DROPDOWNS
+ * ===================================================== */
+.holiday-schedule-tab-select {
+  min-width: 190px;
+  padding-right: 32px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.holiday-schedule-tab-select:not(:disabled) {
+  background-color: rgba(51, 65, 85, .46);
+}
+
+.holiday-schedule-tab-select:focus-visible {
+  outline: 2px solid rgba(115, 183, 255, .42);
+  outline-offset: 2px;
+}
+
+.holiday-schedule-tab-select optgroup,
+.holiday-schedule-tab-select option {
+  color: #0f172a;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.holiday-schedule-tab-select optgroup {
+  font-weight: 800;
+}
+
+.holiday-schedule-tab-select:disabled {
+  cursor: not-allowed;
+}
