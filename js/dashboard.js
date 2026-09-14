@@ -22,10 +22,10 @@
       "version.json";
 
     const APPLICATION_RELEASE_FALLBACK = {
-      version: "1.4.0",
-      displayVersion: "1.4",
+      version: "1.5.0",
+      displayVersion: "1.5",
       channel: "Development",
-      build: "117.3",
+      build: "118",
       status: "Development",
       tag: ""
     };
@@ -20469,6 +20469,153 @@
 
 
 
+    /* =====================================================
+     * BUILD 118 — HOLIDAY SOURCE DROPDOWNS
+     * =====================================================
+     * Holiday Schedule Days still store the exact Google Sheets tab name.
+     * The Dashboard now limits new selections to approved source tabs so a
+     * typo cannot create an invalid route. Existing unknown values are shown
+     * as a legacy/current option so they are never silently discarded.
+     */
+    const HOLIDAY_SCHEDULE_SOURCE_TABS = Object.freeze({
+      arcade: [
+        { group: "Holiday", tabs: ["ArcadeHoliday"] },
+        {
+          group: "Regular",
+          tabs: [
+            "ArcadeRegularClosed",
+            "ArcadeRegularWed",
+            "ArcadeRegularThuFri",
+            "ArcadeRegularSat",
+            "ArcadeRegularSun"
+          ]
+        },
+        {
+          group: "Summer",
+          tabs: ["ArcadeWeek", "Arcade", "ArcadeSunday"]
+        },
+        { group: "Promo", tabs: ["ArcadePromoThursday"] }
+      ],
+      golf: [
+        { group: "Holiday", tabs: ["GolfHoliday"] },
+        {
+          group: "Regular",
+          tabs: [
+            "GolfRegularClosed",
+            "GolfRegularWed",
+            "GolfRegularThuFri",
+            "GolfRegularSat",
+            "GolfRegularSun"
+          ]
+        },
+        { group: "Summer", tabs: ["Golf", "GolfSunday"] },
+        { group: "Promo", tabs: ["GolfPromoWednesday"] }
+      ],
+      slush: [
+        { group: "Holiday", tabs: ["SlushHoliday"] },
+        {
+          group: "Regular",
+          tabs: [
+            "SlushRegularClosed",
+            "SlushRegularWed",
+            "SlushRegularThuFri",
+            "SlushRegularSat",
+            "SlushRegularSun"
+          ]
+        },
+        { group: "Summer", tabs: ["Slush", "SlushSunday"] }
+      ],
+      infoArcade: [
+        { group: "Holiday", tabs: ["infoArcadeHoliday"] },
+        {
+          group: "Regular",
+          tabs: [
+            "infoArcadeRegularClosed",
+            "infoArcadeRegularWed",
+            "infoArcadeRegularThuFri",
+            "infoArcadeRegularSat",
+            "infoArcadeRegularSun"
+          ]
+        },
+        {
+          group: "Summer",
+          tabs: ["infoArcade", "infoArcadeSunday"]
+        }
+      ]
+    });
+
+    const HOLIDAY_SCHEDULE_SOURCE_FIELDS = Object.freeze({
+      arcadeTab: { screenKey: "arcade", sourceKey: "Arcade", screenLabel: "Arcade" },
+      golfTab: { screenKey: "golf", sourceKey: "Golf", screenLabel: "Golf" },
+      slushTab: { screenKey: "slush", sourceKey: "Slush", screenLabel: "Slush" },
+      infoArcadeTab: { screenKey: "infoArcade", sourceKey: "infoArcade", screenLabel: "Info Arcade" }
+    });
+
+    function getHolidayScheduleSourceGroups(screenKey) {
+      return HOLIDAY_SCHEDULE_SOURCE_TABS[screenKey] || [];
+    }
+
+    function getHolidayScheduleAllowedSourceTabs(screenKey) {
+      return getHolidayScheduleSourceGroups(screenKey)
+        .flatMap(group => group.tabs);
+    }
+
+    function isHolidayScheduleSourceTabAllowed(screenKey, value) {
+      return getHolidayScheduleAllowedSourceTabs(screenKey)
+        .includes(String(value || ""));
+    }
+
+    function createHolidayScheduleSourceTabOptions(screenKey, currentValue) {
+      const value = String(currentValue || "");
+      const groups = getHolidayScheduleSourceGroups(screenKey);
+      let html = "";
+
+      if (value && !isHolidayScheduleSourceTabAllowed(screenKey, value)) {
+        html += `
+          <optgroup label="Current saved value">
+            <option value="${escapeHtml(value)}" selected>${escapeHtml(value)} · Current / unapproved</option>
+          </optgroup>`;
+      }
+
+      html += groups.map(group => `
+        <optgroup label="${escapeHtml(group.group)}">
+          ${group.tabs.map(tab => `
+            <option value="${escapeHtml(tab)}" ${tab === value ? "selected" : ""}>${escapeHtml(tab)}</option>
+          `).join("")}
+        </optgroup>
+      `).join("");
+
+      return html;
+    }
+
+    function createHolidayScheduleSourceTabSelect(field, index, row) {
+      const config = HOLIDAY_SCHEDULE_SOURCE_FIELDS[field];
+      if (!config) return "";
+
+      if (row.closed) {
+        return `
+          <select
+            class="holiday-schedule-input holiday-schedule-tab-input holiday-schedule-tab-select"
+            data-hsd-field="${field}"
+            data-hsd-index="${index}"
+            aria-label="${escapeHtml(config.screenLabel)} source tab"
+            disabled
+          >
+            <option selected>Not Used - Closed</option>
+          </select>`;
+      }
+
+      return `
+        <select
+          class="holiday-schedule-input holiday-schedule-tab-input holiday-schedule-tab-select"
+          data-hsd-field="${field}"
+          data-hsd-index="${index}"
+          aria-label="${escapeHtml(config.screenLabel)} source tab"
+        >
+          ${createHolidayScheduleSourceTabOptions(config.screenKey, row[field])}
+        </select>`;
+    }
+
     let holidayScheduleManagerRows = [];
     let holidayScheduleSaveInProgress = false;
     let activeHolidayScheduleSaveRequestId = null;
@@ -20520,10 +20667,10 @@
             </td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="open" data-hsd-index="${index}" value="${escapeHtml(row.open)}" ${row.closed?'disabled':''}></td>
             <td><input class="holiday-schedule-input" type="time" data-hsd-field="close" data-hsd-index="${index}" value="${escapeHtml(row.close)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input holiday-schedule-tab-input" data-hsd-field="arcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.arcadeTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input holiday-schedule-tab-input" data-hsd-field="golfTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.golfTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input holiday-schedule-tab-input" data-hsd-field="slushTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.slushTab)}" ${row.closed?'disabled':''}></td>
-            <td><input class="holiday-schedule-input holiday-schedule-tab-input" data-hsd-field="infoArcadeTab" data-hsd-index="${index}" value="${escapeHtml(row.closed ? "Not Used - Closed" : row.infoArcadeTab)}" ${row.closed?'disabled':''}></td>
+            <td>${createHolidayScheduleSourceTabSelect("arcadeTab", index, row)}</td>
+            <td>${createHolidayScheduleSourceTabSelect("golfTab", index, row)}</td>
+            <td>${createHolidayScheduleSourceTabSelect("slushTab", index, row)}</td>
+            <td>${createHolidayScheduleSourceTabSelect("infoArcadeTab", index, row)}</td>
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="closed" data-hsd-index="${index}" ${row.closed?'checked':''}></td>
             <td class="holiday-schedule-check"><input type="checkbox" data-hsd-field="enabled" data-hsd-index="${index}" ${row.enabled?'checked':''}></td>
             <td><button class="button button-danger" type="button" data-hsd-delete="${index}">Delete</button></td>
@@ -20558,6 +20705,24 @@
       if (field === "closed") renderHolidayScheduleManager();
     }
 
+    function validateHolidayScheduleSourceSelections(rows) {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.enabled !== true || row.closed === true) continue;
+
+        for (const [field, config] of Object.entries(HOLIDAY_SCHEDULE_SOURCE_FIELDS)) {
+          const value = row.sourceTabs[config.sourceKey];
+          if (!isHolidayScheduleSourceTabAllowed(config.screenKey, value)) {
+            window.alert(
+              `Holiday Schedule row ${i + 1} has an unapproved ${config.screenLabel} source tab (${value || "blank"}). Choose an approved source from the dropdown.`
+            );
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
     function saveHolidayScheduleManager() {
       if (holidayScheduleSaveInProgress) return;
       if (!holidayScheduleManagerFeedLoaded) {
@@ -20581,6 +20746,7 @@
         holidayDateRows.set(r.date, i);
         if (!r.closed && (!r.open || !r.close || r.close <= r.open)) { window.alert(`Holiday Schedule row ${i+1} needs valid opening and closing times.`); return; }
       }
+      if (!validateHolidayScheduleSourceSelections(rows)) return;
       const pin=window.prompt("Enter the dashboard save PIN for Holiday Schedules:");
       if (pin===null) return;
       if (!String(pin).trim()) { window.alert("A save PIN is required."); return; }
