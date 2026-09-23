@@ -21,12 +21,12 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=118">
+    <link rel="stylesheet" href="css/dashboard.css?build=119">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
   <meta name="dashboard-version" content="1.5.0">
   <meta name="dashboard-channel" content="development">
-  <meta name="dashboard-build" content="118">
+  <meta name="dashboard-build" content="119">
 </head>
 
 <body>
@@ -354,7 +354,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 118</span>
+            <span id="applicationBuildLabel">Build 119</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -4874,7 +4874,7 @@
           </div>
 
           <div id="aboutApplicationVersion" class="about-product-version">
-            Version 1.5 Development · Build 118
+            Version 1.5 Development · Build 119
           </div>
 
           <div
@@ -4959,7 +4959,7 @@
           </div>
 
           <div id="releaseNotesCurrentBuild" class="release-notes-build">
-            Build 118 · Development
+            Build 119 · Development
           </div>
         </div>
 
@@ -4970,6 +4970,20 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry release-note-featured">
+          <div class="release-note-build">Build 119 · Development</div>
+          <h3>Current-Time Schedule Rows</h3>
+          <p>
+            Makes new Schedule Manager rows faster to create by defaulting the Start Time to the browser's current local time instead of 12:00.
+          </p>
+          <ul>
+            <li><strong>Current local time</strong> — Add Row uses the exact current hour and minute from the browser.</li>
+            <li><strong>No rounding</strong> — For example, adding a row at 17:44 creates a Start Time of 17:44.</li>
+            <li><strong>Existing schedules unchanged</strong> — Loaded rows, editing, sorting, validation, saving, and routing behavior are untouched.</li>
+            <li><strong>No Apps Script change</strong> — This is a Dashboard-only convenience improvement.</li>
+          </ul>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 118 · Development</div>
           <h3>Holiday Source Dropdowns</h3>
           <p>
@@ -5223,7 +5237,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=118" defer></script>
+    <script src="js/dashboard.js?build=119" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>

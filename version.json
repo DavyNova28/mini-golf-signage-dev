@@ -2,12 +2,12 @@
   "version": "1.5",
   "displayVersion": "1.5",
   "channel": "Development",
-  "build": "118",
+  "build": "119",
   "status": "Development",
-  "releaseName": "Version 1.5 Holiday Source Dropdowns",
+  "releaseName": "Version 1.5 Current-Time Schedule Rows",
   "tag": "",
-  "basedOnVersion": "v1.4.0",
-  "basedOnBuild": "117.3",
-  "feature": "Holiday Schedule Manager controlled source-tab dropdowns with screen-specific allowlists and legacy-value protection",
+  "basedOnVersion": "v1.5.0",
+  "basedOnBuild": "118",
+  "feature": "Schedule Manager Add Row defaults to the browser's current local time instead of 12:00, without changing existing schedule behavior",
   "label": "Development"
 }
