@@ -25,7 +25,7 @@
       version: "1.5.0",
       displayVersion: "1.5",
       channel: "Development",
-      build: "118",
+      build: "119",
       status: "Development",
       tag: ""
     };
@@ -7187,6 +7187,17 @@
     }
 
 
+    function getCurrentLocalScheduleTime() {
+      const now = new Date();
+
+      return (
+        String(now.getHours()).padStart(2, "0") +
+        ":" +
+        String(now.getMinutes()).padStart(2, "0")
+      );
+    }
+
+
     function addManagerDraftRow() {
       const screenName =
         managerScreenSelect.value;
@@ -7201,7 +7212,7 @@
       hideManagerSaveMessage();
 
       draft.push({
-        time: "12:00",
+        time: getCurrentLocalScheduleTime(),
         endTime: "",
         image: "",
         fade: 1500
