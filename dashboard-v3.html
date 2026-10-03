@@ -21,10 +21,10 @@
     href="favicon.png"
   >
 
-    <link rel="stylesheet" href="css/dashboard.css?build=119">
+    <link rel="stylesheet" href="css/dashboard.css?build=120">
 
   <meta name="application-name" content="Mini Golf Signage Manager">
-  <meta name="dashboard-version" content="1.5.0">
+  <meta name="dashboard-version" content="1.6.0">
   <meta name="dashboard-channel" content="development">
   <meta name="dashboard-build" content="119">
 </head>
@@ -315,7 +315,7 @@
       <section class="mission-hero">
         <div class="mission-hero-copy">
           <div id="applicationVersionBadge" class="mission-version-badge">
-            Version 1.3 Development
+            Version 1.6 Development
           </div>
 
           <h2
@@ -354,7 +354,7 @@
           </div>
 
           <div class="mission-build-line">
-            <span id="applicationBuildLabel">Build 119</span>
+            <span id="applicationBuildLabel">Build 120</span>
             <span aria-hidden="true">•</span>
             <span id="missionEnvironmentLabel">Detecting Environment</span>
           </div>
@@ -434,8 +434,8 @@
       </section>
 
       <div class="release-candidate-banner" role="status">
-        <strong>Version 1.3 · Development 1</strong>
-        <span>Feature freeze active. Current testing is focused on regression, business-hours analytics, and field validation.</span>
+        <strong>Version 1.6 · Development · Build 120</strong>
+        <span>Staged Arcade Thursday/Friday split. Live routing stays unchanged until the shared Apps Script backend is explicitly activated.</span>
       </div>
 
       <!--
@@ -4874,7 +4874,7 @@
           </div>
 
           <div id="aboutApplicationVersion" class="about-product-version">
-            Version 1.5 Development · Build 119
+            Version 1.6 Development · Build 120
           </div>
 
           <div
@@ -4955,11 +4955,11 @@
       <div class="release-notes-current">
         <div>
           <div id="releaseNotesCurrentVersion" class="release-notes-version">
-            Version 1.5 Development
+            Version 1.6 Development
           </div>
 
           <div id="releaseNotesCurrentBuild" class="release-notes-build">
-            Build 119 · Development
+            Build 120 · Development
           </div>
         </div>
 
@@ -4970,6 +4970,19 @@
 
       <div class="release-notes-list">
         <article class="release-note-entry release-note-featured">
+          <div class="release-note-build">Build 120 · Development</div>
+          <h3>Arcade Regular Thursday / Friday Split (Staged)</h3>
+          <p>Prepares separate source tabs for Arcade Thursday and Friday while keeping the shared Apps Script live routing unchanged until the production-safe rollout is completed.</p>
+          <ul>
+            <li><strong>Thursday:</strong> <code>ArcadeRegularThu</code></li>
+            <li><strong>Friday:</strong> <code>ArcadeRegularFri</code></li>
+            <li><strong>Legacy:</strong> <code>ArcadeRegularThuFri</code> remains selectable for backward compatibility.</li>
+            <li><strong>Other screens:</strong> Golf, Slush, and Info Arcade continue using their existing Thursday/Friday tabs.</li>
+            <li><strong>Activation:</strong> requires two new Google Sheets tabs and an explicit Apps Script routing change in the shared backend.</li>
+          </ul>
+        </article>
+
+        <article class="release-note-entry">
           <div class="release-note-build">Build 119 · Development</div>
           <h3>Current-Time Schedule Rows</h3>
           <p>
@@ -5237,7 +5250,7 @@
     <span class="back-to-top-label">Top</span>
   </button>
 
-    <script src="js/dashboard.js?build=119" defer></script>
+    <script src="js/dashboard.js?build=120" defer></script>
 
 
   <div id="playerDetailsBackdrop" class="player-details-backdrop" hidden></div>
