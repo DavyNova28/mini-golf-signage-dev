@@ -22,11 +22,11 @@
       "version.json";
 
     const APPLICATION_RELEASE_FALLBACK = {
-      version: "1.6.0",
-      displayVersion: "1.6",
+      version: "1.6.1",
+      displayVersion: "1.6.1",
       channel: "Development",
-      build: "120",
-      status: "Development",
+      build: "121",
+      status: "Development Build",
       tag: ""
     };
 
@@ -63,11 +63,18 @@
       "image-index.json";
 
     /*
+     * Build 121: filename-only schedule entries live here.
+     * Keep this lowercase to match the GitHub folder exactly.
+     */
+    const SIGNAGE_IMAGE_FOLDER =
+      "assets";
+
+    /*
      * Player version expected before full rollout.
      * Must match PLAYER_VERSION in index.html.
      */
     const EXPECTED_PLAYER_VERSION =
-      "v3.1-heartbeat-1";
+      "v3.1-assets-121";
 
 
     /*
@@ -12286,24 +12293,74 @@
           imagePickerSearch.value
         );
 
-      const images =
-        repositoryImages
-          .filter(
-            filename =>
-              isImageFilename(
-                filename
-              )
+      const imagesByReference =
+        new Map();
+
+      repositoryImages
+        .filter(filename =>
+          isImageFilename(
+            filename
+          ) &&
+          isCentralizedImagePath(
+            filename
+          ) &&
+          !isDashboardAsset(
+            filename
           )
+        )
+        .forEach(repositoryPath => {
+          const reference =
+            getScheduleImageReference(
+              repositoryPath
+            );
+
+          if (!reference) {
+            return;
+          }
+
+          const normalizedReference =
+            normalizeRepositoryPath(
+              reference
+            );
+
+          const existing =
+            imagesByReference.get(
+              normalizedReference
+            );
+
+          const isCentralizedAsset =
+            isCentralizedImagePath(
+              repositoryPath
+            );
+
+          if (
+            !existing ||
+            isCentralizedAsset
+          ) {
+            imagesByReference.set(
+              normalizedReference,
+              {
+                repositoryPath,
+                reference
+              }
+            );
+          }
+        });
+
+      const images =
+        Array.from(
+          imagesByReference.values()
+        )
           .filter(
-            filename =>
+            image =>
               !query ||
               normalizeImagePickerSearchText(
-                filename
+                image.reference
               ).includes(query)
           )
           .sort((a, b) =>
-            a.localeCompare(
-              b,
+            a.reference.localeCompare(
+              b.reference,
               undefined,
               {
                 sensitivity:
@@ -12324,21 +12381,21 @@
 
       imagePickerGrid.innerHTML =
         images
-          .map(filename => `
+          .map(image => `
             <article
               class="image-picker-card"
-              data-picker-filename="${escapeHtml(filename)}"
-              title="${escapeHtml(filename)}"
+              data-picker-filename="${escapeHtml(image.reference)}"
+              title="${escapeHtml(image.reference)}"
             >
               <div class="image-picker-thumb">
                 <img
-                  src="${buildImageUrl(filename)}"
+                  src="${buildRepositoryImageUrl(image.repositoryPath)}"
                   alt=""
                 >
               </div>
 
               <div class="image-picker-card-name">
-                ${escapeHtml(filename)}
+                ${escapeHtml(image.reference)}
               </div>
             </article>
           `)
@@ -12377,12 +12434,12 @@
           return;
         }
 
-        const exact =
+        const exactRepositoryPath =
           findExactRepositoryFilename(
             typed
           );
 
-        if (!exact) {
+        if (!exactRepositoryPath) {
           issues.push({
             rowIndex:
               index,
@@ -12400,7 +12457,15 @@
           return;
         }
 
-        if (exact !== typed) {
+        const exactScheduleReference =
+          getScheduleImageReference(
+            exactRepositoryPath,
+            typed
+          );
+
+        if (
+          exactScheduleReference !== typed
+        ) {
           issues.push({
             rowIndex:
               index,
@@ -12409,7 +12474,7 @@
               typed,
 
             exact:
-              exact,
+              exactScheduleReference,
 
             type:
               "capitalization"
@@ -12544,7 +12609,9 @@
     ) {
       const normalized =
         normalizeRepositoryPath(
-          typedFilename
+          resolveSignageImagePath(
+            typedFilename
+          )
         );
 
       return repositoryImages.find(
@@ -12601,12 +12668,12 @@
             return;
           }
 
-          const exact =
+          const exactRepositoryPath =
             findExactRepositoryFilename(
               value
             );
 
-          if (!exact) {
+          if (!exactRepositoryPath) {
             status.classList.add(
               "invalid"
             );
@@ -12617,13 +12684,21 @@
             return;
           }
 
-          if (exact !== value) {
+          const exactScheduleReference =
+            getScheduleImageReference(
+              exactRepositoryPath,
+              value
+            );
+
+          if (
+            exactScheduleReference !== value
+          ) {
             status.classList.add(
               "invalid"
             );
 
             status.textContent =
-              `Capitalization mismatch. Exact name: ${exact}`;
+              `Capitalization mismatch. Exact name: ${exactScheduleReference}`;
 
             return;
           }
@@ -12797,7 +12872,9 @@
           image => {
             referencedExactByNormalized.set(
               normalizeRepositoryPath(
-                image.filename
+                resolveSignageImagePath(
+                  image.filename
+                )
               ),
               image.filename
             );
@@ -29980,13 +30057,163 @@
       );
     }
 
-    function buildImageUrl(filename) {
-      return String(filename)
+    function isAbsoluteImageUrl(
+      value
+    ) {
+      return (
+        /^(?:https?:)?\/\//i.test(
+          String(value || "")
+        ) ||
+        /^(?:data|blob):/i.test(
+          String(value || "")
+        )
+      );
+    }
+
+
+    function resolveSignageImagePath(
+      filename
+    ) {
+      const cleanFilename =
+        String(
+          filename || ""
+        )
+          .trim()
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "");
+
+      if (!cleanFilename) {
+        return "";
+      }
+
+      if (
+        isAbsoluteImageUrl(
+          cleanFilename
+        ) ||
+        cleanFilename.includes("/")
+      ) {
+        return cleanFilename;
+      }
+
+      return (
+        `${SIGNAGE_IMAGE_FOLDER}/` +
+        cleanFilename
+      );
+    }
+
+
+    function isCentralizedImagePath(
+      repositoryPath
+    ) {
+      const normalized =
+        normalizeRepositoryPath(
+          repositoryPath
+        );
+
+      const folderPrefix =
+        `${normalizeRepositoryPath(SIGNAGE_IMAGE_FOLDER)}/`;
+
+      return normalized.startsWith(
+        folderPrefix
+      );
+    }
+
+
+    function getScheduleImageReference(
+      repositoryPath,
+      typedReference = ""
+    ) {
+      const exactPath =
+        String(
+          repositoryPath || ""
+        )
+          .trim()
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "");
+
+      const typed =
+        String(
+          typedReference || ""
+        )
+          .trim()
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "");
+
+      if (!exactPath) {
+        return "";
+      }
+
+      /*
+       * Explicit paths stay explicit. Filename-only entries use the
+       * centralized folder internally but remain filename-only in Sheets.
+       */
+      if (
+        typed &&
+        (
+          isAbsoluteImageUrl(typed) ||
+          typed.includes("/")
+        )
+      ) {
+        return exactPath;
+      }
+
+      if (
+        isCentralizedImagePath(
+          exactPath
+        )
+      ) {
+        return exactPath
+          .split("/")
+          .slice(1)
+          .join("/");
+      }
+
+      return exactPath;
+    }
+
+
+    function encodeImagePath(
+      path
+    ) {
+      const cleanPath =
+        String(
+          path || ""
+        ).trim();
+
+      if (
+        isAbsoluteImageUrl(
+          cleanPath
+        )
+      ) {
+        return encodeURI(
+          cleanPath
+        );
+      }
+
+      return cleanPath
         .split("/")
         .map(part =>
           encodeURIComponent(part)
         )
         .join("/");
+    }
+
+
+    function buildRepositoryImageUrl(
+      repositoryPath
+    ) {
+      return encodeImagePath(
+        repositoryPath
+      );
+    }
+
+
+    function buildImageUrl(filename) {
+      return encodeImagePath(
+        resolveSignageImagePath(
+          filename
+        )
+      );
     }
 
     function createSafeId(value) {
