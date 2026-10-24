@@ -2386,6 +2386,12 @@
     const SIGNAGE_PAGE = "index.html";
 
     /*
+     * Build 121: filename-only schedule images live in /assets/.
+     */
+    const SIGNAGE_IMAGE_FOLDER =
+      "assets";
+
+    /*
      * =====================================================
      * BRAND SETTINGS
      * =====================================================
@@ -4703,7 +4709,45 @@
     }
 
     function buildImageUrl(filename) {
-      return String(filename)
+      const cleanFilename =
+        String(
+          filename || ""
+        )
+          .trim()
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "");
+
+      if (!cleanFilename) {
+        return "";
+      }
+
+      const resolvedPath =
+        (
+          /^(?:https?:)?\/\//i.test(
+            cleanFilename
+          ) ||
+          /^(?:data|blob):/i.test(
+            cleanFilename
+          ) ||
+          cleanFilename.includes("/")
+        )
+          ? cleanFilename
+          : `${SIGNAGE_IMAGE_FOLDER}/${cleanFilename}`;
+
+      if (
+        /^(?:https?:)?\/\//i.test(
+          resolvedPath
+        ) ||
+        /^(?:data|blob):/i.test(
+          resolvedPath
+        )
+      ) {
+        return encodeURI(
+          resolvedPath
+        );
+      }
+
+      return resolvedPath
         .split("/")
         .map(part =>
           encodeURIComponent(part)

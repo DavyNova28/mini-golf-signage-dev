@@ -1,13 +1,13 @@
 {
-  "version": "1.6",
-  "displayVersion": "1.6",
+  "version": "1.6.1",
+  "displayVersion": "1.6.1",
   "channel": "Development",
-  "build": "120",
-  "status": "Development",
-  "releaseName": "Arcade Thursday / Friday Split - Staged",
+  "build": "121",
+  "status": "Development Build",
+  "releaseName": "Centralized Image Assets",
   "tag": "",
-  "basedOnVersion": "v1.5.1",
-  "basedOnBuild": "119",
-  "feature": "Adds ArcadeRegularThu and ArcadeRegularFri to Holiday source choices while retaining ArcadeRegularThuFri as a legacy choice. Server routing change is staged separately and NOT activated.",
+  "basedOnVersion": "v1.6.0",
+  "basedOnBuild": "120",
+  "feature": "Filename-only schedule image references automatically resolve to the lowercase assets folder while explicit paths remain supported; Dashboard previews, picker, and image-health validation understand the centralized path.",
   "label": "Development"
 }

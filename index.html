@@ -180,7 +180,7 @@
      * contacted at all.
      */
     const PLAYER_VERSION =
-      "v3.1-heartbeat-1";
+      "v3.1-assets-121";
 
     const ACTIVE_FEED_POLL_MS = 30000;
 
@@ -1101,17 +1101,73 @@
      * IMAGE URLS
      * =====================================================
      */
-    function getImageUrl(filename) {
+    const SIGNAGE_IMAGE_FOLDER =
+      "assets";
+
+
+    function resolveSignageImagePath(
+      filename
+    ) {
+      const cleanFilename =
+        String(
+          filename || ""
+        )
+          .trim()
+          .replace(/\\/g, "/")
+          .replace(/^\.\//, "");
+
+      if (!cleanFilename) {
+        return "";
+      }
+
       /*
-       * The image may be in the same folder as index.html:
-       *
-       * image1.jpg
-       *
-       * Or inside a GitHub folder:
-       *
-       * arcade/image1.jpg
+       * Preserve absolute URLs and any explicitly supplied folder path.
+       * Filename-only schedule entries automatically use /assets/.
        */
-      return encodeURI(filename);
+      if (
+        /^(?:https?:)?\/\//i.test(
+          cleanFilename
+        ) ||
+        /^(?:data|blob):/i.test(
+          cleanFilename
+        ) ||
+        cleanFilename.includes("/")
+      ) {
+        return cleanFilename;
+      }
+
+      return (
+        `${SIGNAGE_IMAGE_FOLDER}/` +
+        cleanFilename
+      );
+    }
+
+
+    function getImageUrl(filename) {
+      const resolvedPath =
+        resolveSignageImagePath(
+          filename
+        );
+
+      if (
+        /^(?:https?:)?\/\//i.test(
+          resolvedPath
+        ) ||
+        /^(?:data|blob):/i.test(
+          resolvedPath
+        )
+      ) {
+        return encodeURI(
+          resolvedPath
+        );
+      }
+
+      return resolvedPath
+        .split("/")
+        .map(part =>
+          encodeURIComponent(part)
+        )
+        .join("/");
     }
 
     /*
