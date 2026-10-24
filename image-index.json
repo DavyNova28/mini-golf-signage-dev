@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-24T01:37:08.793093+00:00",
-  "count": 39,
+  "generatedAt": "2026-10-24T01:37:39.030878+00:00",
+  "count": 37,
   "images": [
     "assets/AfficheCentreFerme.jpg",
     "assets/AfficheMiniGolfTermine.jpg",
@@ -38,8 +38,6 @@
     "dashboard-logo.png",
     "favicon.png",
     "JurassiqueLogo.jpg",
-    "JurassiqueLogo.png",
-    "SlushFreezeNoTickets.jpg",
-    "SlushPrice(No Tickets).jpg"
+    "JurassiqueLogo.png"
   ]
 }
